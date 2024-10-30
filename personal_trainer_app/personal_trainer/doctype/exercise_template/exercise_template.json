@@ -1,0 +1,156 @@
+{
+    "actions": [],
+    "allow_copy": 1,
+    "allow_rename": 1,
+    "autoname": "field:title",
+    "creation": "2024-10-23 03:13:01.048955",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+     "title",
+     "column_break_kvpw",
+     "enabled",
+     "section_break_skjw",
+     "exercises",
+     "filters_section",
+     "primary_muscle",
+     "level",
+     "column_break_lxqu",
+     "equipment",
+     "category",
+     "column_break_ozxy",
+     "force",
+     "mechanic",
+     "column_break_lovb",
+     "html_vveb",
+     "clear_filters"
+    ],
+    "fields": [
+     {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "label": "Title",
+      "unique": 1
+     },
+     {
+      "fieldname": "column_break_kvpw",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "exercises",
+      "fieldtype": "Table",
+      "label": "Exercises",
+      "options": "Exercises"
+     },
+     {
+      "fieldname": "filters_section",
+      "fieldtype": "Section Break",
+      "label": "Filters"
+     },
+     {
+      "fieldname": "primary_muscle",
+      "fieldtype": "Autocomplete",
+      "label": "Primary Muscle",
+      "options": "\nAbductors\nNeck\nForearms\nTraps\nTriceps\nLats\nLower Back\nGlutes\nCalves\nMiddle Back\nChest\nShoulders\nBiceps\nQuadriceps\nAdductors\nHamstrings\nAbdominals"
+     },
+     {
+      "fieldname": "level",
+      "fieldtype": "Select",
+      "label": "Level",
+      "options": "\nBeginner\nIntermediate\nExpert"
+     },
+     {
+      "fieldname": "column_break_lxqu",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "equipment",
+      "fieldtype": "Autocomplete",
+      "label": "Equipment",
+      "options": "\nBody\nMachine\nFoam Roll\nKettlebells\nDumbbell\nCable\nBarbell\nBands\nMedicine Ball\nExercise Ball\nEZ Curl Bar\nOther"
+     },
+     {
+      "fieldname": "category",
+      "fieldtype": "Autocomplete",
+      "label": "Category",
+      "options": "\nStrength\nStretching\nPlyometrics\nStrongman\nPowerlifting\nCardio\nOlympic Weightlifting"
+     },
+     {
+      "fieldname": "column_break_ozxy",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "force",
+      "fieldtype": "Select",
+      "label": "Force",
+      "options": "\nPush\nPull\nCombination\nStatic"
+     },
+     {
+      "fieldname": "mechanic",
+      "fieldtype": "Select",
+      "label": "Mechanic",
+      "options": "\nCompound\nIsolation"
+     },
+     {
+      "fieldname": "column_break_lovb",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "clear_filters",
+      "fieldtype": "Button",
+      "label": "Clear Filters"
+     },
+     {
+      "default": "1",
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "label": "Enabled"
+     },
+     {
+      "fieldname": "html_vveb",
+      "fieldtype": "HTML",
+      "options": "<div style=\"height:100px;\"></div>"
+     },
+     {
+      "fieldname": "section_break_skjw",
+      "fieldtype": "Section Break"
+     }
+    ],
+    "hide_toolbar": 1,
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-10-25 00:52:36.751149",
+    "modified_by": "Administrator",
+    "module": "Personal Trainer",
+    "name": "Exercise Template",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+     },
+     {
+      "create": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Coach",
+      "share": 1,
+      "write": 1
+     }
+    ],
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": []
+   }

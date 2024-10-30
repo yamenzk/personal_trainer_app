@@ -1,0 +1,509 @@
+{
+    "actions": [],
+    "allow_copy": 1,
+    "allow_rename": 1,
+    "creation": "2024-10-23 14:21:23.733713",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+     "exercise_tab",
+     "column_break_cdhy",
+     "column_break_ezec",
+     "column_break_orwd",
+     "fetch_premade_exercises",
+     "fetched",
+     "food_tab",
+     "fdc_api",
+     "column_break_enjm",
+     "auto_image",
+     "unsplash_api",
+     "column_break_qdrr",
+     "fetch_premade_foods",
+     "food_fetched",
+     "targets_tab",
+     "column_break_oomh",
+     "default_height",
+     "default_weight",
+     "default_gender",
+     "default_goal",
+     "default_age",
+     "column_break_aysa",
+     "bmr_weight_multiplier",
+     "bmr_height_multiplier",
+     "bmr_age_multiplier",
+     "bmr_male_constant",
+     "bmr_female_constant",
+     "column_break_kzfg",
+     "activity_factor_sedentary",
+     "activity_factor_light",
+     "activity_factor_moderate",
+     "activity_factor_very",
+     "activity_factor_extra",
+     "calorie_adjustment_column",
+     "weight_loss_calorie_deficit",
+     "muscle_gain_calorie_surplus",
+     "weight_gain_calorie_surplus",
+     "section_break_ovax",
+     "weight_loss_column",
+     "protein_multiplier_loss",
+     "carb_multiplier_loss",
+     "fat_multiplier_loss",
+     "muscle_building_column",
+     "protein_multiplier_building",
+     "carb_multiplier_building",
+     "fat_multiplier_building",
+     "weight_gain_column",
+     "protein_multiplier_gain",
+     "carb_multiplier_gain",
+     "fat_multiplier_gain",
+     "maintenance_column",
+     "protein_multiplier_maintenance",
+     "carb_multiplier_maintenance",
+     "fat_multiplier_maintenance",
+     "section_break_rvob",
+     "protein_calories_per_gram",
+     "column_break_aoes",
+     "carb_calories_per_gram",
+     "column_break_rljg",
+     "fat_calories_per_gram",
+     "water_column",
+     "water_multiplier",
+     "water_bonus_light",
+     "water_bonus_moderate",
+     "water_bonus_very_active",
+     "water_bonus_extra_active"
+    ],
+    "fields": [
+     {
+      "fieldname": "column_break_aysa",
+      "fieldtype": "Column Break",
+      "label": "BMR"
+     },
+     {
+      "fieldname": "column_break_oomh",
+      "fieldtype": "Column Break",
+      "label": "Personal"
+     },
+     {
+      "default": "175",
+      "fieldname": "default_height",
+      "fieldtype": "Float",
+      "label": "Default Height (cm)",
+      "precision": "1"
+     },
+     {
+      "default": "80",
+      "fieldname": "default_weight",
+      "fieldtype": "Float",
+      "label": "Default Weight (kg)",
+      "precision": "1"
+     },
+     {
+      "default": "Male",
+      "fieldname": "default_gender",
+      "fieldtype": "Select",
+      "label": "Default Gender",
+      "options": "\nMale\nFemale"
+     },
+     {
+      "default": "Weight Loss",
+      "fieldname": "default_goal",
+      "fieldtype": "Select",
+      "label": "Default Goal",
+      "options": "\nWeight Loss\nWeight Gain\nMaintenance\nMuscle Building"
+     },
+     {
+      "fieldname": "section_break_ovax",
+      "fieldtype": "Section Break"
+     },
+     {
+      "fieldname": "weight_loss_column",
+      "fieldtype": "Column Break",
+      "label": "Weight Loss"
+     },
+     {
+      "default": "2.2",
+      "fieldname": "protein_multiplier_loss",
+      "fieldtype": "Float",
+      "label": "Protein Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "2.5",
+      "fieldname": "carb_multiplier_loss",
+      "fieldtype": "Float",
+      "label": "Carb Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "0.8",
+      "fieldname": "fat_multiplier_loss",
+      "fieldtype": "Float",
+      "label": "Fat Multiplier",
+      "precision": "1"
+     },
+     {
+      "fieldname": "muscle_building_column",
+      "fieldtype": "Column Break",
+      "label": "Muscle Building"
+     },
+     {
+      "default": "2.2",
+      "fieldname": "protein_multiplier_building",
+      "fieldtype": "Float",
+      "label": "Protein Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "4",
+      "fieldname": "carb_multiplier_building",
+      "fieldtype": "Float",
+      "label": "Carb Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "0.9",
+      "fieldname": "fat_multiplier_building",
+      "fieldtype": "Float",
+      "label": "Fat Multiplier",
+      "precision": "1"
+     },
+     {
+      "fieldname": "weight_gain_column",
+      "fieldtype": "Column Break",
+      "label": "Weight Gain"
+     },
+     {
+      "default": "2",
+      "fieldname": "protein_multiplier_gain",
+      "fieldtype": "Float",
+      "label": "Protein Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "4.5",
+      "fieldname": "carb_multiplier_gain",
+      "fieldtype": "Float",
+      "label": "Carb Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "1",
+      "fieldname": "fat_multiplier_gain",
+      "fieldtype": "Float",
+      "label": "Fat Multiplier",
+      "precision": "1"
+     },
+     {
+      "fieldname": "maintenance_column",
+      "fieldtype": "Column Break",
+      "label": "Maintenance"
+     },
+     {
+      "default": "1.8",
+      "fieldname": "protein_multiplier_maintenance",
+      "fieldtype": "Float",
+      "label": "Protein Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "3.5",
+      "fieldname": "carb_multiplier_maintenance",
+      "fieldtype": "Float",
+      "label": "Carb Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "0.9",
+      "fieldname": "fat_multiplier_maintenance",
+      "fieldtype": "Float",
+      "label": "Fat Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "35",
+      "fieldname": "water_multiplier",
+      "fieldtype": "Float",
+      "label": "Water Multiplier",
+      "precision": "1"
+     },
+     {
+      "default": "10",
+      "fieldname": "bmr_weight_multiplier",
+      "fieldtype": "Float",
+      "label": "BMR Weight Multiplier",
+      "precision": "2"
+     },
+     {
+      "default": "6.25",
+      "fieldname": "bmr_height_multiplier",
+      "fieldtype": "Float",
+      "label": "BMR Height Multiplier",
+      "precision": "2"
+     },
+     {
+      "default": "5",
+      "fieldname": "bmr_age_multiplier",
+      "fieldtype": "Float",
+      "label": "BMR Age Multiplier",
+      "precision": "2"
+     },
+     {
+      "default": "5",
+      "fieldname": "bmr_male_constant",
+      "fieldtype": "Float",
+      "label": "BMR Male Constant",
+      "precision": "2"
+     },
+     {
+      "default": "161",
+      "fieldname": "bmr_female_constant",
+      "fieldtype": "Float",
+      "label": "BMR Female Constant",
+      "precision": "2"
+     },
+     {
+      "fieldname": "column_break_kzfg",
+      "fieldtype": "Column Break",
+      "label": "Activity"
+     },
+     {
+      "default": "1.2",
+      "fieldname": "activity_factor_sedentary",
+      "fieldtype": "Float",
+      "label": "Activity Factor Sedentary",
+      "precision": "3"
+     },
+     {
+      "default": "1.375",
+      "fieldname": "activity_factor_light",
+      "fieldtype": "Float",
+      "label": "Activity Factor Light",
+      "precision": "3"
+     },
+     {
+      "default": "1.55",
+      "fieldname": "activity_factor_moderate",
+      "fieldtype": "Float",
+      "label": "Activity Factor Moderate",
+      "precision": "3"
+     },
+     {
+      "default": "1.725",
+      "fieldname": "activity_factor_very",
+      "fieldtype": "Float",
+      "label": "Activity Factor Very",
+      "precision": "3"
+     },
+     {
+      "default": "1.9",
+      "fieldname": "activity_factor_extra",
+      "fieldtype": "Float",
+      "label": "Activity Factor Extra",
+      "precision": "3"
+     },
+     {
+      "fieldname": "calorie_adjustment_column",
+      "fieldtype": "Column Break",
+      "label": "Calorie Adjustment"
+     },
+     {
+      "default": "-500",
+      "fieldname": "weight_loss_calorie_deficit",
+      "fieldtype": "Int",
+      "label": "Weight Loss Calorie Deficit"
+     },
+     {
+      "default": "300",
+      "fieldname": "muscle_gain_calorie_surplus",
+      "fieldtype": "Int",
+      "label": "Muscle Gain Calorie Surplus"
+     },
+     {
+      "default": "500",
+      "fieldname": "weight_gain_calorie_surplus",
+      "fieldtype": "Int",
+      "label": "Weight Gain Calorie Surplus"
+     },
+     {
+      "fieldname": "section_break_rvob",
+      "fieldtype": "Section Break"
+     },
+     {
+      "default": "4",
+      "fieldname": "protein_calories_per_gram",
+      "fieldtype": "Float",
+      "label": "Calories per gram of Protein",
+      "precision": "1"
+     },
+     {
+      "fieldname": "column_break_aoes",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "4",
+      "fieldname": "carb_calories_per_gram",
+      "fieldtype": "Float",
+      "label": "Calories per gram of Carbs",
+      "precision": "1"
+     },
+     {
+      "fieldname": "column_break_rljg",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "9",
+      "fieldname": "fat_calories_per_gram",
+      "fieldtype": "Float",
+      "label": "Calories per gram of Fat",
+      "precision": "1"
+     },
+     {
+      "fieldname": "water_column",
+      "fieldtype": "Column Break",
+      "label": "Water"
+     },
+     {
+      "default": "250",
+      "fieldname": "water_bonus_light",
+      "fieldtype": "Int",
+      "label": "Water Bonus Light"
+     },
+     {
+      "default": "500",
+      "fieldname": "water_bonus_moderate",
+      "fieldtype": "Int",
+      "label": "Water Bonus Moderate"
+     },
+     {
+      "default": "750",
+      "fieldname": "water_bonus_very_active",
+      "fieldtype": "Int",
+      "label": "Water Bonus Very Active"
+     },
+     {
+      "default": "1000",
+      "fieldname": "water_bonus_extra_active",
+      "fieldtype": "Int",
+      "label": "Water Bonus Extra Active"
+     },
+     {
+      "fieldname": "food_tab",
+      "fieldtype": "Tab Break",
+      "label": "Food"
+     },
+     {
+      "fieldname": "column_break_enjm",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "targets_tab",
+      "fieldtype": "Tab Break",
+      "label": "Targets"
+     },
+     {
+      "default": "0",
+      "fieldname": "auto_image",
+      "fieldtype": "Check",
+      "label": "Automatically Fetch Images"
+     },
+     {
+      "fieldname": "fdc_api",
+      "fieldtype": "Data",
+      "label": "FDC API Key"
+     },
+     {
+      "depends_on": "eval:doc.auto_image",
+      "fieldname": "unsplash_api",
+      "fieldtype": "Data",
+      "label": "Unsplash API Key",
+      "mandatory_depends_on": "eval:doc.auto_image"
+     },
+     {
+      "fieldname": "exercise_tab",
+      "fieldtype": "Tab Break",
+      "label": "Exercise"
+     },
+     {
+      "fieldname": "column_break_cdhy",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "column_break_orwd",
+      "fieldtype": "Column Break"
+     },
+     {
+      "depends_on": "eval:!doc.fetched",
+      "fieldname": "fetch_premade_exercises",
+      "fieldtype": "Button",
+      "label": "Fetch Premade Exercises"
+     },
+     {
+      "default": "0",
+      "fieldname": "fetched",
+      "fieldtype": "Check",
+      "label": "Fetched",
+      "read_only": 1
+     },
+     {
+      "default": "30",
+      "fieldname": "default_age",
+      "fieldtype": "Int",
+      "label": "Default Age"
+     },
+     {
+      "fieldname": "column_break_ezec",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "column_break_qdrr",
+      "fieldtype": "Column Break"
+     },
+     {
+      "depends_on": "eval:!doc.food_fetched",
+      "fieldname": "fetch_premade_foods",
+      "fieldtype": "Button",
+      "label": "Fetch Premade Foods"
+     },
+     {
+      "default": "0",
+      "fieldname": "food_fetched",
+      "fieldtype": "Check",
+      "label": "Fetched",
+      "read_only": 1
+     }
+    ],
+    "hide_toolbar": 1,
+    "index_web_pages_for_search": 1,
+    "issingle": 1,
+    "links": [],
+    "modified": "2024-10-24 03:39:09.403271",
+    "modified_by": "Administrator",
+    "module": "Personal Trainer",
+    "name": "PT Settings",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+     },
+     {
+      "create": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "Coach",
+      "share": 1,
+      "write": 1
+     }
+    ],
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": []
+   }

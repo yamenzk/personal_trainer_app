@@ -1,0 +1,161 @@
+{
+    "actions": [],
+    "allow_copy": 1,
+    "allow_rename": 1,
+    "autoname": "field:exercise",
+    "creation": "2024-10-23 02:51:04.176369",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+     "exercise",
+     "category",
+     "equipment",
+     "force",
+     "mechanic",
+     "level",
+     "column_break_jzzw",
+     "primary_muscle",
+     "secondary_muscles",
+     "enabled",
+     "column_break_abqo",
+     "thumbnail",
+     "starting",
+     "ending",
+     "video",
+     "instructions"
+    ],
+    "fields": [
+     {
+      "fieldname": "category",
+      "fieldtype": "Autocomplete",
+      "in_preview": 1,
+      "label": "Category",
+      "options": "\nStrength\nStretching\nPlyometrics\nStrongman\nPowerlifting\nCardio\nOlympic Weightlifting"
+     },
+     {
+      "fieldname": "equipment",
+      "fieldtype": "Autocomplete",
+      "label": "Equipment",
+      "options": "\nBody\nMachine\nFoam Roll\nKettlebells\nDumbbell\nCable\nBarbell\nBands\nMedicine Ball\nExercise Ball\nEZ Curl Bar\nOther"
+     },
+     {
+      "fieldname": "force",
+      "fieldtype": "Select",
+      "label": "Force",
+      "options": "\nPush\nPull\nCombination\nStatic"
+     },
+     {
+      "fieldname": "mechanic",
+      "fieldtype": "Select",
+      "label": "Mechanic",
+      "options": "\nCompound\nIsolation"
+     },
+     {
+      "fieldname": "level",
+      "fieldtype": "Select",
+      "in_preview": 1,
+      "label": "Level",
+      "options": "\nBeginner\nIntermediate\nExpert"
+     },
+     {
+      "fieldname": "column_break_jzzw",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "primary_muscle",
+      "fieldtype": "Autocomplete",
+      "in_preview": 1,
+      "label": "Primary Muscle",
+      "options": "\nAbductors\nNeck\nForearms\nTraps\nTriceps\nLats\nLower Back\nGlutes\nCalves\nMiddle Back\nChest\nShoulders\nBiceps\nQuadriceps\nAdductors\nHamstrings\nAbdominals"
+     },
+     {
+      "fieldname": "column_break_abqo",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "thumbnail",
+      "fieldtype": "Attach Image",
+      "label": "Thumbnail"
+     },
+     {
+      "fieldname": "starting",
+      "fieldtype": "Attach Image",
+      "in_preview": 1,
+      "label": "Starting"
+     },
+     {
+      "fieldname": "ending",
+      "fieldtype": "Attach Image",
+      "label": "Ending"
+     },
+     {
+      "fieldname": "video",
+      "fieldtype": "Attach",
+      "label": "Video"
+     },
+     {
+      "fieldname": "instructions",
+      "fieldtype": "Small Text",
+      "label": "Instructions"
+     },
+     {
+      "fieldname": "secondary_muscles",
+      "fieldtype": "Table",
+      "label": "Secondary Muscles",
+      "options": "Muscles"
+     },
+     {
+      "default": "1",
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "label": "Enabled"
+     },
+     {
+      "fieldname": "exercise",
+      "fieldtype": "Data",
+      "in_preview": 1,
+      "label": "Exercise",
+      "unique": 1
+     }
+    ],
+    "hide_toolbar": 1,
+    "image_field": "starting",
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "make_attachments_public": 1,
+    "modified": "2024-10-25 00:48:50.571824",
+    "modified_by": "Administrator",
+    "module": "Personal Trainer",
+    "name": "Exercise",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+     },
+     {
+      "create": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Coach",
+      "share": 1,
+      "write": 1
+     }
+    ],
+    "show_preview_popup": 1,
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": []
+   }

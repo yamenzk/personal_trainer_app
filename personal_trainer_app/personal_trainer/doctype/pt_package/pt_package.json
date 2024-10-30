@@ -1,0 +1,134 @@
+{
+    "actions": [],
+    "allow_copy": 1,
+    "allow_rename": 1,
+    "autoname": "field:title",
+    "creation": "2024-10-23 02:31:37.634690",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+     "enabled",
+     "column_break_ccbf",
+     "title",
+     "duration",
+     "rate",
+     "column_break_lpto",
+     "workout_plan",
+     "meal_plan",
+     "consultation",
+     "consultation_sessions"
+    ],
+    "fields": [
+     {
+      "default": "0",
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "label": "Enabled"
+     },
+     {
+      "fieldname": "column_break_ccbf",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "label": "Title",
+      "reqd": 1,
+      "unique": 1
+     },
+     {
+      "fieldname": "duration",
+      "fieldtype": "Duration",
+      "hide_seconds": 1,
+      "in_list_view": 1,
+      "label": "Duration",
+      "reqd": 1
+     },
+     {
+      "fieldname": "rate",
+      "fieldtype": "Currency",
+      "in_list_view": 1,
+      "label": "Rate",
+      "reqd": 1
+     },
+     {
+      "fieldname": "column_break_lpto",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "workout_plan",
+      "fieldtype": "Check",
+      "in_list_view": 1,
+      "label": "Workout Plan"
+     },
+     {
+      "default": "0",
+      "fieldname": "meal_plan",
+      "fieldtype": "Check",
+      "in_list_view": 1,
+      "label": "Meal Plan"
+     },
+     {
+      "default": "0",
+      "fieldname": "consultation",
+      "fieldtype": "Check",
+      "in_list_view": 1,
+      "label": "Consultation"
+     },
+     {
+      "depends_on": "eval:doc.consultation",
+      "fieldname": "consultation_sessions",
+      "fieldtype": "Int",
+      "label": "Consultation Sessions",
+      "mandatory_depends_on": "eval:doc.consultation"
+     }
+    ],
+    "hide_toolbar": 1,
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-10-23 13:31:27.040350",
+    "modified_by": "Administrator",
+    "module": "Personal Trainer",
+    "name": "PT Package",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+     },
+     {
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Guest",
+      "share": 1
+     },
+     {
+      "create": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Coach",
+      "share": 1,
+      "write": 1
+     }
+    ],
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": []
+   }

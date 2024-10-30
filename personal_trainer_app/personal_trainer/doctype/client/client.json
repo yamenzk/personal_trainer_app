@@ -1,0 +1,335 @@
+{
+    "actions": [],
+    "allow_copy": 1,
+    "autoname": "hash",
+    "creation": "2024-10-23 02:11:27.282939",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+     "personal_tab",
+     "image",
+     "html_lzjc",
+     "enabled",
+     "column_break_czkk",
+     "client_name",
+     "date_of_birth",
+     "age",
+     "gender",
+     "column_break_nwph",
+     "mobile",
+     "email",
+     "nationality",
+     "referred_by",
+     "preferences_tab",
+     "allow_preference_update",
+     "blocked_foods",
+     "column_break_avdn",
+     "goal",
+     "target_weight",
+     "column_break_vtgt",
+     "meals",
+     "workouts",
+     "column_break_xpjj",
+     "equipment",
+     "activity_level",
+     "bmr_tab",
+     "height",
+     "weight",
+     "request_weight",
+     "adjust_factor",
+     "factor",
+     "column_break_ljst",
+     "adjust",
+     "target_proteins",
+     "target_carbs",
+     "target_fats",
+     "target_energy",
+     "target_water",
+     "last_update",
+     "logs_tab",
+     "exercise_performance"
+    ],
+    "fields": [
+     {
+      "fieldname": "personal_tab",
+      "fieldtype": "Tab Break",
+      "label": "Personal"
+     },
+     {
+      "depends_on": "eval:!doc.image",
+      "fieldname": "image",
+      "fieldtype": "Attach Image",
+      "in_preview": 1,
+      "label": "Image"
+     },
+     {
+      "fieldname": "html_lzjc",
+      "fieldtype": "HTML",
+      "options": "<img src=\"{{doc.image}}\" width=\"250\">"
+     },
+     {
+      "fieldname": "age",
+      "fieldtype": "Read Only",
+      "in_preview": 1,
+      "label": "Age",
+      "read_only": 1
+     },
+     {
+      "fieldname": "column_break_czkk",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "client_name",
+      "fieldtype": "Data",
+      "in_preview": 1,
+      "label": "Client Name"
+     },
+     {
+      "fieldname": "date_of_birth",
+      "fieldtype": "Date",
+      "label": "Date of Birth"
+     },
+     {
+      "fieldname": "gender",
+      "fieldtype": "Select",
+      "label": "Gender",
+      "options": "\nMale\nFemale"
+     },
+     {
+      "fieldname": "column_break_nwph",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "mobile",
+      "fieldtype": "Data",
+      "label": "Mobile"
+     },
+     {
+      "fieldname": "email",
+      "fieldtype": "Data",
+      "label": "Email"
+     },
+     {
+      "fieldname": "nationality",
+      "fieldtype": "Autocomplete",
+      "label": "Nationality",
+      "options": "Afghanistan\nAlbania\nAlgeria\nAndorra\nAngola\nAntigua and Barbuda\nArgentina\nArmenia\nAustralia\nAustria\nAzerbaijan\nThe Bahamas\nBahrain\nBangladesh\nBarbados\nBelarus\nBelgium\nBelize\nBenin\nBhutan\nBolivia\nBosnia and Herzegovina\nBotswana\nBrazil\nBrunei\nBulgaria\nBurkina Faso\nBurundi\nCambodia\nCameroon\nCanada\nCape Verde\nCentral African Republic\nChad\nChile\nChina\nColombia\nComoros\nCongo, Republic of the\nCongo, Democratic Republic of the\nCosta Rica\nCote d'Ivoire\nCroatia\nCuba\nCyprus\nCzech Republic\nDenmark\nDjibouti\nDominica\nDominican Republic\nEast Timor (Timor-Leste)\nEcuador\nEgypt\nEl Salvador\nEquatorial Guinea\nEritrea\nEstonia\nEthiopia\nFiji\nFinland\nFrance\nGabon\nThe Gambia\nGeorgia\nGermany\nGhana\nGreece\nGrenada\nGuatemala\nGuinea\nGuinea-Bissau\nGuyana\nHaiti\nHonduras\nHungary\nIceland\nIndia\nIndonesia\nIran\nIraq\nIreland\nIsrael\nItaly\nJamaica\nJapan\nJordan\nKazakhstan\nKenya\nKiribati\nKorea, North\nKorea, South\nKosovo\nKuwait\nKyrgyzstan\nLaos\nLatvia\nLebanon\nLesotho\nLiberia\nLibya\nLiechtenstein\nLithuania\nLuxembourg\nMacedonia\nMadagascar\nMalawi\nMalaysia\nMaldives\nMali\nMalta\nMarshall Islands\nMauritania\nMauritius\nMexico\nMicronesia, Federated States of\nMoldova\nMonaco\nMongolia\nMontenegro\nMorocco\nMozambique\nMyanmar (Burma)\nNamibia\nNauru\nNepal\nNetherlands\nNew Zealand\nNicaragua\nNiger\nNigeria\nNorway\nOman\nPakistan\nPalau\nPalestine\nPanama\nPapua New Guinea\nParaguay\nPeru\nPhilippines\nPoland\nPortugal\nQatar\nRomania\nRussia\nRwanda\nSaint Kitts and Nevis\nSaint Lucia\nSaint Vincent and the Grenadines\nSamoa\nSan Marino\nSao Tome and Principe\nSaudi Arabia\nSenegal\nSerbia\nSeychelles\nSierra Leone\nSingapore\nSlovakia\nSlovenia\nSolomon Islands\nSomalia\nSouth Africa\nSouth Sudan\nSpain\nSri Lanka\nSudan\nSuriname\nSwaziland\nSweden\nSwitzerland\nSyria\nTaiwan\nTajikistan\nTanzania\nThailand\nTogo\nTonga\nTrinidad and Tobago\nTunisia\nTurkey\nTurkmenistan\nTuvalu\nUganda\nUkraine\nUnited Arab Emirates\nUnited Kingdom\nUnited States of America\nUruguay\nUzbekistan\nVanuatu\nVatican City (Holy See)\nVenezuela\nVietnam\nYemen\nZambia\nZimbabwe"
+     },
+     {
+      "fieldname": "preferences_tab",
+      "fieldtype": "Tab Break",
+      "label": "Preferences"
+     },
+     {
+      "fieldname": "meals",
+      "fieldtype": "Int",
+      "label": "Meals (Per Day)"
+     },
+     {
+      "fieldname": "column_break_vtgt",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "workouts",
+      "fieldtype": "Int",
+      "label": "Workouts (Per Week)"
+     },
+     {
+      "fieldname": "column_break_xpjj",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "goal",
+      "fieldtype": "Select",
+      "in_preview": 1,
+      "label": "Goal",
+      "options": "\nWeight Loss\nWeight Gain\nMaintenance\nMuscle Building"
+     },
+     {
+      "fieldname": "target_weight",
+      "fieldtype": "Float",
+      "label": "Target Weight (kg)",
+      "precision": "1"
+     },
+     {
+      "fieldname": "equipment",
+      "fieldtype": "Select",
+      "label": "Equipment",
+      "options": "\nHome\nGym"
+     },
+     {
+      "fieldname": "bmr_tab",
+      "fieldtype": "Tab Break",
+      "label": "BMR"
+     },
+     {
+      "fieldname": "height",
+      "fieldtype": "Float",
+      "label": "Height",
+      "non_negative": 1,
+      "precision": "1"
+     },
+     {
+      "default": "0",
+      "fieldname": "adjust",
+      "fieldtype": "Check",
+      "label": "Manual"
+     },
+     {
+      "default": "1",
+      "depends_on": "eval:doc.adjust_factor",
+      "fieldname": "factor",
+      "fieldtype": "Float",
+      "label": "Factor",
+      "non_negative": 1,
+      "precision": "2",
+      "read_only_depends_on": "eval:!doc.adjust_factor"
+     },
+     {
+      "fieldname": "last_update",
+      "fieldtype": "Datetime",
+      "label": "Last Update",
+      "read_only": 1
+     },
+     {
+      "fieldname": "column_break_ljst",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "target_proteins",
+      "fieldtype": "Data",
+      "label": "Target Proteins",
+      "read_only_depends_on": "eval:!doc.adjust"
+     },
+     {
+      "fieldname": "target_carbs",
+      "fieldtype": "Data",
+      "label": "Target Carbs",
+      "read_only_depends_on": "eval:!doc.adjust"
+     },
+     {
+      "fieldname": "target_fats",
+      "fieldtype": "Data",
+      "label": "Target Fats",
+      "read_only_depends_on": "eval:!doc.adjust"
+     },
+     {
+      "fieldname": "target_energy",
+      "fieldtype": "Data",
+      "label": "Target Energy",
+      "read_only_depends_on": "eval:!doc.adjust"
+     },
+     {
+      "fieldname": "target_water",
+      "fieldtype": "Data",
+      "label": "Target Water",
+      "read_only_depends_on": "eval:!doc.adjust"
+     },
+     {
+      "fieldname": "weight",
+      "fieldtype": "Table",
+      "label": "Weight",
+      "options": "Weight Log"
+     },
+     {
+      "default": "1",
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "label": "Enabled"
+     },
+     {
+      "default": "1",
+      "fieldname": "allow_preference_update",
+      "fieldtype": "Check",
+      "label": "Allow Update"
+     },
+     {
+      "fieldname": "column_break_avdn",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "request_weight",
+      "fieldtype": "Check",
+      "label": "Request Weight"
+     },
+     {
+      "fieldname": "referred_by",
+      "fieldtype": "Link",
+      "label": "Referred By",
+      "options": "Client"
+     },
+     {
+      "fieldname": "activity_level",
+      "fieldtype": "Select",
+      "label": "Activity Level",
+      "options": "\nSedentary\nLight\nModerate\nVery Active\nExtra Active"
+     },
+     {
+      "default": "0",
+      "fieldname": "adjust_factor",
+      "fieldtype": "Check",
+      "label": "Adjust Factor"
+     },
+     {
+      "description": "Comma Separated FDCIDs",
+      "fieldname": "blocked_foods",
+      "fieldtype": "Small Text",
+      "label": "Blocked Foods",
+      "read_only": 1
+     },
+     {
+      "fieldname": "logs_tab",
+      "fieldtype": "Tab Break",
+      "label": "Logs"
+     },
+     {
+      "fieldname": "exercise_performance",
+      "fieldtype": "Table",
+      "label": "Exercise Performance",
+      "options": "Performance Log"
+     }
+    ],
+    "image_field": "image",
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "make_attachments_public": 1,
+    "modified": "2024-10-25 01:00:07.082076",
+    "modified_by": "Administrator",
+    "module": "Personal Trainer",
+    "name": "Client",
+    "naming_rule": "Random",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+     },
+     {
+      "create": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Coach",
+      "share": 1,
+      "write": 1
+     }
+    ],
+    "show_name_in_global_search": 1,
+    "show_preview_popup": 1,
+    "show_title_field_in_link": 1,
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": [],
+    "title_field": "client_name"
+   }

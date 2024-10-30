@@ -1,0 +1,58 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2024-10-25 00:56:41.987340",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+     "exercise",
+     "weight",
+     "reps",
+     "date"
+    ],
+    "fields": [
+     {
+      "fieldname": "exercise",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "label": "Exercise",
+      "options": "Exercise",
+      "reqd": 1
+     },
+     {
+      "fieldname": "weight",
+      "fieldtype": "Float",
+      "in_list_view": 1,
+      "label": "Weight",
+      "precision": "1",
+      "reqd": 1
+     },
+     {
+      "fieldname": "reps",
+      "fieldtype": "Int",
+      "in_list_view": 1,
+      "label": "Reps",
+      "reqd": 1
+     },
+     {
+      "default": "Today",
+      "fieldname": "date",
+      "fieldtype": "Date",
+      "label": "Date"
+     }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2024-10-25 00:59:34.081309",
+    "modified_by": "Administrator",
+    "module": "Personal Trainer",
+    "name": "Performance Log",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": []
+   }

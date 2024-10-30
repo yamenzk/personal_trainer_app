@@ -1,0 +1,140 @@
+{
+    "actions": [],
+    "allow_copy": 1,
+    "autoname": "field:fdcid",
+    "creation": "2024-10-23 02:42:45.022698",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+     "details_tab",
+     "html_ruvd",
+     "image",
+     "enabled",
+     "column_break_gvyz",
+     "title",
+     "category",
+     "description",
+     "nutrition_tab",
+     "nutritional_facts",
+     "fdc_tab",
+     "fdcid"
+    ],
+    "fields": [
+     {
+      "allow_in_quick_entry": 1,
+      "fieldname": "fdcid",
+      "fieldtype": "Int",
+      "label": "FDCID",
+      "reqd": 1,
+      "unique": 1
+     },
+     {
+      "fieldname": "html_ruvd",
+      "fieldtype": "HTML",
+      "options": "<img src=\"{{doc.image}}\" width=\"250\" style=\"border-radius:12px; margin-bottom:12px\">"
+     },
+     {
+      "fieldname": "image",
+      "fieldtype": "Attach Image",
+      "in_preview": 1,
+      "label": "Image"
+     },
+     {
+      "default": "1",
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "label": "Enabled"
+     },
+     {
+      "fieldname": "column_break_gvyz",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "in_preview": 1,
+      "label": "Title"
+     },
+     {
+      "fieldname": "category",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "in_preview": 1,
+      "label": "Category"
+     },
+     {
+      "fieldname": "description",
+      "fieldtype": "Small Text",
+      "in_list_view": 1,
+      "in_preview": 1,
+      "label": "Description"
+     },
+     {
+      "description": "per 100g",
+      "fieldname": "nutritional_facts",
+      "fieldtype": "Table",
+      "label": "Nutritional Facts",
+      "options": "Nutritional Facts",
+      "read_only": 1
+     },
+     {
+      "depends_on": "eval: (doc.fdcid && !doc.__islocal)",
+      "fieldname": "nutrition_tab",
+      "fieldtype": "Tab Break",
+      "label": "Nutrition"
+     },
+     {
+      "depends_on": "eval: (doc.fdcid && !doc.__islocal)",
+      "fieldname": "details_tab",
+      "fieldtype": "Tab Break",
+      "label": "Details"
+     },
+     {
+      "fieldname": "fdc_tab",
+      "fieldtype": "Tab Break",
+      "label": "FDC"
+     }
+    ],
+    "hide_toolbar": 1,
+    "image_field": "image",
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-10-24 04:08:12.412281",
+    "modified_by": "Administrator",
+    "module": "Personal Trainer",
+    "name": "Food",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+     },
+     {
+      "create": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Coach",
+      "share": 1,
+      "write": 1
+     }
+    ],
+    "quick_entry": 1,
+    "show_preview_popup": 1,
+    "show_title_field_in_link": 1,
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": [],
+    "title_field": "title"
+   }

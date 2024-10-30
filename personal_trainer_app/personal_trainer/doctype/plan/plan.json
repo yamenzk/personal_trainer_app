@@ -1,0 +1,627 @@
+{
+    "actions": [],
+    "allow_copy": 1,
+    "autoname": "field:title",
+    "creation": "2024-10-23 03:19:36.429156",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+     "client",
+     "membership",
+     "blocked_foods",
+     "__food_hash",
+     "column_break_navm",
+     "start",
+     "end",
+     "title",
+     "column_break_paoq",
+     "target_proteins",
+     "target_carbs",
+     "target_fats",
+     "target_energy",
+     "target_water",
+     "column_break_ijqx",
+     "equipment",
+     "goal",
+     "weekly_workouts",
+     "daily_meals",
+     "column_break_pylu",
+     "status",
+     "day_1_tab",
+     "d1_cheat",
+     "d1_f",
+     "d1_f_macro",
+     "column_break_tlqe",
+     "d1_rest",
+     "d1_template",
+     "d1_e",
+     "day_2_tab",
+     "d2_cheat",
+     "d2_f",
+     "d2_f_macro",
+     "column_break_tvrt",
+     "d2_rest",
+     "d2_template",
+     "d2_e",
+     "day_3_tab",
+     "d3_cheat",
+     "d3_f",
+     "d3_f_macro",
+     "column_break_ovnl",
+     "d3_rest",
+     "d3_template",
+     "d3_e",
+     "day_4_tab",
+     "d4_cheat",
+     "d4_f",
+     "d4_f_macro",
+     "column_break_fyza",
+     "d4_rest",
+     "d4_template",
+     "d4_e",
+     "day_5_tab",
+     "d5_cheat",
+     "d5_f",
+     "d5_f_macro",
+     "column_break_ehhq",
+     "d5_rest",
+     "d5_template",
+     "d5_e",
+     "day_6_tab",
+     "d6_cheat",
+     "d6_f",
+     "d6_f_macro",
+     "column_break_mimm",
+     "d6_rest",
+     "d6_template",
+     "d6_e",
+     "day_7_tab",
+     "d7_cheat",
+     "d7_f",
+     "d7_f_macro",
+     "column_break_tbdl",
+     "d7_rest",
+     "d7_template",
+     "d7_e"
+    ],
+    "fields": [
+     {
+      "fieldname": "client",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Client",
+      "link_filters": "[[\"Client\",\"enabled\",\"=\",1]]",
+      "no_copy": 1,
+      "options": "Client",
+      "reqd": 1,
+      "set_only_once": 1
+     },
+     {
+      "fieldname": "membership",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Membership",
+      "link_filters": "[[\"Membership\",\"active\",\"=\",1]]",
+      "options": "Membership",
+      "read_only": 1,
+      "reqd": 1
+     },
+     {
+      "fieldname": "column_break_navm",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "start",
+      "fieldtype": "Date",
+      "in_list_view": 1,
+      "label": "Start",
+      "read_only": 1
+     },
+     {
+      "fieldname": "end",
+      "fieldtype": "Date",
+      "in_list_view": 1,
+      "label": "End",
+      "read_only": 1
+     },
+     {
+      "depends_on": "eval:doc.membership",
+      "fieldname": "day_1_tab",
+      "fieldtype": "Tab Break",
+      "label": "Day 1"
+     },
+     {
+      "default": "0",
+      "fieldname": "d1_cheat",
+      "fieldtype": "Check",
+      "label": "Cheat"
+     },
+     {
+      "fieldname": "column_break_tlqe",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "d1_rest",
+      "fieldtype": "Check",
+      "label": "Rest"
+     },
+     {
+      "depends_on": "eval:!doc.d1_rest",
+      "fieldname": "d1_e",
+      "fieldtype": "Table",
+      "label": "Day 1 Exercises",
+      "options": "Exercises"
+     },
+     {
+      "depends_on": "eval:!doc.d1_rest",
+      "fieldname": "d1_template",
+      "fieldtype": "Link",
+      "label": "Template",
+      "link_filters": "[[\"Exercise Template\",\"enabled\",\"=\",1]]",
+      "options": "Exercise Template"
+     },
+     {
+      "depends_on": "eval:doc.membership",
+      "fieldname": "day_2_tab",
+      "fieldtype": "Tab Break",
+      "label": "Day 2"
+     },
+     {
+      "default": "0",
+      "fieldname": "d2_cheat",
+      "fieldtype": "Check",
+      "label": "Cheat"
+     },
+     {
+      "fieldname": "column_break_tvrt",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "d2_rest",
+      "fieldtype": "Check",
+      "label": "Rest"
+     },
+     {
+      "depends_on": "eval:!doc.d2_rest",
+      "fieldname": "d2_template",
+      "fieldtype": "Link",
+      "label": "Template",
+      "link_filters": "[[\"Exercise Template\",\"enabled\",\"=\",1]]",
+      "options": "Exercise Template"
+     },
+     {
+      "fieldname": "column_break_paoq",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fetch_from": "client.target_proteins",
+      "fieldname": "target_proteins",
+      "fieldtype": "Read Only",
+      "label": "Target Proteins"
+     },
+     {
+      "fetch_from": "client.target_carbs",
+      "fieldname": "target_carbs",
+      "fieldtype": "Read Only",
+      "label": "Target Carbs"
+     },
+     {
+      "fetch_from": "client.target_fats",
+      "fieldname": "target_fats",
+      "fieldtype": "Read Only",
+      "label": "Target Fats"
+     },
+     {
+      "fetch_from": "client.target_energy",
+      "fieldname": "target_energy",
+      "fieldtype": "Read Only",
+      "label": "Target Energy"
+     },
+     {
+      "fetch_from": "client.target_water",
+      "fieldname": "target_water",
+      "fieldtype": "Read Only",
+      "label": "Target Water"
+     },
+     {
+      "fieldname": "column_break_ijqx",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fetch_from": "client.equipment",
+      "fieldname": "equipment",
+      "fieldtype": "Read Only",
+      "label": "Equipment"
+     },
+     {
+      "fetch_from": "client.goal",
+      "fieldname": "goal",
+      "fieldtype": "Read Only",
+      "label": "Goal"
+     },
+     {
+      "fetch_from": "client.workouts",
+      "fieldname": "weekly_workouts",
+      "fieldtype": "Read Only",
+      "label": "Weekly Workouts"
+     },
+     {
+      "fetch_from": "client.meals",
+      "fieldname": "daily_meals",
+      "fieldtype": "Read Only",
+      "label": "Daily Meals"
+     },
+     {
+      "depends_on": "eval:doc.membership",
+      "fieldname": "day_3_tab",
+      "fieldtype": "Tab Break",
+      "label": "Day 3"
+     },
+     {
+      "default": "0",
+      "fieldname": "d3_cheat",
+      "fieldtype": "Check",
+      "label": "Cheat"
+     },
+     {
+      "fieldname": "column_break_ovnl",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "d3_rest",
+      "fieldtype": "Check",
+      "label": "Rest"
+     },
+     {
+      "depends_on": "eval:!doc.d3_rest",
+      "fieldname": "d3_template",
+      "fieldtype": "Link",
+      "label": "Template",
+      "link_filters": "[[\"Exercise Template\",\"enabled\",\"=\",1]]",
+      "options": "Exercise Template"
+     },
+     {
+      "depends_on": "eval:!doc.d1_cheat",
+      "fieldname": "d1_f",
+      "fieldtype": "Table",
+      "label": "Day 1 Foods",
+      "options": "Foods"
+     },
+     {
+      "depends_on": "eval:!doc.d2_cheat",
+      "fieldname": "d2_f",
+      "fieldtype": "Table",
+      "label": "Day 2 Foods",
+      "options": "Foods"
+     },
+     {
+      "depends_on": "eval:!doc.d2_rest",
+      "fieldname": "d2_e",
+      "fieldtype": "Table",
+      "label": "Day 2 Exercises",
+      "options": "Exercises"
+     },
+     {
+      "depends_on": "eval:!doc.d3_cheat",
+      "fieldname": "d3_f",
+      "fieldtype": "Table",
+      "label": "Day 3 Foods",
+      "options": "Foods"
+     },
+     {
+      "depends_on": "eval:!doc.d3_rest",
+      "fieldname": "d3_e",
+      "fieldtype": "Table",
+      "label": "Day 3 Exercises",
+      "options": "Exercises"
+     },
+     {
+      "depends_on": "eval:doc.membership",
+      "fieldname": "day_4_tab",
+      "fieldtype": "Tab Break",
+      "label": "Day 4"
+     },
+     {
+      "default": "0",
+      "fieldname": "d4_cheat",
+      "fieldtype": "Check",
+      "label": "Cheat"
+     },
+     {
+      "depends_on": "eval:!doc.d4_cheat",
+      "fieldname": "d4_f",
+      "fieldtype": "Table",
+      "label": "Day 4 Foods",
+      "options": "Foods"
+     },
+     {
+      "fieldname": "column_break_fyza",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "d4_rest",
+      "fieldtype": "Check",
+      "label": "Rest"
+     },
+     {
+      "depends_on": "eval:!doc.d4_rest",
+      "fieldname": "d4_template",
+      "fieldtype": "Link",
+      "label": "Template",
+      "link_filters": "[[\"Exercise Template\",\"enabled\",\"=\",1]]",
+      "options": "Exercise Template"
+     },
+     {
+      "depends_on": "eval:!doc.d4_rest",
+      "fieldname": "d4_e",
+      "fieldtype": "Table",
+      "label": "Day 4 Exercises",
+      "options": "Exercises"
+     },
+     {
+      "depends_on": "eval:doc.membership",
+      "fieldname": "day_5_tab",
+      "fieldtype": "Tab Break",
+      "label": "Day 5"
+     },
+     {
+      "default": "0",
+      "fieldname": "d5_cheat",
+      "fieldtype": "Check",
+      "label": "Cheat"
+     },
+     {
+      "depends_on": "eval:!doc.d5_cheat",
+      "fieldname": "d5_f",
+      "fieldtype": "Table",
+      "label": "Day 5 Foods",
+      "options": "Foods"
+     },
+     {
+      "fieldname": "column_break_ehhq",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "d5_rest",
+      "fieldtype": "Check",
+      "label": "Rest"
+     },
+     {
+      "depends_on": "eval:!doc.d5_rest",
+      "fieldname": "d5_template",
+      "fieldtype": "Link",
+      "label": "Template",
+      "link_filters": "[[\"Exercise Template\",\"enabled\",\"=\",1]]",
+      "options": "Exercise Template"
+     },
+     {
+      "depends_on": "eval:!doc.d5_rest",
+      "fieldname": "d5_e",
+      "fieldtype": "Table",
+      "label": "Day 5 Exercises",
+      "options": "Exercises"
+     },
+     {
+      "depends_on": "eval:doc.membership",
+      "fieldname": "day_6_tab",
+      "fieldtype": "Tab Break",
+      "label": "Day 6"
+     },
+     {
+      "default": "0",
+      "fieldname": "d6_cheat",
+      "fieldtype": "Check",
+      "label": "Cheat "
+     },
+     {
+      "depends_on": "eval:!doc.d6_cheat",
+      "fieldname": "d6_f",
+      "fieldtype": "Table",
+      "label": "Day 6 Foods",
+      "options": "Foods"
+     },
+     {
+      "fieldname": "column_break_mimm",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "d6_rest",
+      "fieldtype": "Check",
+      "label": "Rest"
+     },
+     {
+      "depends_on": "eval:!doc.d6_rest",
+      "fieldname": "d6_template",
+      "fieldtype": "Link",
+      "label": "Template",
+      "link_filters": "[[\"Exercise Template\",\"enabled\",\"=\",1]]",
+      "options": "Exercise Template"
+     },
+     {
+      "depends_on": "eval:!doc.d6_rest",
+      "fieldname": "d6_e",
+      "fieldtype": "Table",
+      "label": "Day 6 Exercises",
+      "options": "Exercises"
+     },
+     {
+      "depends_on": "eval:doc.membership",
+      "fieldname": "day_7_tab",
+      "fieldtype": "Tab Break",
+      "label": "Day 7"
+     },
+     {
+      "default": "0",
+      "fieldname": "d7_cheat",
+      "fieldtype": "Check",
+      "label": "Cheat"
+     },
+     {
+      "depends_on": "eval:!doc.d7_cheat",
+      "fieldname": "d7_f",
+      "fieldtype": "Table",
+      "label": "Day 7 Foods",
+      "options": "Foods"
+     },
+     {
+      "fieldname": "column_break_tbdl",
+      "fieldtype": "Column Break"
+     },
+     {
+      "default": "0",
+      "fieldname": "d7_rest",
+      "fieldtype": "Check",
+      "label": "Rest"
+     },
+     {
+      "depends_on": "eval:!doc.d7_rest",
+      "fieldname": "d7_template",
+      "fieldtype": "Link",
+      "label": "Template",
+      "link_filters": "[[\"Exercise Template\",\"enabled\",\"=\",1]]",
+      "options": "Exercise Template"
+     },
+     {
+      "depends_on": "eval:!doc.d7_rest",
+      "fieldname": "d7_e",
+      "fieldtype": "Table",
+      "label": "Day 7 Exercises",
+      "options": "Exercises"
+     },
+     {
+      "fieldname": "column_break_pylu",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "options": "\nScheduled\nActive\nCompleted",
+      "read_only": 1
+     },
+     {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "hidden": 1,
+      "label": "Title",
+      "read_only": 1,
+      "unique": 1
+     },
+     {
+      "fetch_from": "client.blocked_foods",
+      "fieldname": "blocked_foods",
+      "fieldtype": "Small Text",
+      "hidden": 1,
+      "label": "Blocked Foods"
+     },
+     {
+      "fieldname": "d1_f_macro",
+      "fieldtype": "Small Text",
+      "label": "Macro Summary",
+      "read_only": 1
+     },
+     {
+      "fieldname": "d2_f_macro",
+      "fieldtype": "Small Text",
+      "label": "Macro Summary",
+      "read_only": 1
+     },
+     {
+      "fieldname": "d3_f_macro",
+      "fieldtype": "Small Text",
+      "label": "Macro Summary",
+      "read_only": 1
+     },
+     {
+      "fieldname": "d4_f_macro",
+      "fieldtype": "Small Text",
+      "label": "Macro Summary",
+      "read_only": 1
+     },
+     {
+      "fieldname": "d5_f_macro",
+      "fieldtype": "Small Text",
+      "label": "Macro Summary",
+      "read_only": 1
+     },
+     {
+      "fieldname": "d6_f_macro",
+      "fieldtype": "Small Text",
+      "label": "Macro Summary",
+      "read_only": 1
+     },
+     {
+      "fieldname": "d7_f_macro",
+      "fieldtype": "Small Text",
+      "label": "Macro Summary",
+      "read_only": 1
+     },
+     {
+      "fieldname": "__food_hash",
+      "fieldtype": "Data",
+      "hidden": 1,
+      "label": "Food Hash",
+      "no_copy": 1
+     }
+    ],
+    "hide_toolbar": 1,
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2024-10-25 20:03:49.265111",
+    "modified_by": "Administrator",
+    "module": "Personal Trainer",
+    "name": "Plan",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+     },
+     {
+      "create": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "Coach",
+      "share": 1,
+      "write": 1
+     }
+    ],
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": [
+     {
+      "color": "Red",
+      "title": "Draft"
+     },
+     {
+      "color": "Yellow",
+      "title": "Scheduled"
+     },
+     {
+      "color": "Green",
+      "title": "Active"
+     },
+     {
+      "color": "Blue",
+      "title": "Completed"
+     }
+    ]
+   }

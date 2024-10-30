@@ -5,3 +5,7 @@
 tags
 node_modules
 __pycache__
+
+personal_trainer_app/public/dashboard
+personal_trainer_app/public/node_modules
+personal_trainer_app/www/dashboard.html

@@ -1,0 +1,131 @@
+{
+    "app": "personal_trainer_app",
+    "charts": [],
+    "content": "[{\"id\":\"T3FZXdNLaI\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h2\\\">Hello Coach,</span>\",\"col\":12}},{\"id\":\"CIOnW0kd3V\",\"type\":\"card\",\"data\":{\"card_name\":\"Library\",\"col\":4}},{\"id\":\"jsIAfzuZUm\",\"type\":\"card\",\"data\":{\"card_name\":\"Memberships\",\"col\":4}}]",
+    "creation": "2024-10-25 20:55:53.640861",
+    "custom_blocks": [],
+    "docstatus": 0,
+    "doctype": "Workspace",
+    "for_user": "",
+    "hide_custom": 1,
+    "icon": "table_2",
+    "idx": 0,
+    "indicator_color": "green",
+    "is_hidden": 0,
+    "label": "Personal Trainer",
+    "link_type": "DocType",
+    "links": [
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Memberships",
+      "link_count": 3,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+     },
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "\ud83e\uddd1 Client",
+      "link_count": 0,
+      "link_to": "Client",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+     },
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "\ud83e\udeaa Membership",
+      "link_count": 0,
+      "link_to": "Membership",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+     },
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "\ud83d\udcc5 Plan",
+      "link_count": 0,
+      "link_to": "Plan",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+     },
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Library",
+      "link_count": 5,
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Card Break"
+     },
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "\ud83c\udf4e Food",
+      "link_count": 0,
+      "link_to": "Food",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+     },
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "\ud83c\udfcb\ufe0f\u200d\u2642\ufe0f Exercise",
+      "link_count": 0,
+      "link_to": "Exercise",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+     },
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "\ud83d\udcc3 Exercise Template",
+      "link_count": 0,
+      "link_to": "Exercise Template",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+     },
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "\u2699\ufe0f Settings",
+      "link_count": 0,
+      "link_to": "PT Settings",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+     },
+     {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "\ud83d\udce6 Package",
+      "link_count": 0,
+      "link_to": "PT Package",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+     }
+    ],
+    "modified": "2024-10-26 00:57:03.499915",
+    "modified_by": "Administrator",
+    "module": "Personal Trainer",
+    "name": "Personal Trainer",
+    "number_cards": [],
+    "owner": "Administrator",
+    "parent_page": "",
+    "public": 1,
+    "quick_lists": [],
+    "roles": [],
+    "sequence_id": 1.0,
+    "shortcuts": [],
+    "title": "Personal Trainer",
+    "type": "Workspace"
+   }

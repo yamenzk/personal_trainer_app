@@ -137,13 +137,33 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Plan": {
+        "on_update": "personal_trainer_app.handlers.on_plan_update",
+        "on_submit": "personal_trainer_app.handlers.on_plan_update",
+        "after_insert": "personal_trainer_app.handlers.on_plan_update",
+        "on_cancel": "personal_trainer_app.handlers.on_plan_update",
+        "on_trash": "personal_trainer_app.handlers.on_plan_update"
+    },
+    "Membership": {
+        "on_update": "personal_trainer_app.handlers.on_membership_update",
+        "on_submit": "personal_trainer_app.handlers.on_membership_update",
+        "on_cancel": "personal_trainer_app.handlers.on_membership_update",
+        "on_trash": "personal_trainer_app.handlers.on_membership_update"
+    },
+    "Client": {
+        "on_update": "personal_trainer_app.handlers.on_client_update",
+        "after_insert": "personal_trainer_app.handlers.on_client_update",
+        "on_trash": "personal_trainer_app.handlers.on_client_update"
+    },
+    # Library items with less frequent updates
+    "Exercise": {
+        "on_update": "personal_trainer_app.handlers.on_exercise_update"
+    },
+    "Food": {
+        "on_update": "personal_trainer_app.handlers.on_food_update"
+    }
+}
 
 # Scheduled Tasks
 # ---------------
@@ -242,3 +262,5 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+
+website_route_rules = [{'from_route': '/dashboard/<path:app_path>', 'to_route': 'dashboard'},]
