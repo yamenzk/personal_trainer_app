@@ -477,7 +477,7 @@ def update_client(client_id, is_performance=0, exercise_ref=None, exercise_day=N
                 "exercise": exercise_ref,
                 "weight": float(kwargs["weight"]),
                 "reps": int(kwargs["reps"]),
-                "date": getdate()
+                "date": frappe.utils.getdate()
             })
 
             # Fetch the 'Active' Plan for the client
@@ -507,7 +507,7 @@ def update_client(client_id, is_performance=0, exercise_ref=None, exercise_day=N
             if field == "weight":
                 client_doc.append("weight", {
                     "weight": float(value),
-                    "date": getdate()
+                    "date": frappe.utils.getdate()
                 })
             elif hasattr(client_doc, field):
                 setattr(client_doc, field, value)
