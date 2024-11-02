@@ -1,7 +1,10 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
 import { FrappeProvider } from 'frappe-react-sdk'
+import { ThemeProvider } from './providers/ThemeProvider';
+import { WizardProvider } from './providers/WizardProvider';
+import { AuthProvider } from './components/auth/AuthProvider';
+import { AppRouter } from './router';
+import { Toaster } from 'sonner';
+
 function App() {
 
 	const getSiteName = () => {
@@ -14,36 +17,22 @@ function App() {
 
 	}
 
-  const [count, setCount] = useState(0)
 
-  return (
-	<div className="App">
-	  <FrappeProvider
-	  	socketPort={import.meta.env.VITE_SOCKET_PORT ?? '9000'}
+	return (
+		<FrappeProvider
+		socketPort={import.meta.env.VITE_SOCKET_PORT ?? '9000'}
 		siteName={getSiteName()}
-	  >
-		<div>
-	  <div>
-		<a href="https://reactjs.org" target="_blank">
-		  <img src={reactLogo} className="logo react" alt="React logo" />
-		</a>
-	  </div>
-	  <h1>Vite + React + Frappe</h1>
-	  <div className="card">
-		<button onClick={() => setCount((count) => count + 1)}>
-		  count is {count}
-		</button>
-		<p>
-		  Edit <code>src/App.jsx</code> and save to test HMR
-		</p>
-	  </div>
-	  <p className="read-the-docs">
-		Click on the Vite and React logos to learn more
-	  </p>
-	  </div>
-	  </FrappeProvider>
-	</div>
-  )
+		>
+		<ThemeProvider>
+		  <WizardProvider>
+			<AuthProvider>
+			  <AppRouter />
+			  <Toaster />
+			</AuthProvider>
+		  </WizardProvider>
+		</ThemeProvider>
+		</FrappeProvider>
+	  );
 }
 
 export default App
