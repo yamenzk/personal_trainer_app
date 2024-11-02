@@ -60,7 +60,7 @@ const DashboardLayout: React.FC = () => {
             >
               <div className="relative">
                 <img
-                  src={client?.image || '/assets/ptrainer/images/male_default.png'}
+                  src={client?.image || '/assets/personal_trainer_app/images/male_default.png'}
                   alt="Profile"
                   className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
                 />

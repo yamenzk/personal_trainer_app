@@ -253,7 +253,7 @@ useEffect(() => {
       }
     });
 
-    const response = await fetch(`/api/v2/method/ptrainer.ptrainer_methods.update_client?${params.toString()}`);
+    const response = await fetch(`/api/v2/method/personal_trainer_app.api.update_client?${params.toString()}`);
     const result = await response.json();
     
     if (!response.ok) {

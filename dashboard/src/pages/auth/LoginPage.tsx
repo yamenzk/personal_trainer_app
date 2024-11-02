@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
     clearError();
     
     try {
-      const response = await fetch(`/api/v2/method/ptrainer.ptrainer_methods.get_membership?membership=${membershipId}`);
+      const response = await fetch(`/api/v2/method/personal_trainer_app.api.get_membership?membership=${membershipId}`);
       const result = await response.json();
 
       // Check if the response has a specific Frappe error format
@@ -60,11 +60,11 @@ const LoginPage: React.FC = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/10 backdrop-blur-lg animate-bounce-in">
             <Dumbbell className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 animate-slide-up">
+          <h1 style={{ lineHeight: 'normal' }}  className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 animate-slide-up">
             byShujaa
           </h1>
           <p className="text-gray-400 animate-slide-up animation-delay-200">
-            Personal Training Studio
+            Redefined Personal Training.
           </p>
         </div>
 
@@ -118,7 +118,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <p className="text-center text-gray-400 text-sm mt-6 animate-fade-in animation-delay-600">
-            Contact your trainer if you need help with your membership ID
+          🚀 Hey there! This app is in Beta testing. —expect a few bugs and surprises.
           </p>
         </div>
       </div>

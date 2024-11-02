@@ -1,4 +1,4 @@
-# ptrainer/ptrainer/config/nutrition.py
+# personal_trainer_app/personal_trainer_app/config/nutrition.py
 
 from __future__ import unicode_literals
 import frappe

@@ -14,7 +14,7 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 class TestPTSettings(UnitTestCase):
 	"""
-	Unit tests for PtrainerSettings.
+	Unit tests for PTSettings.
 	Use this class for testing individual functions and methods.
 	"""
 
@@ -23,7 +23,7 @@ class TestPTSettings(UnitTestCase):
 
 class TestPTSettings(IntegrationTestCase):
 	"""
-	Integration tests for PtrainerSettings.
+	Integration tests for PTSettings.
 	Use this class for testing interactions between multiple components.
 	"""
 
