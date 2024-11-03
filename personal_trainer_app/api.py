@@ -46,7 +46,7 @@ class MembershipCache:
     def get_membership_version(self, membership_id: str) -> str:
         """Get version hash based on membership, client, and plans data"""
         try:
-            CODE_VERSION = "1.1"
+            CODE_VERSION = "1.3"
             membership_doc = frappe.get_doc("Membership", membership_id)
             client_doc = frappe.get_doc("Client", membership_doc.client)
             
@@ -168,7 +168,6 @@ def calculate_nutrition_for_amount(base_nutrition: Dict[str, NutritionFact], amo
         for nutrient, facts in base_nutrition.items()
     }
 
-
 def process_exercise_data(exercise_doc: Any) -> Dict[str, Any]:
     """Process exercise data for reference"""
     return {
@@ -260,6 +259,7 @@ def process_exercise_instance(exercise_item: Any, performance_data: Dict[str, Li
         'sets': exercise_item.sets,
         'reps': exercise_item.reps,
         'rest': exercise_item.rest,
+        'logged': exercise_item.logged,
     }
 
 def process_day_exercises(exercises: List[Any], performance_data: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
@@ -483,7 +483,7 @@ def update_client(client_id, is_performance=0, exercise_ref=None, exercise_day=N
             # Fetch the 'Active' Plan for the client
             active_plan = frappe.get_all("Plan", filters={
                 "client": client_id,
-                "status": "Scheduled"
+                "status": "Active"
             }, fields=["name"], limit=1)
 
             if active_plan:

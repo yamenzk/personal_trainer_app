@@ -52,20 +52,32 @@ class Plan(Document):
 
         # Generate the title field
         client = frappe.get_doc('Client', self.client)
-        client_name = client.client_name.split()
 
-        first_name = client_name[0]  # First name initial
-        if len(client_name) > 1:
-            last_initial = client_name[-1][0].upper()  # Last name initial
-        else:
-            last_initial = ""
+        # Initialize the first and last initials
+        first_name = ""
+        last_initial = ""
 
+        # Check if the client has a name
+        if client.client_name:
+            client_name = client.client_name.split()
+            
+            # Set first name initial
+            if len(client_name) > 0:
+                first_name = client_name[0][0].upper()  # First name initial
+            
+            # Set last name initial if available
+            if len(client_name) > 1:
+                last_initial = client_name[-1][0].upper()  # Last name initial
+
+        # Format date components
         start_dd_mm = format_date(self.start, "dd/MM")
         end_dd_mm = format_date(self.end, "dd/MM")
         year = format_date(self.start, "YY")
 
         # Construct the title in the desired format
         self.title = f"{first_name}{last_initial}@{start_dd_mm}-{end_dd_mm}#{year}"
+
+        # Set rest days based on weekly_workouts count
         if 6 >= self.weekly_workouts >= 3:
             self.d7_rest = 1
             if self.weekly_workouts < 6:
@@ -74,6 +86,7 @@ class Plan(Document):
                 self.d5_rest = 1
             if self.weekly_workouts < 4:
                 self.d4_rest = 1
+
 
 @frappe.whitelist()
 def calculate_all_nutritional_totals(all_food_data):

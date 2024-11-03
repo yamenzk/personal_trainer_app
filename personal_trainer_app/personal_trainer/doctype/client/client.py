@@ -44,18 +44,18 @@ class Client(Document):
             self.activity_level, defaults['activity_factor_sedentary'])
 
         # Calculate BMI
-        height_in_meters = height / 100
+        height_in_meters = int(height) / 100
         bmi = weight / (height_in_meters ** 2)
 
         # Calculate BMR using Mifflin-St Jeor Equation
         if gender == 'Male':
             bmr = (settings.bmr_weight_multiplier or 10) * weight + \
-                  (settings.bmr_height_multiplier or 6.25) * height - \
+                  (settings.bmr_height_multiplier or 6.25) * int(height) - \
                   (settings.bmr_age_multiplier or 5) * age + \
                   (settings.bmr_male_constant or 5)
         else:  # Female
             bmr = (settings.bmr_weight_multiplier or 10) * weight + \
-                  (settings.bmr_height_multiplier or 6.25) * height - \
+                  (settings.bmr_height_multiplier or 6.25) * int(height) - \
                   (settings.bmr_age_multiplier or 5) * age - \
                   (settings.bmr_female_constant or 161)
 
