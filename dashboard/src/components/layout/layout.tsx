@@ -11,7 +11,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-background">
       <TopNavbar />
-      <main className="container mx-auto px-4 py-16 mb-16">
+      <main className="container mx-auto py-14 mb-16">
         {children}
       </main>
       <BottomNavbar />

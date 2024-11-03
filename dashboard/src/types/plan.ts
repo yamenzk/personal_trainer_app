@@ -22,7 +22,7 @@ export interface PlanTargets {
     exercises: Exercise[];
     foods: Food[];
     totals: NutritionInfo;
-    completed?: boolean; // Added to track day completion
+    completed?: boolean;
   }
   
   export interface Plan {
@@ -33,6 +33,6 @@ export interface PlanTargets {
     config: PlanConfig;
     status: 'Scheduled' | 'Active' | 'Completed';
     days: {
-      [key: string]: DayPlan;
+      [key: string]: DayPlan; // keys are in the format "day_1", "day_2", etc.
     };
   }

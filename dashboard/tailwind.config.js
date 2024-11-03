@@ -1,6 +1,6 @@
+/** @type {import('tailwindcss').Config} */
 const { nextui } = require("@nextui-org/react");
 
-/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     "./index.html",
@@ -8,7 +8,85 @@ module.exports = {
     "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        background: {
+          DEFAULT: "var(--background)",
+          secondary: "var(--background-secondary)",
+        },
+        content: {
+          DEFAULT: "var(--content)",
+          secondary: "var(--content-secondary)",
+        },
+        border: "var(--border)",
+        ring: "var(--ring)",
+      },
+      fontFamily: {
+        sans: ["Inter var", "Inter", "sans-serif"],
+        display: ["Cal Sans", "Inter var", "sans-serif"],
+      },
+      borderRadius: {
+        "4xl": "2rem",
+        "5xl": "2.5rem",
+      },
+      animation: {
+        "gradient-x": "gradient-x 15s ease infinite",
+        "gradient-y": "gradient-y 15s ease infinite",
+        "gradient-xy": "gradient-xy 15s ease infinite",
+        shimmer: "shimmer 2s linear infinite",
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "glow": "glow 2s ease-in-out infinite alternate",
+      },
+      keyframes: {
+        "gradient-y": {
+          "0%, 100%": {
+            "background-size": "400% 400%",
+            "background-position": "center top",
+          },
+          "50%": {
+            "background-size": "200% 200%",
+            "background-position": "center center",
+          },
+        },
+        "gradient-x": {
+          "0%, 100%": {
+            "background-size": "200% 200%",
+            "background-position": "left center",
+          },
+          "50%": {
+            "background-size": "200% 200%",
+            "background-position": "right center",
+          },
+        },
+        "gradient-xy": {
+          "0%, 100%": {
+            "background-size": "400% 400%",
+            "background-position": "left center",
+          },
+          "50%": {
+            "background-size": "200% 200%",
+            "background-position": "right center",
+          },
+        },
+        shimmer: {
+          "100%": {
+            transform: "translateX(100%)",
+          },
+        },
+        glow: {
+          "from": {
+            "box-shadow": "0 0 20px rgba(var(--primary-500), 0.3)",
+          },
+          "to": {
+            "box-shadow": "0 0 30px rgba(var(--primary-500), 0.6)",
+          }
+        }
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+    },
   },
   darkMode: "class",
   plugins: [
@@ -16,74 +94,108 @@ module.exports = {
       themes: {
         light: {
           colors: {
-            background: "#F9FAFB",           // Light background
-            foreground: "#111827",           // Dark text
-            content1: "#FFFFFF",              // White content
-            content2: "#F3F4F6",              // Light gray
-            content3: "#E5E7EB",              // Light gray
-            content4: "#D1D5DB",              // Lighter gray
+            background: "#ffffff",
+            "background-secondary": "#f9fafb",
+            foreground: "#0f172a",
+            content: "#ffffff",
+            "content-secondary": "#f8fafc",
             primary: {
-              DEFAULT: "#007AFF",            // Vibrant Blue (iOS Blue)
-              foreground: "#FFFFFF",         // White text on primary
+              50: "#f0f9ff",
+              100: "#e0f2fe",
+              200: "#bae6fd",
+              300: "#7dd3fc",
+              400: "#38bdf8",
+              500: "#0ea5e9",
+              600: "#0284c7",
+              700: "#0369a1",
+              800: "#075985",
+              900: "#0c4a6e",
+              DEFAULT: "#0ea5e9",
+              foreground: "#ffffff",
             },
-            secondary: "#FF3B30",            // Vibrant Red (iOS Red)
-            accent: "#FFCC00",               // Bright Yellow
-            success: "#4CD964",              // Green
-            warning: "#FF9500",              // Orange
-            danger: "#FF3B30",               // Bright Red
-            muted: "#E1E4E8",                 // Subtle light gray
+            focus: "#0ea5e9",
+            border: "#e2e8f0",
+            ring: "#0ea5e9",
+            secondary: {
+              50: "#f5f3ff",
+              100: "#ede9fe",
+              200: "#ddd6fe",
+              300: "#c4b5fd",
+              400: "#a78bfa",
+              500: "#8b5cf6",
+              600: "#7c3aed",
+              700: "#6d28d9",
+              800: "#5b21b6",
+              900: "#4c1d95",
+              DEFAULT: "#8b5cf6",
+              foreground: "#ffffff",
+            },
           },
-          borderRadius: {
-            sm: "0.125rem",
-            md: "0.375rem",
-            lg: "0.5rem",
-            xl: "1rem",
-            "2xl": "1.5rem",
-          },
-          boxShadow: {
-            soft: "0 2px 8px rgba(0, 0, 0, 0.1)", // Lighter shadow
-            strong: "0 4px 12px rgba(0, 0, 0, 0.2)", // Stronger shadow
-            focus: "0 0 0 3px rgba(0, 122, 255, 0.5)", // Blue focus shadow
-          },
-          fontFamily: {
-            sans: ["Inter", "sans-serif"],
-            display: ["Poppins", "sans-serif"],
+          layout: {
+            boxShadow: {
+              small: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+              medium: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+              large: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+              xl: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+            },
+            borderWidth: {
+              small: "1px",
+              medium: "2px",
+              large: "3px",
+            },
           },
         },
         dark: {
           colors: {
-            background: "#1C1C1E",          // Dark background
-            foreground: "#FFFFFF",          // Light text
-            content1: "#2C2C2E",            // Darker gray
-            content2: "#3A3A3C",            // Darker gray
-            content3: "#48484A",            // Medium gray
-            content4: "#636366",            // Lighter gray
+            background: "#0f172a",
+            "background-secondary": "#1e293b",
+            foreground: "#f8fafc",
+            content: "#1e293b",
+            "content-secondary": "#0f172a",
             primary: {
-              DEFAULT: "#0A84FF",           // Lighter Blue
-              foreground: "#FFFFFF",        // White text on primary
+              50: "#f0f9ff",
+              100: "#e0f2fe",
+              200: "#bae6fd",
+              300: "#7dd3fc",
+              400: "#38bdf8",
+              500: "#0ea5e9",
+              600: "#0284c7",
+              700: "#0369a1",
+              800: "#075985",
+              900: "#0c4a6e",
+              DEFAULT: "#0ea5e9",
+              foreground: "#ffffff",
             },
-            secondary: "#FF3B30",           // Bright Red
-            accent: "#FFD60A",              // Bright Yellow
-            success: "#32D74B",             // Light Green
-            warning: "#FF9F0A",             // Light Orange
-            danger: "#FF3B30",              // Bright Red
-            muted: "#2C2C2E",               // Dark gray
+            focus: "#0ea5e9",
+            border: "#334155",
+            ring: "#0ea5e9",
+            secondary: {
+              50: "#f5f3ff",
+              100: "#ede9fe",
+              200: "#ddd6fe",
+              300: "#c4b5fd",
+              400: "#a78bfa",
+              500: "#8b5cf6",
+              600: "#7c3aed",
+              700: "#6d28d9",
+              800: "#5b21b6",
+              900: "#4c1d95",
+              DEFAULT: "#8b5cf6",
+              foreground: "#ffffff",
+            },
           },
-          borderRadius: {
-            sm: "0.125rem",
-            md: "0.375rem",
-            lg: "0.5rem",
-            xl: "1rem",
-            "2xl": "1.5rem",
-          },
-          boxShadow: {
-            soft: "0 2px 8px rgba(255, 255, 255, 0.1)", // Lighter shadow
-            strong: "0 4px 12px rgba(255, 255, 255, 0.2)", // Stronger shadow
-            focus: "0 0 0 3px rgba(10, 132, 255, 0.5)", // Blue focus shadow
-          },
-          fontFamily: {
-            sans: ["Inter", "sans-serif"],
-            display: ["Poppins", "sans-serif"],
+          layout: {
+            boxShadow: {
+              small: "0 1px 2px 0 rgb(0 0 0 / 0.35)",
+              medium: "0 4px 6px -1px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.35)",
+              large: "0 10px 15px -3px rgb(0 0 0 / 0.35), 0 4px 6px -4px rgb(0 0 0 / 0.35)",
+              xl: "0 20px 25px -5px rgb(0 0 0 / 0.35), 0 8px 10px -6px rgb(0 0 0 / 0.35)",
+            },
+            borderWidth: {
+              small: "1px",
+              medium: "2px",
+              large: "3px",
+            },
           },
         },
       },
