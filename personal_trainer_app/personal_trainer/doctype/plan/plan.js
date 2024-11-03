@@ -112,7 +112,7 @@ function calculate_nutritional_totals(frm, food_data) {
         frappe.call({
             freeze: true,
             freeze_message: __('Calculating nutrition...'),
-            method: 'calculate_all_nutritional_totals',
+            method: 'personal_trainer_app.personal_trainer.doctype.plan.plan.calculate_all_nutritional_totals',
             args: { all_food_data: food_data },
             callback: function(r) {
                 if (r.message) {

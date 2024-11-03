@@ -148,3 +148,4 @@ class Client(Document):
 
         if self.referred_by and self.referred_by == self.name:
             frappe.throw("You cannot refer yourself. Please choose another user.")
+        
