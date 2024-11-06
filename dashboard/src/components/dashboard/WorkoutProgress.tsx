@@ -1,16 +1,18 @@
-// src/components/dashboard/WorkoutProgress.tsx
-import { Button, Chip, Progress } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Chip, Progress } from "@nextui-org/react";
 import { 
   Dumbbell,
   Calendar,
   CheckCircle2,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Trophy,
+  Target,
+  TimerIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Client } from '@/types/client';
 import { Plan } from '@/types/plan';
-import { GlassCard } from '../shared/GlassCard';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface WorkoutProgressProps {
   client: Client;
@@ -27,6 +29,8 @@ export const WorkoutProgress = ({
   currentDay,
   planProgress
 }: WorkoutProgressProps) => {
+  const { theme } = useTheme();
+
   if (!activePlan) return null;
 
   const todayExercises = activePlan.days[`day_${currentDay}`]?.exercises || [];
@@ -36,118 +40,145 @@ export const WorkoutProgress = ({
   ).length;
 
   return (
-    <GlassCard 
-      variant="frosted"
-      gradient="from-secondary-500/10 via-background to-primary-500/10"
-      className="h-full"
-    >
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold">Today's Workout</h3>
-            <p className="text-sm text-foreground/60">
-              Day {currentDay} of 7
-            </p>
-          </div>
-          <Button
-            className="bg-primary-500/10"
-            endContent={<ArrowRight size={16} />}
-            href="/workouts"
-            as="a"
-          >
-            Go to Workouts
-          </Button>
+    <Card isBlurred={theme === 'dark'} shadow="sm">
+      <CardHeader className="flex justify-between items-center">
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold">Today's Workout</h3>
+          <p className="text-sm text-foreground-500">
+            Day {currentDay} of your fitness journey
+          </p>
         </div>
+        <Button
+          color="primary"
+          endContent={<ArrowRight size={16} />}
+          variant="solid"
+          href="/workouts"
+          as="a"
+        >
+          Go to Workouts
+        </Button>
+      </CardHeader>
 
-        {/* Progress Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-primary-500/5 space-y-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary-500" />
-              <p className="text-sm font-medium">Week</p>
-            </div>
-            <p className="text-2xl font-semibold">{completedPlans.length + 1}</p>
-          </div>
-
-          <div className="p-4 rounded-xl bg-secondary-500/5 space-y-2">
-            <div className="flex items-center gap-2">
-              <Dumbbell className="w-4 h-4 text-secondary-500" />
-              <p className="text-sm font-medium">Exercises</p>
-            </div>
-            <p className="text-2xl font-semibold">
-              {client.total_exercises_completed}
-            </p>
-          </div>
-
-          <div className="p-4 rounded-xl bg-success-500/5 space-y-2">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-success-500" />
-              <p className="text-sm font-medium">Sets</p>
-            </div>
-            <p className="text-2xl font-semibold">{client.total_sets_played}</p>
-          </div>
-        </div>
-
-        {/* Today's Progress */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Today's Progress</p>
-            <span className="text-sm text-foreground/60">
-              {completedExercises} of {todayExercises.length} exercises
-            </span>
-          </div>
-          <Progress
-            value={(completedExercises / todayExercises.length) * 100}
-            size="lg"
-            radius="lg"
-            classNames={{
-              base: "h-8",
-              indicator: "bg-gradient-to-r from-primary-500 to-secondary-500"
-            }}
-          />
-        </div>
-
-        {/* Exercises List */}
-        <div className="space-y-3">
-          {todayExercises.map((exercise, index) => (
-            <div
-              key={index}
-              className="p-4 rounded-xl bg-content/5 flex items-center justify-between fade-slide-in"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-content/10">
-                  <Dumbbell className="w-4 h-4 text-foreground/60" />
-                </div>
-                <div>
-                  <p className="font-medium">
-                    {exercise.type === 'regular' 
-                      ? exercise.exercise.ref
-                      : 'Superset'
-                    }
-                  </p>
-                  <p className="text-sm text-foreground/60">
-                    {exercise.type === 'regular'
-                      ? `${exercise.exercise.sets} × ${exercise.exercise.reps}`
-                      : `${exercise.exercises.length} exercises`
-                    }
-                  </p>
+      <CardBody className="gap-6">
+        {/* Stats Overview */}
+        <Card className="bg-content-100/5" shadow="none">
+          <CardBody>
+            <div className="grid grid-cols-3 divide-x divide-foreground/20">
+              <div className="px-4 py-2">
+                <div className="flex flex-col items-center text-center">
+                  <Trophy className="w-5 h-5 text-primary mb-2" />
+                  <span className="text-xs text-foreground-500">Completed Plans</span>
+                  <span className="text-xl font-semibold">{completedPlans.length}</span>
                 </div>
               </div>
-              {exercise.type === 'regular' ? (
-                exercise.exercise.logged === 1 && (
-                  <CheckCircle2 className="w-5 h-5 text-success-500" />
-                )
-              ) : (
-                exercise.exercises.every(e => e.logged === 1) && (
-                  <CheckCircle2 className="w-5 h-5 text-success-500" />
-                )
-              )}
+              <div className="px-4 py-2">
+                <div className="flex flex-col items-center text-center">
+                  <Target className="w-5 h-5 text-secondary mb-2" />
+                  <span className="text-xs text-foreground-500">Current Day</span>
+                  <span className="text-xl font-semibold">{currentDay}/7</span>
+                </div>
+              </div>
+              <div className="px-4 py-2">
+                <div className="flex flex-col items-center text-center">
+                  <TimerIcon className="w-5 h-5 text-success mb-2" />
+                  <span className="text-xs text-foreground-500">Week Progress</span>
+                  <span className="text-xl font-semibold">{Math.round(planProgress)}%</span>
+                </div>
+              </div>
             </div>
+          </CardBody>
+        </Card>
+
+        {/* Today's Progress */}
+        <Card shadow="none" className="bg-content-100/5">
+          <CardBody className="p-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Dumbbell className="w-5 h-5 text-primary" />
+                  <span className="font-medium">Today's Progress</span>
+                </div>
+                <Chip 
+                  variant="bordered" 
+                  color="primary"
+                >
+                  {completedExercises} of {todayExercises.length} exercises
+                </Chip>
+              </div>
+              <Progress
+                value={(completedExercises / todayExercises.length) * 100}
+                color="primary"
+                size="md"
+                radius="sm"
+                classNames={{
+                  base: "max-w-full",
+                  track: "drop-shadow-md border border-default",
+                  indicator: "bg-gradient-to-r from-primary-500 to-secondary-500",
+                  label: "tracking-wider font-medium text-default-600",
+                  value: "text-foreground/50"
+                }}
+                showValueLabel={true}
+              />
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Exercises List */}
+        <div className="grid gap-3">
+          {todayExercises.map((exercise, index) => (
+            <Card
+              key={index}
+              shadow="none"
+              className="bg-content-100/5 hover:scale-[1.02] hover:bg-content-100/10 transition-all duration-300"
+            >
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary-500/10">
+                      <Dumbbell className="w-4 h-4 text-primary-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {exercise.type === 'regular' 
+                          ? exercise.exercise.ref
+                          : 'Superset'
+                        }
+                      </p>
+                      <p className="text-sm text-foreground-500">
+                        {exercise.type === 'regular'
+                          ? `${exercise.exercise.sets} × ${exercise.exercise.reps}`
+                          : `${exercise.exercises.length} exercises`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  {exercise.type === 'regular' ? (
+                    exercise.exercise.logged === 1 && (
+                      <Chip
+                        startContent={<CheckCircle2 className="w-4 h-4" />}
+                        color="success"
+                        variant="flat"
+                      >
+                        Completed
+                      </Chip>
+                    )
+                  ) : (
+                    exercise.exercises.every(e => e.logged === 1) && (
+                      <Chip
+                        startContent={<CheckCircle2 className="w-4 h-4" />}
+                        color="success"
+                        variant="flat"
+                      >
+                        Completed
+                      </Chip>
+                    )
+                  )}
+                </div>
+              </CardBody>
+            </Card>
           ))}
         </div>
-      </div>
-    </GlassCard>
+      </CardBody>
+    </Card>
   );
 };

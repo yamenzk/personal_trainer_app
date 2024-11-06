@@ -1,14 +1,16 @@
 // src/components/dashboard/QuickStats.tsx
 import { Activity, Flame, Target, Scale, ArrowUp, ArrowDown } from 'lucide-react';
 import { Client } from '@/types/client';
-import { GlassCard } from '../shared/GlassCard';
-
+import { Card, CardBody } from '@nextui-org/react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface QuickStatsProps {
   client: Client;
 }
 
 export const QuickStats = ({ client }: QuickStatsProps) => {
+  const { theme } = useTheme();
+
   const todayStats = [
     {
       icon: Activity,
@@ -59,15 +61,14 @@ export const QuickStats = ({ client }: QuickStatsProps) => {
   return (
     <>
       {todayStats.map((stat, index) => (
-        <div
+        <Card
           key={stat.label}
-          className={`fade-slide-in`}
+          isBlurred={theme === 'dark'}
+          shadow="sm"
+          className="hover:scale-102 transition-all duration-300"
           style={{ animationDelay: `${index * 100}ms` }}
         >
-          <GlassCard
-            variant="frosted"
-            className="hover:scale-102 transition-transform duration-300 p-3"
-          >
+          <CardBody className="p-4">
             <div className="space-y-2">
               <h3 className="text-sm text-foreground/60">{stat.label}</h3>
               <div className="space-y-1">
@@ -82,8 +83,8 @@ export const QuickStats = ({ client }: QuickStatsProps) => {
                 </div>
               </div>
             </div>
-          </GlassCard>
-        </div>
+          </CardBody>
+        </Card>
       ))}
     </>
   );

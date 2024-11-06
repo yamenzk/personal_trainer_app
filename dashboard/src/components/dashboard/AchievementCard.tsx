@@ -12,10 +12,9 @@ import {
   Scale,
   Zap
 } from 'lucide-react';
-import { GlassCard } from '../shared/GlassCard';
-import { Chip, Tooltip } from '@nextui-org/react';
+import { Card, CardBody, CardHeader, Chip, Progress, Tooltip } from '@nextui-org/react';
 import { Client } from '@/types/client';
-
+import { useTheme } from '../../contexts/ThemeContext';
 
 const MILESTONES = {
   exercises: [25, 50, 100, 200, 300, 500, 1000],
@@ -40,7 +39,8 @@ const formatNumber = (num: number) => {
 };
 
 export const AchievementCard = ({ client }: AchievementCardProps) => {
-  // Calculate progress towards next milestones
+  const { theme } = useTheme();
+
   const milestoneProgress = useMemo(() => ({
     exercises: {
       current: client.total_exercises_completed,
@@ -64,7 +64,6 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
     }
   }), [client]);
 
-  // One-time achievements
   const oneTimeAchievements = [
     { 
       id: 'personal_record_setter',
@@ -100,167 +99,136 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
     }
   ];
 
+  const progressCards = [
+    {
+      title: "Total Exercises",
+      icon: <Dumbbell className="text-primary" />,
+      color: "primary",
+      data: milestoneProgress.exercises
+    },
+    {
+      title: "Sets",
+      icon: <TrendingUp className="text-secondary" />,
+      color: "secondary",
+      data: milestoneProgress.sets
+    },
+    {
+      title: "Reps",
+      icon: <Zap className="text-success" />,
+      color: "success",
+      data: milestoneProgress.reps
+    }
+  ];
+
   return (
-    <GlassCard variant="frosted" gradient="from-background via-primary-500/5 to-background">
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold">Achievements</h3>
-            <p className="text-sm text-foreground/60">Track your progress</p>
-          </div>
-          <GlassCard 
-            variant="frosted" 
-            className="p-2 rounded-lg"
-          >
-            <Crown className="w-5 h-5 text-warning-500" />
-          </GlassCard>
+    <Card 
+      isBlurred={theme === 'dark'} 
+      shadow="sm"
+    >
+      <CardHeader className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold">Achievements</h3>
+          <p className="text-sm text-foreground-500">Track your progress</p>
         </div>
+        <Chip
+          startContent={<Crown className="w-4 h-4" />}
+          variant="shadow"
+          color="warning"
+        >
+          Level {Math.floor(client.total_exercises_completed / 50) + 1}
+        </Chip>
+      </CardHeader>
 
-        {/* Milestone Progress */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Total Exercises */}
-          <GlassCard 
-            variant="secondary"
-            className="col-span-2 p-4"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Dumbbell className="w-4 h-4 text-primary-500" />
-                <span className="text-sm font-medium">Total Exercises</span>
-              </div>
-              <Tooltip content="Total exercises completed">
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  className="bg-primary-500/10 border-primary-500/20"
-                >
-                  {formatNumber(milestoneProgress.exercises.current)}
-                </Chip>
-              </Tooltip>
-            </div>
-            <div className="h-2 bg-content/10 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary-500 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${milestoneProgress.exercises.progress}%` }}
-              />
-            </div>
-            <div className="flex justify-between mt-2 text-xs text-foreground/60">
-              <span>Current: {formatNumber(milestoneProgress.exercises.current)}</span>
-              <span>Next: {formatNumber(milestoneProgress.exercises.next)}</span>
-            </div>
-          </GlassCard>
-
-          {/* Sets */}
-          <GlassCard 
-            variant="frosted"
-            className="p-4"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-secondary-500" />
-                <span className="text-sm font-medium">Sets</span>
-              </div>
-              <Chip
-                size="sm"
-                variant="flat"
-                className="bg-secondary-500/10"
-              >
-                {formatNumber(milestoneProgress.sets.current)}
-              </Chip>
-            </div>
-            <div className="h-2 bg-content/10 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-secondary-500 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${milestoneProgress.sets.progress}%` }}
-              />
-            </div>
-          </GlassCard>
-
-          {/* Reps */}
-          <GlassCard 
-            variant="frosted"
-            className="p-4"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-success-500" />
-                <span className="text-sm font-medium">Reps</span>
-              </div>
-              <Chip
-                size="sm"
-                variant="flat"
-                className="bg-success-500/10"
-              >
-                {formatNumber(milestoneProgress.reps.current)}
-              </Chip>
-            </div>
-            <div className="h-2 bg-content/10 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-success-500 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${milestoneProgress.reps.progress}%` }}
-              />
-            </div>
-          </GlassCard>
-        </div>
-
-        {/* One-time Achievements */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-foreground/60">Special Achievements</h4>
-          <div className="grid grid-cols-2 gap-3">
-            {oneTimeAchievements.map(({ id, name, description, icon: Icon, color, unlocked }) => (
-              <GlassCard
-                key={id}
-                variant={unlocked ? "gradient" : "secondary"}
-                gradient={unlocked ? `from-${color}-500/10 to-background` : undefined}
-                className={`
-                  transition-transform duration-300 hover:scale-105
-                  ${!unlocked && 'opacity-50'}
-                `}
-              >
-                <div className="p-4 flex items-start gap-3">
-                  <div className={`
-                    w-8 h-8 rounded-lg 
-                    ${unlocked 
-                      ? `bg-${color}-500 shadow-lg shadow-${color}-500/20` 
-                      : 'bg-content/10'
-                    }
-                    flex items-center justify-center
-                  `}>
-                    <Icon 
-                      className={unlocked ? 'text-white' : 'text-foreground/40'} 
-                      size={16} 
-                    />
+      <CardBody className="gap-6">
+        {/* Progress Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {progressCards.map((card, index) => (
+            <Card key={index} shadow="none" className="bg-content-100/5">
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    {card.icon}
+                    <span className="text-sm font-medium">{card.title}</span>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">{name}</p>
-                    <p className="text-xs text-foreground/60">{description}</p>
-                  </div>
+                  <Tooltip content={`${card.data.current} / ${card.data.next}`}>
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      color={card.color as any}
+                      className="cursor-help"
+                    >
+                      {formatNumber(card.data.current)}
+                    </Chip>
+                  </Tooltip>
                 </div>
-              </GlassCard>
+                <Progress
+                  value={card.data.progress}
+                  color={card.color as any}
+                  size="sm"
+                  radius="sm"
+                  className="mb-2"
+                />
+                <div className="flex justify-between text-xs text-foreground-500">
+                  <span>Progress</span>
+                  <span>{Math.round(card.data.progress)}%</span>
+                </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+
+        {/* Special Achievements */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium text-foreground-500">Special Achievements</h4>
+          <div className="grid grid-cols-2 gap-4">
+            {oneTimeAchievements.map(({ id, name, description, icon: Icon, color, unlocked }) => (
+              <Card
+                key={id}
+                shadow="none"
+                className={`bg-content-100/5 transition-opacity ${!unlocked && 'opacity-50'}`}
+              >
+                <CardBody className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`
+                      w-10 h-10 rounded-lg flex items-center justify-center
+                      ${unlocked ? `bg-${color}-500` : 'bg-default-200'}
+                    `}>
+                      <Icon 
+                        className={unlocked ? 'text-white' : 'text-default-500'} 
+                        size={20} 
+                      />
+                    </div>
+                    <div>
+                      <p className="font-medium">{name}</p>
+                      <p className="text-sm text-foreground-500">{description}</p>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
             ))}
           </div>
         </div>
 
-        {/* Stats Summary */}
-        <GlassCard 
-          variant="frosted" 
-          className="p-4 bg-content/5"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Flame className="w-4 h-4 text-danger-500" />
-              <span className="text-sm font-medium">Total Calories Burned</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Scale className="w-4 h-4 text-primary-500" />
-              <span className="text-lg font-semibold">
+        {/* Calories Summary */}
+        <Card shadow="none" className="bg-content-100/5">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Flame className="w-5 h-5 text-danger" />
+                <span className="font-medium">Total Calories Burned</span>
+              </div>
+              <Chip
+                size="lg"
+                variant="flat"
+                color="danger"
+                startContent={<Scale className="w-4 h-4" />}
+              >
                 {formatNumber(client.total_calories_burned)} kcal
-              </span>
+              </Chip>
             </div>
-          </div>
-        </GlassCard>
-      </div>
-    </GlassCard>
+          </CardBody>
+        </Card>
+      </CardBody>
+    </Card>
   );
 };
