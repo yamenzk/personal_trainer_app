@@ -1,207 +1,325 @@
-// src/components/onboarding/OnboardingWizard.tsx
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Progress } from "@nextui-org/react";
-import { Client } from '../../types/client';
-import DateOfBirthStep from './steps/DateOfBirthStep';
-import GenderStep from './steps/GenderStep';
-import EmailStep from './steps/EmailStep';
-import NationalityStep from './steps/NationalityStep';
-import MealsStep from './steps/MealsStep';
-import WorkoutsStep from './steps/WorkoutsStep';
+import { Progress, Button } from "@nextui-org/react";
+import { Client } from '@/types/client';
+import { GlassCard } from '../shared/GlassCard';
+import { ChevronLeft } from 'lucide-react';
+
+// Import step components
 import ActivityLevelStep from './steps/ActivityLevelStep';
+import DateOfBirthStep from './steps/DateOfBirthStep';
+import EmailStep from './steps/EmailStep';
 import EquipmentStep from './steps/EquipmentStep';
+import GenderStep from './steps/GenderStep';
+import GoalStep from './steps/GoalStep';
 import HeightStep from './steps/HeightStep';
-import WeightStep from './steps/WeightStep';
+import MealsStep from './steps/MealsStep';
+import NameStep from './steps/NameStep';
+import NationalityStep from './steps/NationalityStep';
 import TargetWeightStep from './steps/TargetWeightStep';
+import WeightStep from './steps/WeightStep';
+import WorkoutsStep from './steps/WorkoutsStep';
 
 interface OnboardingWizardProps {
   clientData: Client;
   onComplete: () => void;
+  steps?: string[];
 }
 
-// Define the base properties that all steps share
-interface BaseStepProps {
-  onComplete: (value: any) => void;
+// Add this type if not already defined
+interface Weight {
+  weight: number;
+  date: string;
 }
 
-// Define specific step props
-interface WeightRequiredStepProps extends BaseStepProps {
-  currentWeight: number;
-}
+// Step configuration
+const StepComponents = {
+  'Name': {
+    component: NameStep,
+    title: 'What is your name?',
+    subtitle: '',
+    field: 'client_name'
+  },
+  'DateOfBirth': {
+    component: DateOfBirthStep,
+    title: 'When were you born?',
+    subtitle: '',
+    field: 'date_of_birth'
+  },
+  'Gender': {
+    component: GenderStep,
+    title: 'What is your gender?',
+    subtitle: 'This helps me calculate your nutritional needs',
+    field: 'gender'
+  },
+  'Email': {
+    component: EmailStep,
+    title: 'What is your email?',
+    subtitle: 'To keep you updated on your progress',
+    field: 'email'
+  },
+  'Nationality': {
+    component: NationalityStep,
+    title: 'Where do you come from?',
+    subtitle: 'For demographics and reach purposes',
+    field: 'nationality'
+  },
+  'Height': {
+    component: HeightStep,
+    title: 'What\'s your height?',
+    subtitle: '',
+    field: 'height'
+  },
+  'Weight': {
+    component: WeightStep,
+    title: 'What\'s your current weight?',
+    subtitle: '',
+    field: 'weight'
+  },
+  'TargetWeight': {
+    component: TargetWeightStep,
+    title: 'What\'s your target weight?',
+    subtitle: 'Let\'s set a goal to work towards',
+    field: 'target_weight'
+  },
+  'ActivityLevel': {
+    component: ActivityLevelStep,
+    title: 'How active are you?',
+    subtitle: 'This helps me adjust your program intensity',
+    field: 'activity_level'
+  },
+  'Equipment': {
+    component: EquipmentStep,
+    title: 'Where will you work out?',
+    subtitle: 'Will use this to customize exercises based on available equipment',
+    field: 'equipment'
+  },
+  'Goal': {
+    component: GoalStep,
+    title: 'What is your goal?',
+    subtitle: 'This helps me tailor your program to your needs',
+    field: 'goal'
+  },
+  'Meals': {
+    component: MealsStep,
+    title: 'How many meals per day?',
+    subtitle: 'Let\'s plan your nutrition schedule',
+    field: 'meals'
+  },
+  'Workouts': {
+    component: WorkoutsStep,
+    title: 'How often will you train?',
+    subtitle: 'Let\'s design your workout frequency',
+    field: 'workouts'
+  }
+} as const;
 
-interface BasicStep {
-  type: 'basic';
-  component: React.ComponentType<BaseStepProps>;
-}
+// Default steps order for full onboarding
+const DEFAULT_STEPS = [
+  'Name',
+  'DateOfBirth',
+  'Gender',
+  'Email',
+  'Nationality',
+  'Height',
+  'Weight',
+  'TargetWeight',
+  'ActivityLevel',
+  'Equipment',
+  'Goal',
+  'Meals',
+  'Workouts'
+];
 
-interface WeightRequiredStep {
-  type: 'weight-required';
-  component: React.ComponentType<WeightRequiredStepProps>;
-}
-
-type StepType = BasicStep | WeightRequiredStep;
-
-interface StepConfig {
-  field: keyof Client;
-  stepType: StepType;
-}
-
-const OnboardingWizard = ({ clientData, onComplete }: OnboardingWizardProps) => {
-  const [steps, setSteps] = useState<StepConfig[]>([]);
+export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWizardProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Partial<Client>>({});
+  const [loading, setLoading] = useState(false);
+  const [updatedClientData, setUpdatedClientData] = useState(clientData);
 
-  useEffect(() => {
-    const requiredSteps: StepConfig[] = [];
-    
-    if (!clientData.date_of_birth) {
-      requiredSteps.push({ 
-        field: 'date_of_birth',
-        stepType: { type: 'basic', component: DateOfBirthStep }
-      });
-    }
-    if (!clientData.gender) {
-      requiredSteps.push({ 
-        field: 'gender',
-        stepType: { type: 'basic', component: GenderStep }
-      });
-    }
-    if (!clientData.email) {
-      requiredSteps.push({ 
-        field: 'email',
-        stepType: { type: 'basic', component: EmailStep }
-      });
-    }
-    if (!clientData.nationality) {
-      requiredSteps.push({ 
-        field: 'nationality',
-        stepType: { type: 'basic', component: NationalityStep }
-      });
-    }
-    if (!clientData.meals) {
-      requiredSteps.push({ 
-        field: 'meals',
-        stepType: { type: 'basic', component: MealsStep }
-      });
-    }
-    if (!clientData.workouts) {
-      requiredSteps.push({ 
-        field: 'workouts',
-        stepType: { type: 'basic', component: WorkoutsStep }
-      });
-    }
-    if (!clientData.activity_level) {
-      requiredSteps.push({ 
-        field: 'activity_level',
-        stepType: { type: 'basic', component: ActivityLevelStep }
-      });
-    }
-    if (!clientData.equipment) {
-      requiredSteps.push({ 
-        field: 'equipment',
-        stepType: { type: 'basic', component: EquipmentStep }
-      });
-    }
-    if (!clientData.height) {
-      requiredSteps.push({ 
-        field: 'height',
-        stepType: { type: 'basic', component: HeightStep }
-      });
-    }
-    if (!clientData.weight?.length) {
-      requiredSteps.push({ 
-        field: 'weight',
-        stepType: { type: 'basic', component: WeightStep }
-      });
-    }
-    if (!clientData.target_weight) {
-      requiredSteps.push({ 
-        field: 'target_weight',
-        stepType: { type: 'weight-required', component: TargetWeightStep }
-      });
-    }
-    
-    setSteps(requiredSteps);
-  }, [clientData]);
+  // Use provided steps or default steps
+  const activeSteps = steps 
+    ? steps.map(step => ({
+        ...StepComponents[step as keyof typeof StepComponents],
+        key: step
+      }))
+    : DEFAULT_STEPS.map(step => ({
+        ...StepComponents[step as keyof typeof StepComponents],
+        key: step
+      }));
 
-  const handleStepComplete = async (field: keyof Client, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+      const refreshClientData = async () => {
+        try {
+          const response = await fetch(
+            `/api/v2/method/personal_trainer_app.api.get_membership?membership=${clientData.name}`
+          );
+          if (!response.ok) throw new Error('Failed to fetch updated data');
+          const data = await response.json();
+          setUpdatedClientData(data.data.client);
+          return data.data.client;
+        } catch (error) {
+          console.error('Error fetching updated client data:', error);
+          return null;
+        }
+      };
+
+      
+      const handleStepComplete = async (value: any) => {
+    setLoading(true);
     try {
+      const stepConfig = activeSteps[currentStep];
+      
+      // Update form data
+      setFormData(prev => ({ ...prev, [stepConfig.field]: value }));
+
+      // Update server
       const params = new URLSearchParams();
       params.append('client_id', clientData.name);
-      params.append(field, value.toString());
+      params.append(stepConfig.field, value.toString());
       
       const response = await fetch(
         `/api/v2/method/personal_trainer_app.api.update_client?${params.toString()}`
       );
       
       if (!response.ok) {
-        throw new Error('Failed to update client data');
+        throw new Error('Failed to update data');
       }
+
+      // Refresh client data after successful update
+      const updatedClient = await refreshClientData();
       
-      if (currentStep < steps.length - 1) {
+      // Move to next step or complete
+      if (currentStep < activeSteps.length - 1) {
         setCurrentStep(prev => prev + 1);
       } else {
         onComplete();
       }
     } catch (error) {
-      console.error('Error updating client data:', error);
+      console.error('Error updating data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (steps.length === 0) {
-    return null;
-  }
 
-  const progress = ((currentStep + 1) / steps.length) * 100;
-  const currentStepConfig = steps[currentStep];
-
-  const renderCurrentStep = () => {
-    if (!currentStepConfig) return null;
-
-    const { stepType } = currentStepConfig;
-    
-    if (stepType.type === 'weight-required') {
-      const WeightComponent = stepType.component;
-      return (
-        <WeightComponent
-          onComplete={(value: any) => handleStepComplete(currentStepConfig.field, value)}
-          currentWeight={clientData.current_weight}
-        />
-      );
-    } else {
-      const BasicComponent = stepType.component;
-      return (
-        <BasicComponent
-          onComplete={(value: any) => handleStepComplete(currentStepConfig.field, value)}
-        />
-      );
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
     }
   };
+
+  const progress = ((currentStep + 1) / activeSteps.length) * 100;
+  const currentStepConfig = activeSteps[currentStep];
+  const CurrentStepComponent = activeSteps[currentStep].component;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md">
-      <div className="w-full max-w-md p-6">
-        <Progress 
-          value={progress}
-          className="mb-6"
-          color="primary"
-          size="sm"
-        />
-        
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {renderCurrentStep()}
-          </motion.div>
-        </AnimatePresence>
+    <div className="fixed inset-0 z-50 bg-background/95">
+      <div className="h-full overflow-auto">
+        <div className="min-h-full w-full max-w-2xl mx-auto p-4 py-8 flex flex-col">
+          {/* Progress bar */}
+          <div className="z-10 mb-6">
+            <GlassCard
+              gradient="from-background/50 via-background/50 to-background/50"
+              className="mt-2 border-2 border-transparent rounded-xl bg-gradient-to-br from-primary-500/20 to-secondary-500/20"
+            >
+              <div className="p-4 space-y-2">
+  <div className="flex justify-between items-center">
+    <span className="text-sm font-medium text-foreground">
+      {steps?.length === activeSteps.length 
+        ? 'Updating your preferences'
+        : `Completing ${activeSteps.length} required field${activeSteps.length !== 1 ? 's' : ''}`
+      }
+    </span>
+    <span className="text-sm font-medium">
+      {currentStep + 1} of {activeSteps.length}
+    </span>
+  </div>
+  <Progress
+    aria-label="Onboarding progress"
+    value={progress}
+    className="h-2"
+    color="primary"
+    classNames={{
+      indicator: "bg-gradient-to-r from-primary-500 to-secondary-500"
+    }}
+  />
+</div>
+            </GlassCard>
+          </div>
+
+          {/* Step content */}
+          <div className="flex-1 flex">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <div className="relative">
+                  {/* Back button */}
+                  {currentStep > 0 && (
+                    <Button
+                      isIconOnly
+                      variant="light"
+                      className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex"
+                      onPress={handleBack}
+                    >
+                      <ChevronLeft size={20} />
+                    </Button>
+                  )}
+
+                  {/* Step Card */}
+                  <GlassCard variant="gradient" className="rounded-xl">
+                    <div className="p-6 sm:p-8">
+                      <div className="text-center mb-8 space-y-2">
+                        <h2 className="text-2xl font-bold">
+                          {currentStepConfig.title}
+                        </h2>
+                        {currentStepConfig.subtitle && (
+                          <p className="text-base text-foreground/60">
+                            {currentStepConfig.subtitle}
+                          </p>
+                        )}
+                      </div>
+
+                      <currentStepConfig.component
+                        onComplete={handleStepComplete}
+                        currentWeight={
+                          currentStepConfig.key === 'TargetWeight' 
+                            ? (
+                              // Safely extract the number value from either formData or clientData
+                              typeof formData.weight === 'number' 
+                                ? formData.weight 
+                                : clientData.weight?.[0]?.weight ?? 0
+                            )
+                            : (clientData.weight?.[0]?.weight ?? 0)
+                        }
+                        isLoading={loading}
+                      />
+                    </div>
+                  </GlassCard>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Mobile back button */}
+          {currentStep > 0 && (
+            <div className="mt-4 md:hidden">
+              <Button
+                variant="light"
+                className="w-full"
+                onPress={handleBack}
+                startContent={<ChevronLeft size={20} />}
+              >
+                Back
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

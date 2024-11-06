@@ -1,11 +1,16 @@
 // src/components/onboarding/steps/DateOfBirthStep.tsx
 import { useState } from 'react';
-import { Card, Button } from "@nextui-org/react";
+import { Input, Button } from "@nextui-org/react";
 import { motion } from "framer-motion";
+import { Calendar, AlertCircle } from 'lucide-react';
 import dayjs from 'dayjs';
-import { DateOfBirthStepProps } from '../../../types/onboarding';
 
-const DateOfBirthStep: React.FC<DateOfBirthStepProps> = ({ onComplete }) => {
+interface DateOfBirthStepProps {
+  onComplete: (value: string) => void;
+  isLoading?: boolean;
+}
+
+const DateOfBirthStep = ({ onComplete, isLoading = false }: DateOfBirthStepProps) => {
   const [date, setDate] = useState('');
   const [error, setError] = useState('');
 
@@ -26,48 +31,77 @@ const DateOfBirthStep: React.FC<DateOfBirthStepProps> = ({ onComplete }) => {
     onComplete(birthDate.format('YYYY-MM-DD'));
   };
 
+  const maxDate = dayjs().subtract(16, 'year').format('YYYY-MM-DD');
+
   return (
-    <Card className="p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
-        <div className="text-center space-y-2">
-          <h2 className="text-xl font-bold">When were you born?</h2>
-          <p className="text-sm text-foreground/60">
-            We'll use this to calculate your age and customize your fitness journey
+    <div className="space-y-8">
+      {/* Date Input */}
+      <div className="space-y-4">
+        <Input
+          type="date"
+          label="Date of Birth"
+          
+          value={date}
+          onChange={(e) => {
+            setDate(e.target.value);
+            setError('');
+          }}
+          max={maxDate}
+          startContent={<Calendar className="text-default-400" size={18} />}
+          errorMessage={error}
+          isInvalid={!!error}
+          classNames={{
+            label: "text-foreground/90",
+            input: [
+              "bg-transparent",
+              "text-foreground/90",
+              "placeholder:text-foreground/50",
+            ],
+            innerWrapper: "bg-transparent",
+            inputWrapper: [
+              "shadow-sm",
+              "bg-content/10",
+              "backdrop-blur-sm",
+              "hover:bg-content/20",
+              "group-data-[focused=true]:bg-content/20",
+              "!cursor-text",
+            ],
+          }}
+        />
+
+        {/* Age Groups */}
+        {/* <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: 'Teenager', range: '16-19' },
+            { label: 'Young Adult', range: '20-35' },
+            { label: 'Adult', range: '36+' },
+          ].map(({ label, range }) => (
+            <div key={label} className="p-4 rounded-xl bg-content/5 text-center space-y-1">
+              <p className="text-sm text-foreground/60">{label}</p>
+              <p className="font-medium">{range} years</p>
+            </div>
+          ))}
+        </div> */}
+
+        {/* Info Box */}
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-primary-500/5">
+          <AlertCircle className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-foreground/70">
+            Your age helps me create a safe and effective fitness program tailored to your life stage and capabilities.
           </p>
         </div>
+      </div>
 
-        <div className="space-y-2">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => {
-              setDate(e.target.value);
-              setError('');
-            }}
-            max={dayjs().subtract(16, 'year').format('YYYY-MM-DD')}
-            className={`w-full px-4 py-2 rounded-lg border ${
-              error ? 'border-danger' : 'border-divider'
-            } bg-background focus:outline-none focus:ring-2 focus:ring-primary`}
-          />
-          {error && (
-            <p className="text-danger text-sm">{error}</p>
-          )}
-        </div>
-
-        <Button
-          color="primary"
-          size="lg"
-          className="w-full"
-          onClick={handleSubmit}
-        >
-          Continue
-        </Button>
-      </motion.div>
-    </Card>
+      <Button
+        color="primary"
+        size="lg"
+        className="w-full bg-gradient-to-r from-primary-500 to-secondary-500"
+        onPress={handleSubmit}
+        isLoading={isLoading}
+      >
+        Continue
+      </Button>
+    </div>
   );
 };
 

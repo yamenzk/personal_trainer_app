@@ -168,23 +168,24 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
 # 	"all": [
 # 		"personal_trainer_app.tasks.all"
 # 	],
-# 	"daily": [
-# 		"personal_trainer_app.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"personal_trainer_app.tasks.hourly"
-# 	],
+	"daily": [
+		"personal_trainer_app.tasks.update_all_client_statistics",
+        "personal_trainer_app.tasks.update_all_client_achievements"
+	],
+	"hourly": [
+		"personal_trainer_app.personal_trainer.doctype.membership.membership.update_membership_statuses"
+	],
 # 	"weekly": [
 # 		"personal_trainer_app.tasks.weekly"
 # 	],
 # 	"monthly": [
 # 		"personal_trainer_app.tasks.monthly"
 # 	],
-# }
+}
 
 # Testing
 # -------

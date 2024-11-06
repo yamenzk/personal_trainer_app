@@ -10,6 +10,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Base interface colors
         background: {
           DEFAULT: "var(--background)",
           secondary: "var(--background-secondary)",
@@ -25,61 +26,97 @@ module.exports = {
         sans: ["Inter var", "Inter", "sans-serif"],
         display: ["Cal Sans", "Inter var", "sans-serif"],
       },
+      fontSize: {
+        '2xs': ['0.625rem', '0.75rem'],  // 10px
+        xs: ['0.75rem', '1rem'],         // 12px
+        sm: ['0.875rem', '1.25rem'],     // 14px
+        base: ['1rem', '1.5rem'],        // 16px
+        lg: ['1.125rem', '1.75rem'],     // 18px
+        xl: ['1.25rem', '1.75rem'],      // 20px
+        '2xl': ['1.5rem', '2rem'],       // 24px
+        '3xl': ['1.875rem', '2.25rem'],  // 30px
+        '4xl': ['2.25rem', '2.5rem'],    // 36px
+      },
+      spacing: {
+        18: '4.5rem',
+        22: '5.5rem',
+        30: '7.5rem',
+      },
       borderRadius: {
-        "4xl": "2rem",
-        "5xl": "2.5rem",
+        '4xl': '2rem',
+        '5xl': '2.5rem',
       },
       animation: {
-        "gradient-x": "gradient-x 15s ease infinite",
-        "gradient-y": "gradient-y 15s ease infinite",
-        "gradient-xy": "gradient-xy 15s ease infinite",
-        shimmer: "shimmer 2s linear infinite",
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "glow": "glow 2s ease-in-out infinite alternate",
+        'gradient-x': 'gradient-x 15s ease infinite',
+        'gradient-y': 'gradient-y 15s ease infinite',
+        'gradient-xy': 'gradient-xy 15s ease infinite',
+        shimmer: 'shimmer 2s linear infinite',
+        'float': 'float 6s ease-in-out infinite',
+        'fade-up': 'fade-up 0.5s ease-out forwards',
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'glow': 'glow 2s ease-in-out infinite alternate',
       },
       keyframes: {
-        "gradient-y": {
-          "0%, 100%": {
-            "background-size": "400% 400%",
-            "background-position": "center top",
+        'gradient-y': {
+          '0%, 100%': {
+            'background-size': '400% 400%',
+            'background-position': 'center top',
           },
-          "50%": {
-            "background-size": "200% 200%",
-            "background-position": "center center",
-          },
-        },
-        "gradient-x": {
-          "0%, 100%": {
-            "background-size": "200% 200%",
-            "background-position": "left center",
-          },
-          "50%": {
-            "background-size": "200% 200%",
-            "background-position": "right center",
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'center center',
           },
         },
-        "gradient-xy": {
-          "0%, 100%": {
-            "background-size": "400% 400%",
-            "background-position": "left center",
+        'gradient-x': {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
           },
-          "50%": {
-            "background-size": "200% 200%",
-            "background-position": "right center",
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
+        },
+        'gradient-xy': {
+          '0%, 100%': {
+            'background-size': '400% 400%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
           },
         },
         shimmer: {
-          "100%": {
-            transform: "translateX(100%)",
+          '100%': {
+            transform: 'translateX(100%)',
+          },
+        },
+        float: {
+          '0%, 100%': {
+            transform: 'translateY(0)',
+          },
+          '50%': {
+            transform: 'translateY(-10px)',
+          },
+        },
+        'fade-up': {
+          from: {
+            opacity: '0',
+            transform: 'translateY(20px)',
+          },
+          to: {
+            opacity: '1',
+            transform: 'translateY(0)',
           },
         },
         glow: {
-          "from": {
-            "box-shadow": "0 0 20px rgba(var(--primary-500), 0.3)",
+          from: {
+            boxShadow: '0 0 20px rgba(var(--primary-500), 0.3)',
           },
-          "to": {
-            "box-shadow": "0 0 30px rgba(var(--primary-500), 0.6)",
+          to: {
+            boxShadow: '0 0 30px rgba(var(--primary-500), 0.6)',
           }
         }
       },
@@ -94,11 +131,14 @@ module.exports = {
       themes: {
         light: {
           colors: {
+            // Base interface colors
             background: "#ffffff",
             "background-secondary": "#f9fafb",
             foreground: "#0f172a",
             content: "#ffffff",
             "content-secondary": "#f8fafc",
+            
+            // Primary brand color
             primary: {
               50: "#f0f9ff",
               100: "#e0f2fe",
@@ -113,9 +153,56 @@ module.exports = {
               DEFAULT: "#0ea5e9",
               foreground: "#ffffff",
             },
+            
+            // Functional colors
+            success: {
+              50: "#f0fdf4",
+              100: "#dcfce7",
+              200: "#bbf7d0",
+              300: "#86efac",
+              400: "#4ade80",
+              500: "#22c55e",
+              600: "#16a34a",
+              700: "#15803d",
+              800: "#166534",
+              900: "#14532d",
+              DEFAULT: "#22c55e",
+              foreground: "#ffffff",
+            },
+            warning: {
+              50: "#fff7ed",
+              100: "#ffedd5",
+              200: "#fed7aa",
+              300: "#fdba74",
+              400: "#fb923c",
+              500: "#f97316",
+              600: "#ea580c",
+              700: "#c2410c",
+              800: "#9a3412",
+              900: "#7c2d12",
+              DEFAULT: "#f97316",
+              foreground: "#ffffff",
+            },
+            danger: {
+              50: "#fef2f2",
+              100: "#fee2e2",
+              200: "#fecaca",
+              300: "#fca5a5",
+              400: "#f87171",
+              500: "#ef4444",
+              600: "#dc2626",
+              700: "#b91c1c",
+              800: "#991b1b",
+              900: "#7f1d1d",
+              DEFAULT: "#ef4444",
+              foreground: "#ffffff",
+            },
+            
             focus: "#0ea5e9",
             border: "#e2e8f0",
             ring: "#0ea5e9",
+            
+            // Secondary accent color
             secondary: {
               50: "#f5f3ff",
               100: "#ede9fe",
@@ -147,11 +234,14 @@ module.exports = {
         },
         dark: {
           colors: {
+            // Base interface colors
             background: "#0f172a",
             "background-secondary": "#1e293b",
             foreground: "#f8fafc",
             content: "#1e293b",
             "content-secondary": "#0f172a",
+            
+            // Primary brand color
             primary: {
               50: "#f0f9ff",
               100: "#e0f2fe",
@@ -166,13 +256,60 @@ module.exports = {
               DEFAULT: "#0ea5e9",
               foreground: "#ffffff",
             },
+            
+            // Functional colors
+            success: {
+              50: "#f0fdf4",
+              100: "#dcfce7",
+              200: "#bbf7d0",
+              300: "#86efac",
+              400: "#4ade80",
+              500: "#22c55e",
+              600: "#16a34a",
+              700: "#15803d",
+              800: "#166534",
+              900: "#14532d",
+              DEFAULT: "#22c55e",
+              foreground: "#ffffff",
+            },
+            warning: {
+              50: "#fff7ed", 
+              100: "#ffedd5",
+              200: "#fed7aa",
+              300: "#fdba74", 
+              400: "#fb923c",
+              500: "#f97316",
+              600: "#ea580c",
+              700: "#c2410c",
+              800: "#9a3412",
+              900: "#7c2d12",
+              DEFAULT: "#f97316",
+              foreground: "#ffffff",
+            },
+            danger: {
+              50: "#fef2f2",
+              100: "#fee2e2", 
+              200: "#fecaca",
+              300: "#fca5a5",
+              400: "#f87171",
+              500: "#ef4444",
+              600: "#dc2626",
+              700: "#b91c1c",
+              800: "#991b1b",
+              900: "#7f1d1d",
+              DEFAULT: "#ef4444",
+              foreground: "#ffffff",
+            },
+            
             focus: "#0ea5e9",
             border: "#334155",
             ring: "#0ea5e9",
+            
+            // Secondary accent color  
             secondary: {
               50: "#f5f3ff",
               100: "#ede9fe",
-              200: "#ddd6fe",
+              200: "#ddd6fe", 
               300: "#c4b5fd",
               400: "#a78bfa",
               500: "#8b5cf6",
@@ -193,7 +330,7 @@ module.exports = {
             },
             borderWidth: {
               small: "1px",
-              medium: "2px",
+              medium: "2px", 
               large: "3px",
             },
           },

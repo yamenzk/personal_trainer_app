@@ -1,0 +1,93 @@
+// src/components/dashboard/QuickStats.tsx
+import { motion } from "framer-motion";
+import { Activity, Flame, Target, Scale, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
+import { Client } from '@/types/client';
+import { GlassCard } from '../shared/GlassCard';
+
+interface QuickStatsProps {
+  client: Client;
+}
+
+export const QuickStats = ({ client }: QuickStatsProps) => {
+  const todayStats = [
+    {
+      icon: Activity,
+      label: 'Activity Level',
+      value: client.activity_level,
+      color: 'primary',
+      change: {
+        value: `${client.total_exercises_completed} exercises completed`,
+        trend: 'up'
+      }
+    },
+    {
+      icon: Flame,
+      label: 'Calories Burned',
+      value: `${(client.total_calories_burned / 1000).toFixed(1)}k`,
+      color: 'secondary',
+      change: {
+        value: `${client.total_sets_played} sets completed`,
+        trend: 'up'
+      }
+    },
+    {
+      icon: Target,
+      label: 'Goal Progress',
+      value: client.goal === 'Weight Loss' 
+        ? `${Math.abs(client.weight[0].weight - client.current_weight).toFixed(1)} kg lost`
+        : client.goal === 'Weight Gain'
+          ? `${Math.abs(client.weight[0].weight - client.current_weight).toFixed(1)} kg gained`
+          : 'Maintaining',
+      color: 'success',
+      change: {
+        value: `${Math.round((client.current_weight - client.target_weight) / (client.weight[0].weight - client.target_weight) * 100)}% complete`,
+        trend: 'up'
+      }
+    },
+    {
+      icon: Scale,
+      label: 'Current Weight',
+      value: `${client.current_weight} kg`,
+      color: 'warning',
+      change: {
+        value: `Target: ${client.target_weight} kg`,
+        trend: client.current_weight > client.target_weight ? 'down' : 'up'
+      }
+    }
+  ];
+
+  return (
+    <>
+      {todayStats.map((stat, index) => (
+        <motion.div
+          key={stat.label}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+        >
+          <GlassCard
+          key={stat.label}
+          variant="frosted"
+          className="hover:scale-102 transition-transform p-3"
+        >
+            {/* Stat content remains the same but without glass effect */}
+            <div className="space-y-2">
+              <h3 className="text-sm text-foreground/60">{stat.label}</h3>
+              <div className="space-y-1">
+                <p className="text-2xl font-semibold">{stat.value}</p>
+                <div className="flex items-center gap-1 text-sm">
+                  {stat.change.trend === 'up' ? (
+                    <ArrowUp className="w-4 h-4 text-success-500" />
+                  ) : (
+                    <ArrowDown className="w-4 h-4 text-danger-500" />
+                  )}
+                  <span className="text-foreground/60">{stat.change.value}</span>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
+      ))}
+    </>
+  );
+};

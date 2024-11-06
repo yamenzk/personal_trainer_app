@@ -34,6 +34,7 @@ class Membership(Document):
             
             self.active = 1 if start_time <= current_time <= end_time else 0
             
+@frappe.whitelist()
 def update_membership_statuses():
     """
     Background job to update active status of all memberships.

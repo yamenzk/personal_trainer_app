@@ -1,8 +1,10 @@
+// src/pages/Login.tsx
 import { useState } from 'react';
-import { Card, Input, Button, Link } from "@nextui-org/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Input, Button } from "@nextui-org/react";
+import { motion } from "framer-motion";
 import { Key, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { GlassCard } from '@/components/shared/GlassCard';
 
 const Login = () => {
   const [membershipId, setMembershipId] = useState('');
@@ -30,9 +32,24 @@ const Login = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-background">
-      {/* Animated Background Elements */}
+      {/* Background Elements */}
       <div className="fixed inset-0 -z-10">
+        {/* Primary gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary-400/20 via-background to-secondary-400/20 animate-gradient-xy" />
+        
+        {/* Animated gradient orbs */}
+        <div 
+          className="absolute -top-[40vh] -right-[40vh] w-[80vh] h-[80vh] rounded-full 
+            bg-primary-500/30 blur-3xl animate-float"
+          style={{ animationDelay: "-2s" }}
+        />
+        <div 
+          className="absolute -bottom-[40vh] -left-[40vh] w-[80vh] h-[80vh] rounded-full 
+            bg-secondary-500/30 blur-3xl animate-float"
+          style={{ animationDelay: "-1s" }}
+        />
+        
+        {/* Subtle pattern overlay */}
         <div 
           className="absolute inset-0 opacity-50"
           style={{
@@ -40,16 +57,12 @@ const Login = () => {
           }}
         />
         
-        {/* Animated gradient orbs */}
-        <div className="absolute -top-[40vh] -right-[40vh] w-[80vh] h-[80vh] rounded-full bg-primary-500/30 blur-3xl animate-pulse" />
-        <div className="absolute -bottom-[40vh] -left-[40vh] w-[80vh] h-[80vh] rounded-full bg-secondary-500/30 blur-3xl animate-pulse" />
-        
-        {/* Additional subtle patterns */}
+        {/* Final overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
       </div>
 
-      {/* Content */}
       <div className="w-full max-w-md space-y-8 relative">
+        {/* Logo and Title */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -57,45 +70,27 @@ const Login = () => {
           className="text-center"
         >
           <div className="flex justify-center mb-6">
-            <div className="relative">
-              <motion.div 
-                className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden relative group"
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ 
-                  type: "spring",
-                  stiffness: 260,
-                  damping: 20,
-                  delay: 0.1
-                }}
-              >
-                {/* Gradient background with hover effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 group-hover:scale-110 transition-transform duration-300" />
-                <div className="absolute inset-0 bg-black/10" />
-                
-                {/* Logo text */}
-                <span className="relative text-5xl font-bold text-white drop-shadow-lg">
-                  bS
-                </span>
-              </motion.div>
-
-              {/* Badge */}
-              <motion.div 
-                className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-content/80 backdrop-blur-md px-4 py-2 rounded-full border border-border shadow-lg"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                <span className="text-sm font-semibold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
-                  Fitness
-                </span>
-              </motion.div>
-            </div>
+            <motion.div 
+              className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden relative group"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                delay: 0.1
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 group-hover:scale-110 transition-transform duration-300" />
+              <div className="absolute inset-0 bg-black/10" />
+              <span className="relative text-5xl font-bold text-white drop-shadow-lg">
+                bS
+              </span>
+            </motion.div>
           </div>
           
-          {/* Main title */}
           <motion.h1 
-            className="text-5xl font-bold mb-2"
+            className="text-4xl font-bold mb-2"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -105,14 +100,13 @@ const Login = () => {
             </span>
           </motion.h1>
           
-          {/* Subtitle */}
           <motion.p 
-            className="text-foreground/60 max-w-sm mx-auto"
+            className="text-foreground/60"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            Enter your membership ID to access your personalized training dashboard
+            Enter your membership ID to access your personal training dashboard
           </motion.p>
         </motion.div>
 
@@ -122,46 +116,39 @@ const Login = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="p-6 space-y-6 bg-content/80 backdrop-blur-xl border border-border shadow-xl">
-            {/* Input field with error handling */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={error ? 'error' : 'input'}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-              >
-                <Input
-                  label="Membership ID"
-                  placeholder="Enter your membership ID"
-                  value={membershipId}
-                  onChange={(e) => {
-                    setMembershipId(e.target.value);
-                    setError('');
-                  }}
-                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  errorMessage={error}
-                  isInvalid={!!error}
-                  startContent={<Key className="text-default-400" size={18} />}
-                  size="lg"
-                  autoFocus
-                  classNames={{
-                    input: "bg-transparent",
-                    inputWrapper: [
-                      "backdrop-blur-xl",
-                      "bg-content/50",
-                      "shadow-inner",
-                      "hover:bg-content/60",
-                      "transition-background",
-                      "duration-150",
-                      "group-data-[focused=true]:bg-content/70",
-                    ].join(" "),
-                  }}
-                />
-              </motion.div>
-            </AnimatePresence>
+          <GlassCard className="p-6 space-y-6">
+            <Input
+              key="inside"
+              label="Membership ID"
+              labelPlacement="inside"
+              value={membershipId}
+              onValueChange={setMembershipId}
+              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              errorMessage={error}
+              isInvalid={!!error}
+              startContent={<Key className="text-default-400" size={18} />}
+              variant="bordered"
+              size="lg"
+              classNames={{
+                label: "text-foreground/90",
+                input: [
+                  "bg-transparent",
+                  "text-foreground/90",
+                  "placeholder:text-foreground/50",
+                ],
+                innerWrapper: "bg-transparent",
+                inputWrapper: [
+                  "shadow-sm",
+                  "bg-content/10",
+                  "backdrop-blur-sm",
+                  "hover:bg-content/20",
+                  "group-data-[focused=true]:bg-content/20",
+                  "!cursor-text",
+                ],
+              }}
+              autoFocus
+            />
             
-            {/* Login button with loading state */}
             <Button
               color="primary"
               onClick={handleLogin}
@@ -169,18 +156,18 @@ const Login = () => {
               className={`
                 w-full bg-gradient-to-r from-primary-500 to-secondary-500 
                 shadow-lg hover:shadow-primary-500/25 transition-all duration-300
-                hover:-translate-y-0.5 active:translate-y-0
+                hover:-translate-y-0.5 active:translate-y-0 mt-2
                 ${isLoading ? 'animate-pulse' : ''}
               `}
               size="lg"
               startContent={!isLoading && <Key size={18} />}
             >
-              {isLoading ? 'Logging in...' : 'Continue'}
+              {isLoading ? 'Verifying...' : 'Continue'}
             </Button>
-          </Card>
+          </GlassCard>
         </motion.div>
 
-        {/* Footer links */}
+        {/* Footer */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -188,15 +175,13 @@ const Login = () => {
           className="text-center space-y-2"
         >
           <p className="text-sm text-foreground/60">
-            Don't have a membership ID?{' '}
-            <Link 
-              href="mailto:contact@byshujaa.com" 
-              className="text-primary-500 hover:text-primary-400 transition-colors"
+            Need a membership?{' '}
+            <a 
+              href="mailto:laith@byshujaa.com" 
+              className="text-primary-500 hover:text-primary-400 transition-colors inline-flex items-center gap-1"
             >
-              <span className="inline-flex items-center gap-1">
-                Contact us <Mail size={14} />
-              </span>
-            </Link>
+              Contact me <Mail size={14} />
+            </a>
           </p>
         </motion.div>
       </div>

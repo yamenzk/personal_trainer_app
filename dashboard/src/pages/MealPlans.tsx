@@ -1,90 +1,52 @@
-import { useEffect, useState } from 'react';
-import { 
-  Button, 
+import { useState, useEffect, useRef } from 'react';
+import {
+  Button,
   Progress,
   Chip,
   Tooltip,
   Tabs,
   Tab,
-  cn,
 } from "@nextui-org/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
+import {
   Utensils,
   Calendar,
   Clock,
-  Target,
   Scale,
   Apple,
   Beef,
   Wheat,
   Droplet,
-  ScrollText,
-  ChevronRight,
-  ChevronLeft,
-  AlertTriangle,
   Coffee,
   Cookie,
   Sandwich,
   UtensilsCrossed,
   Soup,
-  CircleDollarSign,
   Info,
   Flame,
   BarChart3,
+  ChevronRight,
+  ChevronLeft,
+  AlertTriangle,
+  Zap,
   ArrowRight,
-  ChevronDown,
-  ChevronUp,
+  ScrollText,
+  Moon,
 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
 import { GlassCard } from '../components/shared/GlassCard';
-import { useNavigate } from 'react-router-dom';
-import { Food, FoodReference, NutritionInfo } from '../types/meal';
 import { calculatePlanProgress } from '../utils/api';
+import { cn } from '@/utils/cn';
 
-// Types
-interface MealCardProps {
-  meal: string;
-  foods: Food[];
-  references: { [key: string]: FoodReference };
-  dailyTargets: {
-    proteins: string;
-    carbs: string;
-    fats: string;
-    energy: string;
-  };
-}
-
-interface FoodItemProps {
-  food: Food;
-  details: FoodReference;
-  dailyTargets: {
-    proteins: string;
-    carbs: string;
-    fats: string;
-    energy: string;
-  };
-}
-
-interface NutritionChartProps {
-  current: NutritionInfo;
-  target: {
-    proteins: string;
-    carbs: string;
-    fats: string;
-    energy: string;
-  };
-}
-
-// Helper Components
-const WeekDayButton = ({ 
-  day, 
-  date, 
-  isSelected, 
-  isCompleted, 
-  isCurrent, 
+// WeekDayButton Component for navigation
+const WeekDayButton = ({
+  day,
+  date,
+  isSelected,
+  isCompleted,
+  isCurrent,
   onClick,
   meals = 0,
 }: {
@@ -132,272 +94,164 @@ const WeekDayButton = ({
           )}
         />
       ))}
+      {meals === 0 && (
+        <Moon size={14} className="text-foreground/40" />
+      )}
     </div>
   </button>
 );
 
-const NutritionChart: React.FC<NutritionChartProps> = ({ current, target }) => {
-  const calculatePercentage = (value: number, targetValue: string) => {
-    return Math.min(100, (value / parseFloat(targetValue)) * 100);
-  };
-
-  const nutrients = [
-    {
-      name: 'Calories',
-      current: current.energy.value,
-      target: parseFloat(target.energy),
-      unit: 'kcal',
-      color: 'primary',
-      icon: Flame
-    },
-    {
-      name: 'Protein',
-      current: current.protein.value,
-      target: parseFloat(target.proteins),
-      unit: 'g',
-      color: 'success',
-      icon: Beef
-    },
-    {
-      name: 'Carbs',
-      current: current.carbs.value,
-      target: parseFloat(target.carbs),
-      unit: 'g',
-      color: 'warning',
-      icon: Wheat
-    },
-    {
-      name: 'Fat',
-      current: current.fat.value,
-      target: parseFloat(target.fats),
-      unit: 'g',
-      color: 'danger',
-      icon: Droplet
-    }
-  ];
-
-  return (
-    <div className="space-y-4">
-      {nutrients.map((nutrient) => (
-        <div key={nutrient.name} className="space-y-2">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-lg bg-${nutrient.color}-500/10`}>
-                <nutrient.icon className={`w-4 h-4 text-${nutrient.color}-500`} />
-              </div>
-              <span className="text-sm font-medium">{nutrient.name}</span>
-            </div>
-            <div className="text-sm">
-              <span className="font-medium">
-                {Math.round(nutrient.current)}
-              </span>
-              <span className="text-foreground/60">
-                /{Math.round(nutrient.target)} {nutrient.unit}
-              </span>
-            </div>
-          </div>
-          <div className="relative h-2 w-full bg-content/10 rounded-full overflow-hidden">
-            <div
-              className={cn(
-                "absolute h-full left-0 top-0 rounded-full transition-all duration-300",
-                `bg-${nutrient.color}-500`
-              )}
-              style={{
-                width: `${calculatePercentage(nutrient.current, nutrient.target.toString())}%`
-              }}
-            />
-          </div>
+// Rest Period Card Component
+const RestPeriodCard = () => (
+  <GlassCard
+    variant="gradient"
+    gradient="from-secondary-500/10 via-background to-warning-500/10"
+    className="mt-6"
+    style={{ border: '0'}}
+  >
+    <div className="p-6 space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="p-3 rounded-xl bg-warning-500/10">
+          <Moon className="w-6 h-6 text-warning-500" />
         </div>
-      ))}
+        <div>
+          <h3 className="text-lg font-semibold">Cheat Day</h3>
+          <p className="text-foreground/60">No meals scheduled for this day.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 rounded-xl bg-content/5">
+          <div className="flex items-center gap-2 mb-2">
+            <Cookie className="w-4 h-4 text-success-500" />
+            <span className="text-sm font-medium">Light Snacking</span>
+          </div>
+          <p className="text-sm text-foreground/60">
+            Consider healthy snacks if hungry
+          </p>
+        </div>
+
+        <div className="p-4 rounded-xl bg-content/5">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="w-4 h-4 text-primary-500" />
+            <span className="text-sm font-medium">Next Meal</span>
+          </div>
+          <p className="text-sm text-foreground/60">
+            Prepare for your next scheduled meal
+          </p>
+        </div>
+
+        <div className="p-4 rounded-xl bg-content/5">
+          <div className="flex items-center gap-2 mb-2">
+            <Droplet className="w-4 h-4 text-secondary-500" />
+            <span className="text-sm font-medium">Stay Hydrated</span>
+          </div>
+          <p className="text-sm text-foreground/60">
+            Remember to drink plenty of water
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-warning-500/5">
+        <Info className="w-5 h-5 text-warning-500 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-foreground/70">
+          Rest periods between meals help with digestion and maintain stable blood sugar levels.
+          Use this time to stay hydrated and prepare for your next meal.
+        </p>
+      </div>
+    </div>
+  </GlassCard>
+);
+
+// Nutrition Chart Component
+const NutritionChart = ({ 
+  current, 
+  target 
+}: { 
+  current: { value: number; unit: string }; 
+  target: string;
+}) => {
+  const percentage = Math.min(100, (current.value / parseFloat(target)) * 100);
+  
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center text-sm">
+        {/* <span className="text-foreground/60">Progress</span> */}
+        {/* <span>{Math.round(percentage)}%</span> */}
+      </div>
+      <div className="h-2 bg-content/10 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full bg-primary-500 rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </div>
+      <div className="flex justify-between text-sm">
+        <span className="text-foreground/60">
+          {Math.round(current.value)}{current.unit}
+        </span>
+        <span className="text-foreground">
+          {Math.round(parseFloat(target))}{current.unit}
+        </span>
+      </div>
     </div>
   );
 };
 
-const getMealIcon = (meal: string) => {
-  const mealLower = meal.toLowerCase();
-  if (mealLower.includes('breakfast')) return Coffee;
-  if (mealLower.includes('snack')) return Cookie;
-  if (mealLower.includes('lunch')) return Sandwich;
-  if (mealLower.includes('dinner')) return UtensilsCrossed;
-  return Soup;
-};
-
-const FoodItem: React.FC<FoodItemProps> = ({ food, details, dailyTargets }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const calculatePercentage = (value: number, targetValue: string) => {
-    return Math.round((value / parseFloat(targetValue)) * 100);
-  };
-
-  return (
-    <GlassCard 
-      gradient="from-content/5 to-background"
-      className="transition-all duration-300 hover:shadow-lg"
-    >
-      <div className="p-4 space-y-4">
-        {/* Food Header */}
-        <div className="flex items-start gap-4">
-          <img
-            src={details.image}
-            alt={details.title}
-            className="w-16 h-16 rounded-lg object-cover"
-          />
-          <div className="flex-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <h4 className="font-medium">{details.title}</h4>
-                <p className="text-sm text-foreground/60">{details.category}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Chip 
-                  size="sm" 
-                  className="bg-primary-500/10"
-                  startContent={<Scale size={14} className="text-primary-500" />}
-                >
-                  {food.amount}g
-                </Chip>
-                <Button
-                  isIconOnly
-                  variant="light"
-                  size="sm"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                >
-                  {isExpanded ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Expanded Content */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="pt-2 space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <Chip
-                    className="bg-primary-500/10 justify-between"
-                    startContent={<Flame size={14} className="text-primary-500" />}
-                  >
-                    <span className="text-sm">
-                      {Math.round(food.nutrition.energy.value)} kcal
-                    </span>
-                  </Chip>
-                  <Chip
-                    className="bg-success-500/10 justify-between"
-                    startContent={<Beef size={14} className="text-success-500" />}
-                  >
-                    <span className="text-sm">
-                      {Math.round(food.nutrition.protein.value)}g protein
-                    </span>
-                  </Chip>
-                  <Chip
-                    className="bg-warning-500/10 justify-between"
-                    startContent={<Wheat size={14} className="text-warning-500" />}
-                  >
-                    <span className="text-sm">
-                      {Math.round(food.nutrition.carbs.value)}g carbs
-                    </span>
-                  </Chip>
-                  <Chip
-                    className="bg-danger-500/10 justify-between"
-                    startContent={<Droplet size={14} className="text-danger-500" />}
-                  >
-                    <span className="text-sm">
-                      {Math.round(food.nutrition.fat.value)}g fat
-                    </span>
-                  </Chip>
-                </div>
-
-                {details.description && (
-                  <p className="text-sm text-foreground/70 leading-relaxed">
-                    {details.description}
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </GlassCard>
-  );
-};
-
-const MealCard: React.FC<MealCardProps> = ({ 
-  meal, 
-  foods, 
-  references,
-  dailyTargets 
+// Meal Card Component
+const MealCard = ({
+  title,
+  timing,
+  calories,
+  foods,
+  color = "primary",
+  references
+}: {
+  title: string;
+  timing: string;
+  calories: number;
+  foods: Array<any>;
+  color?: string;
+  references: any;
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const Icon = getMealIcon(meal);
-
-  // Calculate meal totals
-  const totals = foods.reduce((acc, food) => ({
-    energy: { 
-      value: acc.energy.value + food.nutrition.energy.value,
-      unit: food.nutrition.energy.unit 
-    },
-    protein: { 
-      value: acc.protein.value + food.nutrition.protein.value,
-      unit: food.nutrition.protein.unit 
-    },
-    carbs: { 
-      value: acc.carbs.value + food.nutrition.carbs.value,
-      unit: food.nutrition.carbs.unit 
-    },
-    fat: { 
-      value: acc.fat.value + food.nutrition.fat.value,
-      unit: food.nutrition.fat.unit 
-    }
-  }), {
-    energy: { value: 0, unit: 'kcal' },
-    protein: { value: 0, unit: 'g' },
-    carbs: { value: 0, unit: 'g' },
-    fat: { value: 0, unit: 'g' }
-  });
+  const [isExpanded, setIsExpanded] = useState(false);
+  const Icon = {
+    'Breakfast': Coffee,
+    'Morning Snack': Cookie,
+    'Lunch': Sandwich,
+    'Afternoon Snack': Cookie,
+    'Dinner': UtensilsCrossed,
+    'Evening Snack': Soup,
+  }[title] || Utensils;
 
   return (
-    <GlassCard gradient="from-primary-500/5 to-background">
-      <div className="space-y-4">
-        {/* Meal Header */}
-        <div className="p-4 flex items-center justify-between">
+    <GlassCard
+      variant="frosted"
+      className="overflow-hidden transition-all duration-300"
+    >
+      <div className="p-6 space-y-4">
+        <div 
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary-500/10">
-              <Icon className="w-5 h-5 text-primary-500" />
+            <div className={`p-3 rounded-xl bg-${color}-500/10`}>
+              <Icon className={`w-5 h-5 text-${color}-500`} />
             </div>
             <div>
-              <h3 className="font-semibold">{meal}</h3>
-              <p className="text-sm text-foreground/60">
-                {foods.length} items • {Math.round(totals.energy.value)} kcal
-              </p>
+              <h3 className="font-semibold">{title}</h3>
+              <p className="text-sm text-foreground/60">{timing}</p>
             </div>
           </div>
-          <Button
-            isIconOnly
-            variant="light"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
+          <Chip
+            className={`bg-${color}-500/10`}
+            startContent={<Flame size={14} className={`text-${color}-500`} />}
           >
-            {isExpanded ? (
-              <ChevronUp size={16} />
-            ) : (
-              <ChevronDown size={16} />
-            )}
-          </Button>
+            {calories} kcal
+          </Chip>
         </div>
 
-        {/* Meal Content */}
         <AnimatePresence>
           {isExpanded && (
             <motion.div
@@ -405,61 +259,56 @@ const MealCard: React.FC<MealCardProps> = ({
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="overflow-hidden"
+              className="space-y-4 pt-4"
             >
-              <div className="px-4 pb-4 space-y-4">
-                {/* Nutrition Summary */}
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="p-2 rounded-lg bg-primary-500/5">
-                    <div className="flex items-center gap-2">
-                      <Flame className="w-4 h-4 text-primary-500" />
-                      <span className="text-xs text-foreground/60">Calories</span>
-                    </div>
-                    <p className="font-medium mt-1">
-                      {Math.round(totals.energy.value)} kcal
-                    </p>
-                  </div>
-                  <div className="p-2 rounded-lg bg-success-500/5">
-                    <div className="flex items-center gap-2">
-                      <Beef className="w-4 h-4 text-success-500" />
-                      <span className="text-xs text-foreground/60">Protein</span>
-                    </div>
-                    <p className="font-medium mt-1">
-                      {Math.round(totals.protein.value)}g
-                    </p>
-                  </div>
-                  <div className="p-2 rounded-lg bg-warning-500/5">
-                  <div className="flex items-center gap-2">
-                      <Wheat className="w-4 h-4 text-warning-500" />
-                      <span className="text-xs text-foreground/60">Carbs</span>
-                    </div>
-                    <p className="font-medium mt-1">
-                      {Math.round(totals.carbs.value)}g
-                    </p>
-                  </div>
-                  <div className="p-2 rounded-lg bg-danger-500/5">
-                    <div className="flex items-center gap-2">
-                      <Droplet className="w-4 h-4 text-danger-500" />
-                      <span className="text-xs text-foreground/60">Fat</span>
-                    </div>
-                    <p className="font-medium mt-1">
-                      {Math.round(totals.fat.value)}g
-                    </p>
-                  </div>
-                </div>
-
-                {/* Food List */}
-                <div className="space-y-3">
-                  {foods.map((food, index) => (
-                    <FoodItem
-                      key={`${food.ref}-${index}`}
-                      food={food}
-                      details={references[food.ref]}
-                      dailyTargets={dailyTargets}
+              {foods.map((food, index) => {
+                const foodRef = references.foods[food.ref];
+                return (
+                  <div 
+                    key={index}
+                    className="flex items-start gap-4 p-4 rounded-xl bg-content/5"
+                  >
+                    <img
+                      src={foodRef.image}
+                      alt={foodRef.title}
+                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                     />
-                  ))}
-                </div>
-              </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-medium truncate">{foodRef.title}</h4>
+                          <p className="text-sm text-foreground/60">{foodRef.category}</p>
+                        </div>
+                        <Chip 
+                          size="sm"
+                          className="bg-content/10"
+                          startContent={<Scale size={14} />}
+                        >
+                          {food.amount}g
+                        </Chip>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 mt-3">
+                        <div className="text-center">
+                          <Flame className="w-4 h-4 text-primary-500 mx-auto mb-1" />
+                          <p className="text-xs">{Math.round(food.nutrition.energy.value)}kcal</p>
+                        </div>
+                        <div className="text-center">
+                          <Beef className="w-4 h-4 text-success-500 mx-auto mb-1" />
+                          <p className="text-xs">{Math.round(food.nutrition.protein.value)}g</p>
+                        </div>
+                        <div className="text-center">
+                          <Wheat className="w-4 h-4 text-warning-500 mx-auto mb-1" />
+                          <p className="text-xs">{Math.round(food.nutrition.carbs.value)}g</p>
+                        </div>
+                        <div className="text-center">
+                          <Droplet className="w-4 h-4 text-danger-500 mx-auto mb-1" />
+                          <p className="text-xs">{Math.round(food.nutrition.fat.value)}g</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </motion.div>
           )}
         </AnimatePresence>
@@ -468,14 +317,51 @@ const MealCard: React.FC<MealCardProps> = ({
   );
 };
 
-// Main Component
+// Main MealPlans Component
 export default function MealPlans() {
-  const navigate = useNavigate();
   const { loading, error, client, plans, references, refreshData } = useClientData();
   const { activePlan, completedPlans, currentDay } = usePlans(plans ?? []);
   const [selectedDay, setSelectedDay] = useState(currentDay);
   const [selectedPlan, setSelectedPlan] = useState<'active' | 'history'>('active');
+  const [historicalPlanIndex, setHistoricalPlanIndex] = useState(0);
+  const daysContainerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (selectedDay === null && currentDay) {
+      setSelectedDay(currentDay);
+    }
+  }, [currentDay, selectedDay]);
+
+  useEffect(() => {
+    if (currentDay) {
+      setSelectedDay(currentDay);
+      
+      // Wait for the next tick to ensure DOM is updated
+      setTimeout(() => {
+        if (daysContainerRef.current) {
+          const container = daysContainerRef.current;
+          const dayElement = container.children[currentDay - 1] as HTMLElement;
+          
+          if (dayElement) {
+            // Calculate the center position
+            const containerWidth = container.clientWidth;
+            const elementWidth = dayElement.offsetWidth;
+            const elementLeft = dayElement.offsetLeft;
+            
+            // Center the element
+            const scrollPosition = elementLeft - (containerWidth / 2) + (elementWidth / 2);
+            
+            container.scrollTo({
+              left: Math.max(0, scrollPosition),
+              behavior: 'smooth'
+            });
+          }
+        }
+      }, 100);
+    }
+  }, [currentDay]);
+
+  // Loading state
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
@@ -483,13 +369,14 @@ export default function MealPlans() {
           <div className="w-16 h-16 relative">
             <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
             <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
-          </div>
+          </div>``
           <div className="text-foreground/60 font-medium">Loading your meal plan...</div>
         </div>
       </div>
     );
   }
 
+  // Error state
   if (error || !client || !references) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -497,7 +384,7 @@ export default function MealPlans() {
           <div className="w-16 h-16 rounded-full bg-danger/20 text-danger mx-auto flex items-center justify-center">
             <AlertTriangle size={32} />
           </div>
-          <h3 className="text-xl font-semibold text-danger">Error Loading Plans</h3>
+          <h3 className="text-xl font-semibold text-danger">Error Loading Plan</h3>
           <p className="text-danger/80">{error || 'Failed to load meal data'}</p>
           <Button 
             color="danger" 
@@ -511,7 +398,7 @@ export default function MealPlans() {
     );
   }
 
-  const currentPlan = selectedPlan === 'active' ? activePlan : completedPlans[0];
+  const currentPlan = selectedPlan === 'active' ? activePlan : completedPlans[historicalPlanIndex];
   if (!currentPlan) return null;
 
   const dayKey = `day_${selectedDay}`;
@@ -527,177 +414,242 @@ export default function MealPlans() {
     return acc;
   }, {} as Record<string, typeof dayPlan.foods>) ?? {};
 
+  const dailyNutrients = dayPlan?.totals ?? {
+    energy: { value: 0, unit: 'kcal' },
+    protein: { value: 0, unit: 'g' },
+    carbs: { value: 0, unit: 'g' },
+    fat: { value: 0, unit: 'g' }
+  };
+
+  const mealTimings = {
+    'Breakfast': '7:00 AM - 9:00 AM',
+    'Morning Snack': '10:30 AM - 11:30 AM',
+    'Lunch': '1:00 PM - 2:30 PM',
+    'Afternoon Snack': '4:00 PM - 5:00 PM',
+    'Dinner': '7:00 PM - 8:30 PM',
+    'Evening Snack': '9:30 PM - 10:30 PM'
+  };
+
   return (
     <div className="min-h-screen w-full bg-background relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] 
-          bg-gradient-to-b from-primary-500/20 via-secondary-500/20 to-transparent 
-          blur-3xl opacity-50" 
-        />
-        <div className="absolute inset-0 backdrop-blur-3xl" />
-      </div>
-
-      <div className="container mx-auto p-4 space-y-6">
-        {/* Header Section */}
-        <GlassCard gradient="from-primary-500/10 via-background to-secondary-500/10">
-          <div className="p-6 space-y-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div className="space-y-1">
-                <h1 className="text-2xl font-bold">Meal Plan</h1>
-                <p className="text-foreground/60">
-                  {format(new Date(currentPlan.start), 'MMM d')} - {format(new Date(currentPlan.end), 'MMM d, yyyy')}
-                </p>
+      <div className="container mx-auto space-y-6">
+        {/* Hero Section */}
+        <GlassCard
+          variant="gradient"
+          gradient="from-primary-500/20 via-transparent to-secondary-500/20"
+          intensity="heavy"
+        >
+          <div className="p-6 space-y-6">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-primary-500 text-white shadow-lg shadow-primary-500/20">
+                  <Calendar className="w-6 h-6" />
+                </div>
+                
+                {selectedPlan === 'active' ? (
+                  <div>
+                    <h1 className="text-xl font-bold">
+                      {format(new Date(currentPlan.start), 'MMM d')} - {format(addDays(new Date(currentPlan.start), 6), 'MMM d')}
+                    </h1>
+                    <p className="text-sm text-foreground/60">
+                      {format(new Date(currentPlan.start), 'yyyy')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      isDisabled={historicalPlanIndex === completedPlans.length - 1}
+                      onPress={() => setHistoricalPlanIndex(prev => prev + 1)}
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <GlassCard 
+                        variant="frosted"
+                        className="px-4 py-2 bg-primary-500/5"
+                      >
+                        <div className="flex items-center flex-col gap-2">
+                          <Calendar className="w-4 h-4 text-primary-500" />
+                          <span className="text-sm">
+                            {format(new Date(currentPlan.start), 'MMM d')} - {format(new Date(currentPlan.end), 'MMM d')}
+                          </span>
+                          <span className="text-sm">
+                            {currentPlan.config.daily_meals} meals/day
+                          </span>
+                        </div>
+                      </GlassCard>
+                    </div>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      isDisabled={historicalPlanIndex === 0}
+                      onPress={() => setHistoricalPlanIndex(prev => prev - 1)}
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10">
-                  <Target className="w-5 h-5 text-primary-500" />
-                  <span className="font-medium">
-                    {Math.round(planProgress)}% Complete
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-success-500/10">
-                  <Utensils className="w-5 h-5 text-success-500" />
-                  <span className="font-medium">
-                    {currentPlan.config.daily_meals} meals/day
-                  </span>
-                </div>
+              {/* Plan Type Selector */}
+              <div className="flex gap-2 p-1 rounded-xl bg-content/5 backdrop-blur-xl">
+                <Button
+                  size="sm"
+                  variant={selectedPlan === 'active' ? 'solid' : 'light'}
+                  onPress={() => {
+                    setSelectedPlan('active');
+                    setSelectedDay(currentDay);
+                  }}
+                  className={cn(
+                    "rounded-lg shadow-lg",
+                    selectedPlan === 'active' && "bg-gradient-to-r from-primary-500 to-secondary-500 text-white"
+                  )}
+                  startContent={<Zap size={16} className={selectedPlan === 'active' ? "text-white" : ""} />}
+                >
+                  Current Week
+                </Button>
+                <Button
+                  size="sm"
+                  variant={selectedPlan === 'history' ? 'solid' : 'light'}
+                  onPress={() => setSelectedPlan('history')}
+                  isDisabled={completedPlans.length === 0}
+                  className={cn(
+                    "rounded-lg shadow-lg",
+                    selectedPlan === 'history' && "bg-gradient-to-r from-primary-500 to-secondary-500 text-white"
+                  )}
+                  startContent={<Clock size={16} className={selectedPlan === 'history' ? "text-white" : ""} />}
+                >
+                  History ({completedPlans.length})
+                </Button>
               </div>
             </div>
 
-            <Tabs 
-              selectedKey={selectedPlan} 
-              onSelectionChange={(key) => setSelectedPlan(key as 'active' | 'history')}
-              aria-label="Plan selection"
-              classNames={{
-                tabList: "gap-4 w-full relative rounded-lg p-1 bg-content/5",
-                cursor: "bg-primary-500/20 rounded-lg",
-                tab: "rounded-lg px-4 py-2 text-sm font-medium",
-                tabContent: "group-data-[selected=true]:text-primary-500"
-              }}
-            >
-              <Tab 
-                key="active" 
-                title={
-                  <div className="flex items-center gap-2">
-                    <Utensils size={16} />
-                    <span>Current Plan</span>
-                    {activePlan && (
-                      <Chip size="sm" variant="flat" color="success">
-                        {Math.round(planProgress)}%
-                      </Chip>
-                    )}
-                  </div>
-                }
-              />
-              <Tab 
-                key="history" 
-                title={
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} />
-                    <span>History</span>
-                    {completedPlans.length > 0 && (
-                      <Chip size="sm" variant="flat">
-                        {completedPlans.length} plan{completedPlans.length !== 1 ? 's' : ''}
-                      </Chip>
-                    )}
-                  </div>
-                }
-                isDisabled={completedPlans.length === 0}
-              />
-            </Tabs>
+            {/* Progress Indicator */}
+
+            {/* Week Calendar */}
+            <div className="relative">
+              {/* Shadow Indicators */}
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10" />
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10" />
+
+              {/* Scrollable Days */}
+              <div
+                ref={daysContainerRef}
+                className="flex gap-3 overflow-x-auto pb-4 pt-2 scrollbar-hide -mx-2"
+                style={{
+                  scrollSnapType: 'x mandatory',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {Array.from({ length: 7 }, (_, i) => {
+                  const day = i + 1;
+                  const date = addDays(new Date(currentPlan.start), i);
+                  const dayFoods = currentPlan.days[`day_${day}`]?.foods || [];
+                  const uniqueMeals = new Set(dayFoods.map(f => f.meal)).size;
+                  
+                  return (
+                    <div
+                      key={day}
+                      className="flex-none w-[150px]"
+                      style={{ scrollSnapAlign: 'start' }}
+                    >
+                      <WeekDayButton
+                        day={day}
+                        date={date}
+                        isSelected={day === selectedDay}
+                        isCompleted={false}
+                        isCurrent={selectedPlan === 'active' && day === currentDay}
+                        onClick={() => setSelectedDay(day)}
+                        meals={uniqueMeals}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Daily Nutrition Summary */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl bg-primary-500/5 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-primary-500" />
+                  <p className="text-sm text-foreground/60">Calories</p>
+                </div>
+                <NutritionChart
+                  current={dailyNutrients.energy}
+                  target={currentPlan.targets.energy}
+                />
+              </div>
+
+              <div className="p-4 rounded-xl bg-success-500/5 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Beef className="w-4 h-4 text-success-500" />
+                  <p className="text-sm text-foreground/60">Protein</p>
+                </div>
+                <NutritionChart
+                  current={dailyNutrients.protein}
+                  target={currentPlan.targets.proteins}
+                />
+              </div>
+
+              <div className="p-4 rounded-xl bg-warning-500/5 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Wheat className="w-4 h-4 text-warning-500" />
+                  <p className="text-sm text-foreground/60">Carbs</p>
+                </div>
+                <NutritionChart
+                  current={dailyNutrients.carbs}
+                  target={currentPlan.targets.carbs}
+                />
+              </div>
+
+              <div className="p-4 rounded-xl bg-danger-500/5 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Droplet className="w-4 h-4 text-danger-500" />
+                  <p className="text-sm text-foreground/60">Fats</p>
+                </div>
+                <NutritionChart
+                  current={dailyNutrients.fat}
+                  target={currentPlan.targets.fats}
+                />
+              </div>
+            </div>
           </div>
         </GlassCard>
 
-        {/* Week Calendar */}
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-          {Array.from({ length: 7 }, (_, i) => {
-            const day = i + 1;
-            const date = addDays(new Date(currentPlan.start), i);
-            const dayMeals = Object.keys(currentPlan.days[`day_${day}`]?.foods.reduce((acc, food) => {
-              acc[food.meal] = true;
-              return acc;
-            }, {} as Record<string, boolean>) ?? {}).length;
-            
-            return (
-              <div className="flex-1 min-w-[100px]" key={day}>
-                <WeekDayButton
-                  day={day}
-                  date={date}
-                  isSelected={day === selectedDay}
-                  isCompleted={false} // You might want to add a completion status for meals
-                  isCurrent={day === currentDay}
-                  onClick={() => setSelectedDay(day)}
-                  meals={dayMeals}
-                />
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Daily Summary */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Meals List */}
-          <div className="lg:col-span-2 space-y-4">
-            {Object.entries(mealGroups).map(([meal, foods]) => (
-              <MealCard
+        {/* Meals Section */}
+        <div className="space-y-4">
+          {Object.keys(mealGroups).length > 0 ? (
+            Object.entries(mealGroups).map(([meal, foods], index) => (
+              <motion.div
                 key={meal}
-                meal={meal}
-                foods={foods}
-                references={references.foods}
-                dailyTargets={currentPlan.targets}
-              />
-            ))}
-          </div>
-
-          {/* Nutrition Summary */}
-          <div className="space-y-4">
-            <GlassCard gradient="from-content/5 to-background">
-              <div className="p-6 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary-500/10">
-                    <ScrollText className="w-5 h-5 text-primary-500" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Daily Summary</h3>
-                </div>
-
-                <NutritionChart
-                  current={dayPlan?.totals ?? {
-                    energy: { value: 0, unit: 'kcal' },
-                    protein: { value: 0, unit: 'g' },
-                    carbs: { value: 0, unit: 'g' },
-                    fat: { value: 0, unit: 'g' }
-                  }}
-                  target={currentPlan.targets}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <MealCard
+                  title={meal}
+                  timing={mealTimings[meal as keyof typeof mealTimings]}
+                  calories={foods.reduce((sum, food) => sum + food.nutrition.energy.value, 0)}
+                  foods={foods}
+                  color={
+                    index % 4 === 0 ? 'primary' :
+                    index % 4 === 1 ? 'secondary' :
+                    index % 4 === 2 ? 'success' : 
+                    'warning'
+                  }
+                  references={references}
                 />
-              </div>
-            </GlassCard>
-
-            {/* Tips Card */}
-            <GlassCard gradient="from-warning-500/5 to-background">
-              <div className="p-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-warning-500/10">
-                    <Info className="w-5 h-5 text-warning-500" />
-                  </div>
-                  <h3 className="font-semibold">Tips</h3>
-                </div>
-                <div className="space-y-3">
-                  <p className="text-sm text-foreground/70">
-                    • Try to space your meals 3-4 hours apart
-                  </p>
-                  <p className="text-sm text-foreground/70">
-                    • Drink water between meals to stay hydrated
-                  </p>
-                  <p className="text-sm text-foreground/70">
-                    • Include protein with each meal
-                  </p>
-                </div>
-              </div>
-            </GlassCard>
-          </div>
+              </motion.div>
+            ))
+          ) : (
+            <RestPeriodCard />
+          )}
         </div>
       </div>
     </div>
