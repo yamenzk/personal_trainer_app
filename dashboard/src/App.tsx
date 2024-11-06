@@ -189,7 +189,6 @@ export const usePreferencesUpdate = () => {
 };
 
 function App() {
-  const baseUrl = import.meta.env.BASE_URL || '/dashboard';
 
   return (
     <FrappeProvider
@@ -198,7 +197,7 @@ function App() {
     >
       <NextUIProvider>
         <ThemeProvider>
-          <Router basename={baseUrl}>
+          <Router>
             <AuthProvider>
               <Routes>
                 <Route path="/login" element={<Login />} />
