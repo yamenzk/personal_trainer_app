@@ -58,22 +58,12 @@ const HeightStep = ({ onComplete, isLoading = false }: HeightStepProps) => {
             type="number"
             label="Height"
             value={height}
+            variant="underlined"
+            color="primary"
             onValueChange={setHeight}
             errorMessage={error}
             isInvalid={!!error}
             startContent={<Ruler className="text-default-400" size={18} />}
-            endContent={<span className="text-default-400">cm</span>}
-            classNames={{
-              label: "text-foreground/90",
-              input: ["bg-transparent", "text-foreground/90"],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-content/10",
-                "backdrop-blur-sm",
-                "hover:bg-content/20",
-                "group-data-[focused=true]:bg-content/20",
-              ],
-            }}
           />
         ) : (
           <div className="flex gap-2 flex-1">
@@ -82,19 +72,9 @@ const HeightStep = ({ onComplete, isLoading = false }: HeightStepProps) => {
               label="Feet"
               value={height}
               onValueChange={setHeight}
-              startContent={<Ruler className="text-default-400" size={18} />}
               endContent={<span className="text-default-400">ft</span>}
-              classNames={{
-                label: "text-foreground/90",
-                input: ["bg-transparent", "text-foreground/90"],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-content/10",
-                  "backdrop-blur-sm",
-                  "hover:bg-content/20",
-                  "group-data-[focused=true]:bg-content/20",
-                ],
-              }}
+              variant="underlined"
+            color="primary"
             />
             <Input
               type="number"
@@ -102,17 +82,8 @@ const HeightStep = ({ onComplete, isLoading = false }: HeightStepProps) => {
               value={inches}
               onValueChange={setInches}
               endContent={<span className="text-default-400">in</span>}
-              classNames={{
-                label: "text-foreground/90",
-                input: ["bg-transparent", "text-foreground/90"],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-content/10",
-                  "backdrop-blur-sm",
-                  "hover:bg-content/20",
-                  "group-data-[focused=true]:bg-content/20",
-                ],
-              }}
+              variant="underlined"
+            color="primary"
             />
           </div>
         )}
@@ -120,6 +91,8 @@ const HeightStep = ({ onComplete, isLoading = false }: HeightStepProps) => {
         <Select
           label="Unit"
           value={unit}
+          variant="underlined"
+          color="primary"
           defaultSelectedKeys={["cm"]}
           onChange={(e) => {
             setUnit(e.target.value as 'cm' | 'ft');
@@ -128,10 +101,6 @@ const HeightStep = ({ onComplete, isLoading = false }: HeightStepProps) => {
             setError('');
           }}
           className="w-32"
-          classNames={{
-            trigger: "bg-content/10 backdrop-blur-sm",
-            value: "text-foreground/90",
-          }}
         >
           <SelectItem key="cm" value="cm">cm</SelectItem>
           <SelectItem key="ft" value="ft">ft</SelectItem>

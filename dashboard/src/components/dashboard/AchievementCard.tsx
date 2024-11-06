@@ -1,6 +1,5 @@
 // src/components/dashboard/AchievementCard.tsx
 import { useMemo } from 'react';
-import { motion } from "framer-motion";
 import { 
   Trophy, 
   Crown, 
@@ -16,6 +15,7 @@ import {
 import { GlassCard } from '../shared/GlassCard';
 import { Chip, Tooltip } from '@nextui-org/react';
 import { Client } from '@/types/client';
+
 
 const MILESTONES = {
   exercises: [25, 50, 100, 200, 300, 500, 1000],
@@ -140,11 +140,9 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
               </Tooltip>
             </div>
             <div className="h-2 bg-content/10 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-primary-500 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${milestoneProgress.exercises.progress}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
+              <div 
+                className="h-full bg-primary-500 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${milestoneProgress.exercises.progress}%` }}
               />
             </div>
             <div className="flex justify-between mt-2 text-xs text-foreground/60">
@@ -172,11 +170,9 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
               </Chip>
             </div>
             <div className="h-2 bg-content/10 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-secondary-500 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${milestoneProgress.sets.progress}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
+              <div 
+                className="h-full bg-secondary-500 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${milestoneProgress.sets.progress}%` }}
               />
             </div>
           </GlassCard>
@@ -200,11 +196,9 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
               </Chip>
             </div>
             <div className="h-2 bg-content/10 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-success-500 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${milestoneProgress.reps.progress}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
+              <div 
+                className="h-full bg-success-500 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${milestoneProgress.reps.progress}%` }}
               />
             </div>
           </GlassCard>
@@ -220,7 +214,7 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
                 variant={unlocked ? "gradient" : "secondary"}
                 gradient={unlocked ? `from-${color}-500/10 to-background` : undefined}
                 className={`
-                  transition-all duration-300
+                  transition-transform duration-300 hover:scale-105
                   ${!unlocked && 'opacity-50'}
                 `}
               >

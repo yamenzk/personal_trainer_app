@@ -8,7 +8,7 @@ import { cn } from '@nextui-org/react';
 
 interface LayoutProps {
   children: React.ReactNode;
-  hideNavigation?: boolean; // Add this prop
+  hideNavigation?: boolean;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => {
@@ -19,9 +19,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen w-full bg-background relative overflow-hidden">
-      {/* Dynamic Background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
+    <div className="fixed inset-0 bg-background">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
         {/* Primary gradient blob */}
         <div 
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] 
@@ -51,26 +51,42 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
       </div>
 
-      {!hideNavigation && <TopNavbar />}
-      
-      <main className={cn(
-        "container mx-auto px-4 min-h-screen",
-        !hideNavigation && "py-20 pb-24" // Add padding only when nav is shown
-      )}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-      
-      {!hideNavigation && <BottomNavbar />}
+      {/* Content Container */}
+      <div className="relative w-full h-full flex flex-col">
+        {/* Top Navigation */}
+        {!hideNavigation && (
+          <div className="flex-none">
+            <TopNavbar />
+          </div>
+        )}
+        
+        {/* Main Content - Scrollable Area */}
+        <main className={cn(
+          "flex-1 overflow-y-auto",
+          !hideNavigation && "pt-16 pb-16"
+        )}>
+          <div className="container mx-auto px-4 py-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </main>
+        
+        {/* Bottom Navigation */}
+        {!hideNavigation && (
+          <div className="flex-none">
+            <BottomNavbar />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

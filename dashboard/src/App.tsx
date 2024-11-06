@@ -16,6 +16,7 @@ import { useClientData } from './hooks/useClientData';
 import OnboardingWizard from './components/onboarding/OnboardingWizard';
 import { AnimatePresence } from "framer-motion";
 import { Client } from './types/client';
+import dayjs from 'dayjs';
 
 // Interface for components that can receive preferences update
 export interface WithPreferencesUpdate {
@@ -26,24 +27,31 @@ const getMissingSteps = (client: Client | null): string[] => {
   if (!client) return [];
   
   const stepChecks: Record<string, () => boolean> = {
-    'Name': () => !client.client_name,
-    'DateOfBirth': () => !client.date_of_birth,
-    'Gender': () => !client.gender,
-    'Email': () => !client.email,
-    'Nationality': () => !client.nationality,
-    'Height': () => !client.height,
-    'Weight': () => !client.weight?.length,
-    'TargetWeight': () => !client.target_weight,
-    'ActivityLevel': () => !client.activity_level,
-    'Equipment': () => !client.equipment,
-    'Goal': () => !client.goal,
-    'Meals': () => !client.meals === undefined || client.meals === null,
-    'Workouts': () => !client.workouts === undefined || client.workouts === null,
+    'Name': () => !client.client_name?.trim(),
+    'DateOfBirth': () => !client.date_of_birth || !dayjs(client.date_of_birth).isValid(),
+    'Gender': () => !client.gender || !['Male', 'Female'].includes(client.gender),
+    'Email': () => !client.email?.trim() || !client.email.includes('@'),
+    'Nationality': () => !client.nationality?.trim(),
+    'Height': () => !client.height || client.height <= 0,
+    'Weight': () => !client.weight?.length || client.weight[0].weight <= 0,
+    'TargetWeight': () => !client.target_weight || client.target_weight <= 0,
+    'ActivityLevel': () => !client.activity_level || !['Sedentary', 'Light', 'Moderate', 'Very Active', 'Extra Active'].includes(client.activity_level),
+    'Equipment': () => !client.equipment || !['Gym', 'Home'].includes(client.equipment),
+    'Goal': () => !client.goal || !['Weight Loss', 'Weight Gain', 'Muscle Building', 'Maintenance'].includes(client.goal),
+    'Meals': () => typeof client.meals !== 'number' || client.meals < 3 || client.meals > 6,
+    'Workouts': () => typeof client.workouts !== 'number' || client.workouts < 3 || client.workouts > 6,
   };
 
-  return Object.entries(stepChecks)
-    .filter(([_, check]) => check())
+  const missingSteps = Object.entries(stepChecks)
+    .filter(([step, check]) => {
+      const isMissing = check();
+      // console.log(`Checking ${step}: ${isMissing ? 'missing' : 'present'} (${JSON.stringify(client[step.toLowerCase() as keyof Client])})`);
+      return isMissing;
+    })
     .map(([step]) => step);
+
+  // console.log('Missing steps:', missingSteps);
+  return missingSteps;
 };
 
 const needsOnboarding = (client: Client | null) => {
@@ -83,9 +91,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingMode, setOnboardingMode] = useState<'full' | 'preferences'>('full');
   const [activeSteps, setActiveSteps] = useState<string[]>([]);
+  const [onboardingJustCompleted, setOnboardingJustCompleted] = useState(false);
 
+  // Effect for handling initial onboarding check
   useEffect(() => {
-    if (!loading && client) {
+    if (!loading && client && !onboardingJustCompleted) {
       const missingSteps = getMissingSteps(client);
       if (missingSteps.length > 0) {
         setActiveSteps(missingSteps);
@@ -93,7 +103,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         setOnboardingMode('full');
       }
     }
-  }, [loading, client]);
+  }, [loading, client, onboardingJustCompleted]);
+
+  // Add a new effect to handle data refresh after onboarding
+  useEffect(() => {
+    if (onboardingJustCompleted) {
+      const checkCompleteness = async () => {
+        await refreshData();
+        // After refreshing, verify that all required fields are complete
+        const missingSteps = getMissingSteps(client);
+        if (missingSteps.length === 0) {
+          // Only reset if everything is complete
+          setOnboardingJustCompleted(false);
+        }
+      };
+      checkCompleteness();
+    }
+  }, [onboardingJustCompleted]);
 
   const handlePreferencesUpdate = (steps: string[]) => {
     setActiveSteps(steps);
@@ -134,7 +160,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
                 steps={activeSteps}
                 onComplete={() => {
                   setShowOnboarding(false);
-                  refreshData();
+                  setOnboardingJustCompleted(true);
                 }}
               />
             </div>
@@ -163,6 +189,8 @@ export const usePreferencesUpdate = () => {
 };
 
 function App() {
+  const baseUrl = import.meta.env.BASE_URL || '/dashboard';
+
   return (
     <FrappeProvider
       socketPort={import.meta.env.VITE_SOCKET_PORT ?? '9000'}
@@ -170,11 +198,10 @@ function App() {
     >
       <NextUIProvider>
         <ThemeProvider>
-          <Router>
+          <Router basename={baseUrl}>
             <AuthProvider>
               <Routes>
                 <Route path="/login" element={<Login />} />
-                
                 <Route path="/*" element={
                   <ProtectedRoute>
                     <Routes>

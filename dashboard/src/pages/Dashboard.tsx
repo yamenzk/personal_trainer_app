@@ -1,6 +1,6 @@
 // src/pages/Dashboard.tsx
 import { useState } from 'react';
-import { AnimatePresence, motion } from "framer-motion";
+import { CSSTransition } from 'react-transition-group';
 import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
 import { calculatePlanProgress } from '../utils/api';
@@ -80,59 +80,37 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen w-full">
-      {/* Main content with simplified structure */}
-      <motion.div 
-        className="container mx-auto space-y-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Hero Section - Keep glassmorphism */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
+      {/* Main content with CSS transitions */}
+      <div className="container mx-auto space-y-6 fade-in">
+        {/* Hero Section */}
+        <div className="slide-in">
           <HeroSection
             client={client}
             activePlan={activePlan}
             currentDay={currentDay}
             planProgress={planProgress}
           />
-        </motion.div>
+        </div>
 
-        {/* Quick Stats - Simplified design */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-        >
-          <QuickStats client={client} />
-        </motion.div>
+        {/* Quick Stats */}
+        <div className="slide-in-delayed">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <QuickStats client={client} />
+          </div>
+        </div>
 
-        {/* Main Content Grid - Responsive layout */}
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* Weight Tracking - Full width on mobile */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="xl:col-span-1"
-          >
+          {/* Weight Tracking */}
+          <div className="slide-in-from-left">
             <WeightTracker
               client={client}
               onLogWeight={() => setShowWeightModal(true)}
             />
-          </motion.div>
+          </div>
 
-          {/* Workout Progress - Full width on mobile */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="xl:col-span-1"
-          >
+          {/* Workout Progress */}
+          <div className="slide-in-from-right">
             <WorkoutProgress
               client={client}
               activePlan={activePlan}
@@ -140,41 +118,36 @@ export default function Dashboard() {
               currentDay={currentDay}
               planProgress={planProgress}
             />
-          </motion.div>
+          </div>
         </div>
 
-        {/* Achievement and Muscle Groups Grid - Optimized for mobile */}
+        {/* Achievement and Muscle Groups Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
+          <div className="slide-in-delayed-2">
             <AchievementCard client={client} />
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
+          <div className="slide-in-delayed-2">
             <MuscleGroupsChart client={client} />
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Modals remain unchanged */}
-      <AnimatePresence>
-        {showWeightModal && (
-          <WeightModal
-            isOpen={showWeightModal}
-            onClose={() => setShowWeightModal(false)}
-            onWeightLogged={refreshData}
-            clientId={client.name}
-            currentWeight={client.current_weight}
-          />
-        )}
-      </AnimatePresence>
+      {/* Modal with CSSTransition */}
+      <CSSTransition
+        in={showWeightModal}
+        timeout={300}
+        classNames="modal"
+        unmountOnExit
+      >
+        <WeightModal
+          isOpen={showWeightModal}
+          onClose={() => setShowWeightModal(false)}
+          onWeightLogged={refreshData}
+          clientId={client.name}
+          currentWeight={client.current_weight}
+        />
+      </CSSTransition>
     </div>
   );
 }

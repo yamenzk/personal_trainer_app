@@ -1,9 +1,9 @@
 // src/components/dashboard/MuscleGroupsChart.tsx
 import { useMemo } from 'react';
-import { motion } from "framer-motion";
 import { GlassCard } from '../shared/GlassCard';
 import { Dumbbell, Info } from 'lucide-react';
 import { Client } from '@/types/client';
+
 import { Tooltip } from '@nextui-org/react';
 import {
   RadialBarChart,
@@ -99,10 +99,9 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
         {/* Muscle Group Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {muscleData.map((group) => (
-            <motion.div
+            <div
               key={group.name}
-              className="p-3 rounded-xl bg-content/5"
-              whileHover={{ scale: 1.02 }}
+              className="p-3 rounded-xl bg-content/5 transition-transform duration-300 hover:scale-102"
             >
               <div className="flex items-start gap-2">
                 <div className="p-2 rounded-lg bg-content/10">
@@ -115,7 +114,7 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

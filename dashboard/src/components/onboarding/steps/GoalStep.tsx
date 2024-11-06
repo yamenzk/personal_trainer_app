@@ -1,8 +1,7 @@
-// src/components/onboarding/steps/GoalStep.tsx
 import { useState } from 'react';
-import { Button } from "@nextui-org/react";
-import { motion } from "framer-motion";
-import { Scale, Dumbbell, Target, Shield } from 'lucide-react';
+import { Button, Chip } from "@nextui-org/react";
+import { Scale, Dumbbell, Target, Shield, ArrowRight, Check } from 'lucide-react';
+import { cn } from '@/utils/cn';
 
 interface GoalStepProps {
   onComplete: (goal: string) => void;
@@ -20,6 +19,7 @@ const GoalStep = ({ onComplete, isLoading = false }: GoalStepProps) => {
       description: 'Reduce body fat and improve overall fitness',
       icon: Scale,
       color: 'primary',
+      features: ['Fat loss', 'Cardio focus', 'Caloric deficit']
     },
     {
       id: 'Weight Gain',
@@ -27,6 +27,7 @@ const GoalStep = ({ onComplete, isLoading = false }: GoalStepProps) => {
       description: 'Build mass and increase body weight',
       icon: Target,
       color: 'secondary',
+      features: ['Mass gain', 'Strength focus', 'Caloric surplus']
     },
     {
       id: 'Muscle Building',
@@ -34,6 +35,7 @@ const GoalStep = ({ onComplete, isLoading = false }: GoalStepProps) => {
       description: 'Focus on strength and muscle development',
       icon: Dumbbell,
       color: 'success',
+      features: ['Hypertrophy', 'Progressive overload', 'Body recomposition']
     },
     {
       id: 'Maintenance',
@@ -41,8 +43,9 @@ const GoalStep = ({ onComplete, isLoading = false }: GoalStepProps) => {
       description: 'Maintain current weight and improve fitness',
       icon: Shield,
       color: 'warning',
+      features: ['Balance', 'Overall fitness', 'Body maintenance']
     },
-  ];
+  ] as const;
 
   const handleSubmit = () => {
     if (!selected) {
@@ -54,41 +57,87 @@ const GoalStep = ({ onComplete, isLoading = false }: GoalStepProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {goals.map(({ id, title, description, icon: Icon, color }) => (
-          <motion.button
+      <div className="grid grid-cols-1 gap-3">
+        {goals.map(({ id, title, description, icon: Icon, color, features }) => (
+          <button
             key={id}
             onClick={() => {
               setSelected(id);
               setError('');
             }}
-            className={`
-              relative p-4 rounded-xl text-left transition-all duration-150
-              ${selected === id 
-                ? `bg-${color}-500/20 border-2 border-${color}-500` 
-                : 'bg-content/5 rounded-xl shadow-inner bg-white/5 backdrop-blur-md border-content/10 hover:border-content/20'
-              }
-            `}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className={cn(
+              "w-full text-left",
+              "p-4 rounded-xl",
+              "transition-all duration-150",
+              "active:scale-[0.98]",
+              "outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+              selected === id 
+                ? `bg-${color}-500/20 ring-2 ring-${color}-500` 
+                : 'bg-content/5 hover:bg-content/10'
+            )}
           >
-            <div className="space-y-3">
-              <div className={`
-                w-10 h-10 rounded-lg 
-                ${selected === id ? `bg-${color}-500` : `bg-${color}-500/10`}
-                flex items-center justify-center
-              `}>
+            <div className="flex gap-3">
+              {/* Icon */}
+              <div className={cn(
+                "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                "transition-colors duration-150",
+                selected === id
+                  ? `bg-${color}-500`
+                  : `bg-${color}-500/10 group-hover:bg-${color}-500/20`
+              )}>
                 <Icon 
-                  className={selected === id ? 'text-white' : `text-${color}-500`} 
+                  className={cn(
+                    "transition-colors duration-150",
+                    selected === id
+                      ? "text-white"
+                      : `text-${color}-500`
+                  )}
                   size={20} 
                 />
               </div>
-              <div>
-                <h3 className="font-medium">{title}</h3>
-                <p className="text-sm text-foreground/60">{description}</p>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-medium flex items-center gap-2">
+                      {title}
+                      {selected === id && (
+                        <Check size={16} className={`text-${color}-500`} />
+                      )}
+                    </h3>
+                    <p className="text-sm text-foreground/60">{description}</p>
+                  </div>
+                  <ArrowRight 
+                    size={16} 
+                    className={cn(
+                      "opacity-0 transition-opacity duration-200",
+                      selected === id && "opacity-100",
+                      `text-${color}-500`
+                    )}
+                  />
+                </div>
+
+                {/* Features */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {features.map((feature) => (
+                    <Chip
+                      key={feature}
+                      size="sm"
+                      className={cn(
+                        "transition-colors duration-150",
+                        selected === id
+                          ? `bg-${color}-500/20 text-${color}-500`
+                          : 'bg-content/10'
+                      )}
+                    >
+                      {feature}
+                    </Chip>
+                  ))}
+                </div>
               </div>
             </div>
-          </motion.button>
+          </button>
         ))}
       </div>
 

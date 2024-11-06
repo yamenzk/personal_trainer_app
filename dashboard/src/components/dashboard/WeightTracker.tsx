@@ -1,5 +1,4 @@
 // src/components/dashboard/WeightTracker.tsx
-import { motion } from "framer-motion";
 import { Button, Chip, Tooltip } from "@nextui-org/react";
 import { 
   Scale, 
@@ -50,6 +49,47 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
   };
   const bmiCategory = getBmiCategory(bmi);
 
+  const weightStats = [
+    { label: 'Starting', value: `${client.weight[0].weight} kg` },
+    { label: 'Current', value: `${client.current_weight} kg` },
+    { label: 'Target', value: `${client.target_weight} kg` }
+  ];
+
+  // Add these color helper functions
+  const getChartColors = (type: 'Weight Loss' | 'Weight Gain' | 'Maintenance' | 'Muscle Building') => {
+    switch (type) {
+      case 'Weight Loss':
+        return {
+          gradient: [
+            { offset: '0%', color: 'var(--success)', opacity: 0.4 },
+            { offset: '100%', color: 'var(--success)', opacity: 0.1 }
+          ],
+          line: 'var(--success)',
+          reference: 'var(--success)'
+        };
+      case 'Weight Gain':
+        return {
+          gradient: [
+            { offset: '0%', color: 'var(--warning)', opacity: 0.4 },
+            { offset: '100%', color: 'var(--warning)', opacity: 0.1 }
+          ],
+          line: 'var(--warning)',
+          reference: 'var(--warning)'
+        };
+      default:
+        return {
+          gradient: [
+            { offset: '0%', color: 'var(--primary)', opacity: 0.4 },
+            { offset: '100%', color: 'var(--primary)', opacity: 0.1 }
+          ],
+          line: 'var(--primary)',
+          reference: 'var(--primary)'
+        };
+    };
+  };
+
+  const chartColors = getChartColors(client.goal);
+
   return (
     <GlassCard 
       variant="frosted"
@@ -79,25 +119,18 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
 
         {/* Weight Stats */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-content/5 space-y-1">
-            <p className="text-sm text-foreground/60">Starting</p>
-            <p className="font-semibold">{client.weight[0].weight} kg</p>
-          </div>
-          <div className="p-4 rounded-xl bg-content/5 space-y-1">
-            <p className="text-sm text-foreground/60">Current</p>
-            <div className="flex items-center gap-2">
-              <p className="font-semibold">{client.current_weight} kg</p>
-              {client.current_weight !== client.weight[0].weight && (
-                client.current_weight < client.weight[0].weight ?
-                  <TrendingDown className="w-4 h-4 text-success-500" /> :
-                  <TrendingUp className="w-4 h-4 text-warning-500" />
-              )}
+          {weightStats.map((stat, index) => (
+            <div
+              key={stat.label}
+              className="fade-slide-in"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="p-4 rounded-xl bg-content/5 space-y-1">
+                <p className="text-sm text-foreground/60">{stat.label}</p>
+                <p className="font-semibold">{stat.value}</p>
+              </div>
             </div>
-          </div>
-          <div className="p-4 rounded-xl bg-content/5 space-y-1">
-            <p className="text-sm text-foreground/60">Target</p>
-            <p className="font-semibold">{client.target_weight} kg</p>
-          </div>
+          ))}
         </div>
 
         {/* Weight Chart */}
@@ -106,33 +139,28 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
             <AreaChart data={weightData}>
               <defs>
                 <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop 
-                    offset="0%" 
-                    stopColor={
-                      isWeightLoss ? "var(--success)" :
-                      isWeightGain ? "var(--warning)" :
-                      "var(--primary)"
-                    } 
-                    stopOpacity={0.2} 
-                  />
-                  <stop 
-                    offset="100%" 
-                    stopColor={
-                      isWeightLoss ? "var(--success)" :
-                      isWeightGain ? "var(--warning)" :
-                      "var(--primary)"
-                    } 
-                    stopOpacity={0} 
-                  />
+                  {chartColors.gradient.map((stop, index) => (
+                    <stop
+                      key={index}
+                      offset={stop.offset}
+                      stopColor={stop.color}
+                      stopOpacity={stop.opacity}
+                    />
+                  ))}
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-content/10" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--content)"
+                opacity={0.1}
+              />
               <XAxis 
                 dataKey="date" 
                 stroke="currentColor" 
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
+                dy={10}
               />
               <YAxis 
                 stroke="currentColor"
@@ -141,27 +169,38 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
                 axisLine={false}
                 width={40}
                 domain={['auto', 'auto']}
+                dx={-10}
               />
               <ReferenceLine 
                 y={client.target_weight} 
-                stroke={
-                  isWeightLoss ? "var(--success)" :
-                  isWeightGain ? "var(--warning)" :
-                  "var(--primary)"
-                }
+                stroke={chartColors.reference}
                 strokeDasharray="3 3" 
-                label="Target" 
+                strokeWidth={2}
+                label={{
+                  value: 'Target',
+                  fill: chartColors.reference,
+                  fontSize: 12,
+                  position: 'right'
+                }}
               />
               <Area
                 type="monotone"
                 dataKey="weight"
-                stroke={
-                  isWeightLoss ? "var(--success)" :
-                  isWeightGain ? "var(--warning)" :
-                  "var(--primary)"
-                }
+                stroke={chartColors.line}
+                strokeWidth={3}
                 fill="url(#weightGradient)"
-                strokeWidth={2}
+                dot={{
+                  stroke: chartColors.line,
+                  strokeWidth: 2,
+                  fill: 'var(--background)',
+                  r: 4
+                }}
+                activeDot={{
+                  stroke: chartColors.line,
+                  strokeWidth: 2,
+                  fill: 'var(--background)',
+                  r: 6
+                }}
               />
             </AreaChart>
           </ResponsiveContainer>

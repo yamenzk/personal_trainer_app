@@ -61,25 +61,14 @@ const NameStep = ({ onComplete, isLoading = false }: NameStepProps) => {
           type="text"
           label="Full Name"
           value={name}
+          variant="underlined"
           onValueChange={(value) => {
             setName(formatName(value));
             setError('');
           }}
           errorMessage={error}
           isInvalid={!!error}
-          startContent={<User className="text-default-400" size={18} />}
-          description="Enter your first and last name"
-          classNames={{
-            label: "text-foreground/90",
-            input: ["bg-transparent", "text-foreground/90"],
-            innerWrapper: "bg-transparent",
-            inputWrapper: [
-              "bg-content/10",
-              "backdrop-blur-sm",
-              "hover:bg-content/20",
-              "group-data-[focused=true]:bg-content/20",
-            ],
-          }}
+          color="primary"
         />
 
         {/* Name Preview */}

@@ -165,41 +165,38 @@ export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWi
 
       
       const handleStepComplete = async (value: any) => {
-    setLoading(true);
-    try {
-      const stepConfig = activeSteps[currentStep];
+        setLoading(true);
+        try {
+          const stepConfig = activeSteps[currentStep];
+          
+          setFormData(prev => ({ ...prev, [stepConfig.field]: value }));
       
-      // Update form data
-      setFormData(prev => ({ ...prev, [stepConfig.field]: value }));
-
-      // Update server
-      const params = new URLSearchParams();
-      params.append('client_id', clientData.name);
-      params.append(stepConfig.field, value.toString());
+          const params = new URLSearchParams();
+          params.append('client_id', clientData.name);
+          params.append(stepConfig.field, value.toString());
+          
+          const response = await fetch(
+            `/api/v2/method/personal_trainer_app.api.update_client?${params.toString()}`
+          );
+          
+          if (!response.ok) {
+            throw new Error('Failed to update data');
+          }
       
-      const response = await fetch(
-        `/api/v2/method/personal_trainer_app.api.update_client?${params.toString()}`
-      );
-      
-      if (!response.ok) {
-        throw new Error('Failed to update data');
-      }
-
-      // Refresh client data after successful update
-      const updatedClient = await refreshClientData();
-      
-      // Move to next step or complete
-      if (currentStep < activeSteps.length - 1) {
-        setCurrentStep(prev => prev + 1);
-      } else {
-        onComplete();
-      }
-    } catch (error) {
-      console.error('Error updating data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+          // For all steps except the last one, move to next step
+          if (currentStep < activeSteps.length - 1) {
+            setCurrentStep(prev => prev + 1);
+          } else {
+            // For the last step, refresh data first then complete
+            await refreshClientData();
+            onComplete();
+          }
+        } catch (error) {
+          console.error('Error updating data:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
 
   const handleBack = () => {
@@ -213,14 +210,14 @@ export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWi
   const CurrentStepComponent = activeSteps[currentStep].component;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/95">
+    <div className="fixed inset-0 z-50 bg-gray-900">
       <div className="h-full overflow-auto">
         <div className="min-h-full w-full max-w-2xl mx-auto p-4 py-8 flex flex-col">
           {/* Progress bar */}
           <div className="z-10 mb-6">
             <GlassCard
-              gradient="from-background/50 via-background/50 to-background/50"
-              className="mt-2 border-2 border-transparent rounded-xl bg-gradient-to-br from-primary-500/20 to-secondary-500/20"
+              variant="gradient"
+              className="mt-2 border-2 border-transparent rounded-xl"
             >
               <div className="p-4 space-y-2">
   <div className="flex justify-between items-center">
@@ -272,7 +269,7 @@ export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWi
                   )}
 
                   {/* Step Card */}
-                  <GlassCard variant="gradient" className="rounded-xl">
+                  <GlassCard variant="frosted" className="rounded-xl">
                     <div className="p-6 sm:p-8">
                       <div className="text-center mb-8 space-y-2">
                         <h2 className="text-2xl font-bold">

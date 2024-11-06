@@ -264,4 +264,14 @@ scheduler_events = {
 # }
 
 
-website_route_rules = [{'from_route': '/dashboard/<path:app_path>', 'to_route': 'dashboard'},]
+website_route_rules = [
+    # Handle all routes under /dashboard
+    {
+        "from_route": "/dashboard/<path:app_path>",
+        "to_route": "dashboard/index.html",
+    },
+    {
+        "from_route": "/dashboard",
+        "to_route": "dashboard/index.html",
+    }
+]

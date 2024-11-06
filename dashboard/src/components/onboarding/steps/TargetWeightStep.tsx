@@ -87,45 +87,22 @@ const TargetWeightStep = ({ onComplete, currentWeight, isLoading = false }: Targ
           }}
           errorMessage={error}
           isInvalid={!!error}
-          startContent={<Target className="text-default-400" size={18} />}
-          endContent={
-            <div className="pointer-events-none flex items-center">
-              <span className="text-default-400 text-small">{unit}</span>
-            </div>
-          }
-          classNames={{
-            label: "text-foreground/90",
-            input: [
-              "bg-transparent",
-              "text-foreground/90",
-              "placeholder:text-foreground/50",
-            ],
-            innerWrapper: "bg-transparent",
-            inputWrapper: [
-              "shadow-sm",
-              "bg-content/10",
-              "backdrop-blur-sm",
-              "hover:bg-content/20",
-              "group-data-[focused=true]:bg-content/20",
-              "!cursor-text",
-            ],
-          }}
+          variant="underlined"
+            color="primary"
         />
 
         <Select
           label="Unit"
           value={unit}
           defaultSelectedKeys={["kg"]}
+          variant="underlined"
+            color="primary"
           onChange={(e) => {
             setUnit(e.target.value as 'kg' | 'lb');
             setWeight('');
             setError('');
           }}
           className="w-32"
-          classNames={{
-            trigger: "bg-content/10 backdrop-blur-sm",
-            value: "text-foreground/90",
-          }}
         >
           <SelectItem key="kg" value="kg">kg</SelectItem>
           <SelectItem key="lb" value="lb">lb</SelectItem>

@@ -1,5 +1,4 @@
 // src/components/dashboard/WorkoutProgress.tsx
-import { motion } from "framer-motion";
 import { Button, Chip, Progress } from "@nextui-org/react";
 import { 
   Dumbbell,
@@ -112,12 +111,10 @@ export const WorkoutProgress = ({
         {/* Exercises List */}
         <div className="space-y-3">
           {todayExercises.map((exercise, index) => (
-            <motion.div
+            <div
               key={index}
-              className="p-4 rounded-xl bg-content/5 flex items-center justify-between"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              className="p-4 rounded-xl bg-content/5 flex items-center justify-between fade-slide-in"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-content/10">
@@ -147,7 +144,7 @@ export const WorkoutProgress = ({
                   <CheckCircle2 className="w-5 h-5 text-success-500" />
                 )
               )}
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

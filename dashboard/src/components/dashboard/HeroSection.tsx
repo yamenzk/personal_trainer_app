@@ -1,10 +1,10 @@
 // src/components/dashboard/HeroSection.tsx
-import { motion } from "framer-motion";
 import { Avatar, Chip } from "@nextui-org/react";
 import { Target, TrendingDown, TrendingUp, Dumbbell, ArrowRight } from 'lucide-react';
 import { Client } from '@/types/client';
 import { Plan } from '@/types/plan';
 import { GlassCard } from '../shared/GlassCard';
+
 
 interface HeroSectionProps {
   client: Client;
@@ -43,18 +43,14 @@ export const HeroSection = ({ client, activePlan, currentDay, planProgress }: He
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           {/* Avatar and Greeting */}
           <div className="flex items-center gap-4">
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            >
+            <div className="scale-in-center">
               <Avatar
                 src={client.image}
                 className="w-20 h-20"
                 showFallback
                 name={client.client_name ?? ''}
               />
-            </motion.div>
+            </div>
 
             <div className="space-y-1">
               <p className="text-foreground/60">{getGreeting()},</p>

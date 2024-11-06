@@ -12,9 +12,14 @@ import {
   ModalHeader,
   ModalFooter,
   ModalContent,
+  Card,
+  CardHeader,
+  CardBody,
+  Image,
+  CardFooter,
   cn,
 } from "@nextui-org/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import {
   Dumbbell,
   Calendar,
@@ -56,15 +61,7 @@ import { useNavigate } from 'react-router-dom';
 import { calculatePlanProgress } from '../utils/api';
 
 // Helper Components
-const WeekDayButton = ({
-  day,
-  date,
-  isSelected,
-  isCompleted,
-  isCurrent,
-  onClick,
-  hasWorkout = false
-}: {
+interface WeekDayButtonProps {
   day: number;
   date: Date;
   isSelected: boolean;
@@ -72,56 +69,73 @@ const WeekDayButton = ({
   isCurrent: boolean;
   onClick: () => void;
   hasWorkout?: boolean;
-}) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "group relative flex flex-col items-center justify-center w-full gap-1",
-      "h-24 rounded-xl transition-all duration-200",
-      "hover:scale-105 active:scale-95",
-      isSelected
-        ? "bg-primary-500/20 border-2 border-primary-500"
-        : isCompleted
-          ? "bg-success-500/10 border border-success-500/20"
-          : "bg-content/5 border border-border hover:border-content",
-    )}
-  >
-    <span className="text-xs text-foreground/60 group-hover:text-foreground">
-      {format(date, 'EEE')}
-    </span>
-    <span className={cn(
-      "text-xl font-semibold",
-      isCurrent ? "text-primary-500" : "text-foreground"
-    )}>
-      {format(date, 'd')}
-    </span>
-    {hasWorkout ? (
-      <div className="flex items-center gap-1.5">
-        <Dumbbell
-          size={14}
-          className={cn(
-            "text-foreground/40",
-            isCompleted && "text-success-500",
+}
+
+export const WeekDayButton = ({
+  day,
+  date,
+  isSelected,
+  isCompleted,
+  isCurrent,
+  onClick,
+  hasWorkout = false
+}: WeekDayButtonProps) => {
+  return (
+    <button
+      onClick={onClick}
+
+    >
+      <div className="space-y-2">
+        {/* Date Header */}
+        <div className="flex flex-col items-center">
+          <span className={cn(
+            "text-xs text-foreground/60",
             isCurrent && "text-primary-500"
+          )}>
+            {format(date, 'EEEE')}
+          </span>
+          <span className={cn(
+            "text-2xl font-bold",
+            isCurrent && "text-primary-500"
+          )}>
+            {format(date, 'd')}
+          </span>
+        </div>
+
+        {/* Status Indicator */}
+        <div className="flex items-center justify-center gap-1">
+          {hasWorkout ? (
+            <div className={cn(
+              "p-1.5 rounded-lg",
+              isSelected
+                ? "bg-primary-500"
+                : isCompleted
+                  ? "bg-success-500"
+                  : "bg-content/20"
+            )}>
+              <Dumbbell
+                size={14}
+                className={cn(
+                  isSelected || isCompleted ? "text-white" : "text-foreground/40"
+                )}
+              />
+            </div>
+          ) : (
+            <div className="p-1.5 rounded-lg bg-content/10">
+              <Moon size={14} className="text-foreground/40" />
+            </div>
           )}
-        />
+        </div>
       </div>
-    ) : (
-      <div className="flex items-center gap-1.5">
-        <Moon
-          size={14}
-          className="text-foreground/40"
-        />
-      </div>
-    )}
-  </button>
-);
+    </button>
+  );
+};
 
 
 const RestDayCard = () => (
   <GlassCard
     className="p-6 space-y-4 mt-6"
-    style={{ border: '0'}}
+    style={{ border: '0' }}
   >
     <div className="flex items-center gap-3 mb-6">
       <div className="p-3 rounded-xl bg-primary-500/10">
@@ -198,121 +212,92 @@ const ExerciseCard = ({
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <GlassCard
-      variant="frosted"
-      gradient={isLogged ? "from-success-500/10 to-background" : "from-content/5 to-background"}
+    <Card
+      isFooterBlurred
       className={cn(
-        "transition-all duration-300 hover:shadow-lg",
+        "w-full h-[300px] col-span-12 sm:col-span-5",
+        "transition-all duration-300 hover:shadow-lg border-none",
         isHovered && "scale-[1.02]"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      isPressable
       onPress={onViewDetails}
     >
-      <div className="p-5 space-y-4">
-        {/* Exercise Header */}
-        <div className="flex gap-4">
-          {/* Exercise Image */}
-          <div className="relative w-24 h-24 rounded-lg overflow-hidden">
-            <motion.img
-              src={details.thumbnail || details.starting}
-              alt={exercise.ref}
-              className="object-cover w-full h-full"
-              animate={{ scale: isHovered ? 1.1 : 1 }}
-              transition={{ duration: 0.3 }}
-            />
-            {isLogged && (
-              <div className="absolute inset-0 bg-success-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-success-500" />
-              </div>
+      {/* Add gradient overlay for better text visibility */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
+      
+      <CardHeader className="absolute z-20 top-1 flex-col items-start">
+        <p className="text-tiny text-white uppercase font-bold tracking-wide">
+          {details.primary_muscle}
+        </p>
+        <h3 className="font-semibold text-2xl text-white">
+          {!isSuperset && exerciseNumber && (
+            <span className="text-white/80">{exerciseNumber}.</span>
+          )}
+          {exercise.ref}
+        </h3>
+      </CardHeader>
+      
+      <Image
+        removeWrapper
+        alt="Card example background"
+        className="z-0 w-full h-full scale-125 -translate-y-6 object-cover"
+        src={details.thumbnail || details.starting}
+      />
+      
+      <CardFooter 
+        className={cn(
+          "absolute bottom-0 z-20 border-t-1 border-zinc-100/50",
+          "justify-between",
+          "bg-black/60 backdrop-blur-md"
+        )}
+      >
+        <div className="flex gap-2">
+          <Chip
+            size="sm"
+            className={cn(
+              "border-2 border-primary-500",
+              "bg-primary-500/30 backdrop-blur-md",
+              "text-white font-medium"
             )}
-          </div>
-
-          <div className="flex-1 space-y-3">
-            <div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    {!isSuperset && exerciseNumber && (
-                      <span className="text-foreground-500">{exerciseNumber}.</span>
-                    )}
-                    {exercise.ref}
-                    {isLogged && (
-                      <CheckCircle2 className="w-4 h-4 text-success-500" />
-                    )}
-                  </h3>
-                  <p className="text-sm text-foreground/60">{details.primary_muscle}</p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {/* <Chip
-                    size="sm"
-                    className="bg-content/10"
-                    startContent={<Activity size={14} />}
-                  >
-                    {details.level}
-                  </Chip> */}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2 mt-2">
-                <Chip
-                  size="sm"
-                  className="bg-primary-500/10 text-primary-500"
-                  startContent={<Dumbbell size={14} />}
-                >
-                  {exercise.sets} × {exercise.reps}
-                </Chip>
-                <Chip
-                  size="sm"
-                  className="bg-secondary-500/10 text-secondary-500"
-                  startContent={<Clock size={14} />}
-                >
-                  {exercise.rest}s rest
-                </Chip>
-                {/* <Chip
-                  size="sm"
-                  className="bg-content/10"
-                  startContent={<BarChart3 size={14} />}
-                >
-                  {details.mechanic || 'Compound'}
-                </Chip> */}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              {!isLogged && !isSuperset && selectedPlan === 'active' && (
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white"
-                  startContent={<Zap size={14} />}
-                  onPress={onLogSet}
-                >
-                  Log Set
-                </Button>
-              )}
-              {/* <Button
-                size="sm"
-                variant="flat"
-                className="bg-content/10"
-                onPress={onViewDetails}
-              >
-                View Details
-              </Button> */}
-            </div>
-          </div>
+            startContent={<Dumbbell size={14} className="text-white" />}
+          >
+            {exercise.sets} × {exercise.reps}
+          </Chip>
+          <Chip
+            size="sm"
+            className={cn(
+              "border-2 border-secondary-500",
+              "bg-secondary-500/30 backdrop-blur-md",
+              "text-white font-medium"
+            )}
+            startContent={<Clock size={14} className="text-white" />}
+          >
+            {exercise.rest}s rest
+          </Chip>
         </div>
-
-        {/* Exercise Details Preview */}
-        {/* <div className="flex items-start gap-3 p-3 rounded-lg bg-content/5">
-          <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-foreground/70 line-clamp-2">
-            {details.instructions}
-          </p>
-        </div> */}
-      </div>
-    </GlassCard>
+        
+        {!isLogged && !isSuperset && selectedPlan === 'active' && (
+          <Button 
+            className={cn(
+              "bg-primary-500 text-white",
+              "shadow-lg shadow-primary-500/20",
+              "hover:bg-primary-600"
+            )} 
+            radius="full" 
+            size="sm" 
+            startContent={<Zap size={14} />} 
+            onPress={onLogSet}
+          >
+            Log Set
+          </Button>
+        )}
+        {isLogged && (
+          <CheckCircle2 className="w-4 h-4 text-success-500" />
+        )}
+      </CardFooter>
+    </Card>
   );
 };
 
@@ -322,74 +307,114 @@ const SupersetCard = ({
   onLogPerformance,
   onViewDetails,
   selectedPlan,
-  exerciseNumber // Add this prop
+  exerciseNumber
 }: {
   exercises: ExerciseBase[];
   references: { [key: string]: ExerciseReference };
   onLogPerformance: (exerciseRef: string, weight: number, reps: number) => Promise<void>;
   onViewDetails: (exerciseRef: string) => void;
   selectedPlan: 'active' | 'history';
-  exerciseNumber?: number; // Add this type
+  exerciseNumber?: number;
 }) => {
   return (
-    <GlassCard
-      variant="frosted"
-      gradient="from-warning-500/10 via-background to-secondary-500/10"
-      intensity="heavy"
-      className="border border-2 border-warning-500/70"
+    <Card className="w-full bg-background/1  border-none"
+    style={{ boxShadow: 'none' }}
     >
-      <div className="p-6 space-y-4">
+      <div className="p-6 space-y-6">
         {/* Superset Header */}
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-warning-500/20">
-            <Zap className="w-5 h-5 text-warning-500" />
+          <div className="p-3 rounded-xl bg-warning-500 text-white shadow-lg shadow-warning-500/20">
+            <Zap className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold flex items-center gap-2">
+            <h3 className="text-xl font-semibold flex items-center gap-2">
               {exerciseNumber && (
-                <span className="text-foreground-500">{exerciseNumber}.</span>
+                <span className="text-foreground/80">{exerciseNumber}.</span>
               )}
               Superset
             </h3>
             <p className="text-sm text-foreground/60">
-              Complete {exercises.length} exercises back to back
+              Complete these {exercises.length} exercises back to back
             </p>
           </div>
         </div>
 
-        {/* Exercises */}
-        <div className="space-y-4">
+        {/* Exercises Grid */}
+        <div className="grid grid-cols-2 gap-4">
           {exercises.map((exercise, index) => (
             <div key={exercise.ref} className="relative">
-              {index > 0 && (
-                <div className="absolute -top-4 left-12 w-0.5 h-4 bg-warning-500" />
-              )}
-              <ExerciseCard
-                exercise={exercise}
-                references={references}
-                isLogged={exercise.logged === 1}
-                isSuperset={true}
-                onViewDetails={() => onViewDetails(exercise.ref)}
-                selectedPlan={selectedPlan}
-              />
+              <Card
+                isPressable
+                onPress={() => onViewDetails(exercise.ref)}
+                className="w-full h-[300px] relative overflow-hidden border-none"
+              >
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
+                
+                {/* Exercise Image */}
+                <Image
+                  removeWrapper
+                  alt={`Exercise ${exercise.ref}`}
+                  className="z-0 w-full h-full object-cover"
+                  src={references[exercise.ref].thumbnail || references[exercise.ref].starting}
+                />
+                
+                {/* Content */}
+                <div className="absolute inset-0 z-20 p-4 flex flex-col justify-between">
+                  {/* Header */}
+                  <div>
+                    <p className="text-tiny text-white/80 uppercase font-bold tracking-wide">
+                      {references[exercise.ref].primary_muscle}
+                    </p>
+                    <h4 className="text-white text-xl font-semibold">
+                      {exercise.ref}
+                    </h4>
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      <Chip
+                        size="sm"
+                        className="border-2 border-primary-500 bg-primary-500/30 backdrop-blur-md text-white font-medium"
+                        startContent={<Dumbbell size={14} className="text-white" />}
+                      >
+                        {exercise.sets} × {exercise.reps}
+                      </Chip>
+                      <Chip
+                        size="sm"
+                        className="border-2 border-secondary-500 bg-secondary-500/30 backdrop-blur-md text-white font-medium"
+                        startContent={<Clock size={14} className="text-white" />}
+                      >
+                        {exercise.rest}s
+                      </Chip>
+                    </div>
+                    {exercise.logged === 1 && (
+                      <div className="w-6 h-6 rounded-full bg-success-500/20 flex items-center justify-center">
+                        <CheckCircle2 size={14} className="text-success-500" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
             </div>
           ))}
         </div>
 
-        {/* Tips */}
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-warning-500/5 border border-warning-500/10">
-          <div className="p-2 rounded-lg bg-warning-500/70">
-            <Flame className="w-4 h-4 text-foreground" />
+        {/* Tips Section */}
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-warning-500/5 border border-warning-500/20">
+          <div className="p-2 rounded-lg bg-warning-500 text-white">
+            <Flame className="w-4 h-4" />
           </div>
           <div>
-            <p className="font-medium">Superset Tips</p>
-            <p className="text-sm text-foreground/60">
-              Minimize rest between exercises for maximum intensity and efficiency
+            <p className="font-medium text-warning-500">Superset Tips</p>
+            <p className="text-sm text-foreground/70 mt-1">
+              Minimize rest between exercises for maximum intensity. Complete all exercises before taking your {exercises[0].rest}s rest.
             </p>
           </div>
         </div>
       </div>
-    </GlassCard>
+    </Card>
   );
 };
 
@@ -731,14 +756,14 @@ const PlanSelector = ({
       >
         <ChevronLeft size={16} />
       </Button>
-      <GlassCard
-        variant="frosted"
-        className="px-4 py-2"
+      <Card
+        className="bg-primary/1"
+        style={{ boxShadow: "none" }}
       >
         <span className="text-sm">
           {getPlanDateRange(plans[selectedPlanIndex])}
         </span>
-      </GlassCard>
+      </Card>
       <Button
         size="sm"
         isIconOnly
@@ -800,9 +825,7 @@ const PlanHero = ({
     <div className="space-y-6">
       {/* Main Header Card */}
       <GlassCard
-        variant="gradient"
-        gradient="from-primary-500/20 via-transparent to-secondary-500/20"
-        intensity="heavy"
+        variant="frosted"
       >
 
         {/* Content */}
@@ -832,7 +855,7 @@ const PlanHero = ({
             </div>
 
             {/* Plan Type Selector */}
-            <div className="flex gap-2 p-1 rounded-xl bg-content/5 backdrop-blur-xl">
+            <Card className="flex shrink gap-2 p-1 bg-white/10 rounded-xl flex-row">
               <Button
                 size="sm"
                 variant={selectedPlan === 'active' ? 'solid' : 'light'}
@@ -858,7 +881,7 @@ const PlanHero = ({
               >
                 History ({completedPlansCount})
               </Button>
-            </div>
+            </Card>
           </div>
 
           {/* Progress Section */}
@@ -927,35 +950,31 @@ const PlanHero = ({
                   return (
                     <div
                       key={day}
-                      className="flex-none w-[150px]"
+                      className="flex-none"
                       style={{ scrollSnapAlign: 'start' }}
                     >
-                      <GlassCard
-                        variant={selectedDay === day ? 'gradient' : 'frosted'}  // Fix comparison
-                        gradient={
-                          selectedDay === day
-                            ? "from-primary-500/20 to-secondary-500/20"
-                            : undefined
-                        }
+                      <Card
+
                         className={cn(
                           "cursor-pointer transition-all duration-300 h-full",
                           "hover:scale-[1.02] active:scale-[0.98]",
-                          isCompleted && selectedDay !== day && "bg-success-500/10 border-success-500/20",
-                          selectedDay === day && "shadow-md shadow-primary-500/20"
+                          isCompleted && selectedDay !== day && "bg-success-500/20 border-success-500/20",
+                          selectedDay === day && "bg-primary/50 shadow-md shadow-primary-500/20",
+                          !isCompleted && selectedDay !== day && "bg-secondary-500/20"
                         )}
+                        isPressable
                         onPress={() => onDaySelect(day)}
                       >
                         <div className="py-4 px-4 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className={cn(
                               "text-sm",
-                              isTodayDate ? "text-primary-500" : "text-foreground/60"
+                              "text-foreground/60"
                             )}>
-                              {format(date, 'EEEE')}
+                              {format(date, 'EEE')}
                             </span>
                             <span className={cn(
                               "text-2xl font-bold",
-                              isTodayDate && "text-primary-500"
                             )}>
                               {format(date, 'd')}
                             </span>
@@ -987,7 +1006,7 @@ const PlanHero = ({
                               <div className="text-primary-500">
                                 +{dayExercises.length - 2} more
                               </div>
-                            )}
+                            ))}
                           </div> */}
                               </>
                             ) : (
@@ -1006,7 +1025,7 @@ const PlanHero = ({
                             </div>
                           )}
                         </div>
-                      </GlassCard>
+                      </Card>
                     </div>
                   );
                 })}
@@ -1075,22 +1094,22 @@ export default function WorkoutPlans() {
     // Set the current day when component mounts
     if (currentDay) {
       setSelectedDay(currentDay);
-      
+
       // Wait for the next tick to ensure DOM is updated
       setTimeout(() => {
         if (daysContainerRef.current) {
           const container = daysContainerRef.current;
           const dayElement = container.children[currentDay - 1] as HTMLElement;
-          
+
           if (dayElement) {
             // Calculate the center position
             const containerWidth = container.clientWidth;
             const elementWidth = dayElement.offsetWidth;
             const elementLeft = dayElement.offsetLeft;
-            
+
             // Center the element
             const scrollPosition = elementLeft - (containerWidth / 2) + (elementWidth / 2);
-            
+
             container.scrollTo({
               left: Math.max(0, scrollPosition),
               behavior: 'smooth'
@@ -1187,70 +1206,81 @@ export default function WorkoutPlans() {
 
         {/* Only show SectionTitle and exercises if it's not a rest day */}
         {hasWorkout && <SectionTitle />}
-        <div className="space-y-4">
+        <TransitionGroup className="space-y-4">
           {hasWorkout ? (
             exercises.map((exercise, index) => (
-              <motion.div
+              <CSSTransition
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                timeout={300}
+                classNames="fade-slide"
               >
-                {exercise.type === 'regular' ? (
-                  <ExerciseCard
-                    exercise={exercise.exercise}
-                    references={references.exercises}
-                    isLogged={exercise.exercise.logged === 1}
-                    onLogSet={() => {
-                      setSelectedExercise({
-                        exercise: exercise.exercise,
-                        details: references.exercises[exercise.exercise.ref],
-                        isLogged: exercise.exercise.logged === 1
-                      });
-                      setShowPerformanceModal(true);
-                    }}
-                    onViewDetails={() => {
-                      setSelectedExercise({
-                        exercise: exercise.exercise,
-                        details: references.exercises[exercise.exercise.ref],
-                        isLogged: exercise.exercise.logged === 1
-                      });
-                      setShowDetailsModal(true);
-                    }}
-                    selectedPlan={selectedPlan}
-                    exerciseNumber={index + 1}
-                  />
-                ) : (
-                  <SupersetCard
-                    exercises={exercise.exercises}
-                    references={references.exercises}
-                    onLogPerformance={handleLogPerformance}
-                    onViewDetails={(exerciseRef) => {
-                      const exerciseDetails = exercise.exercises.find(e => e.ref === exerciseRef);
-                      if (exerciseDetails) {
+                <div className="fade-slide-enter">
+                  {exercise.type === 'regular' ? (
+                    <ExerciseCard
+                      exercise={exercise.exercise}
+                      references={references.exercises}
+                      isLogged={exercise.exercise.logged === 1}
+                      onLogSet={() => {
                         setSelectedExercise({
-                          exercise: exerciseDetails,
-                          details: references.exercises[exerciseRef],
-                          isLogged: exerciseDetails.logged === 1
+                          exercise: exercise.exercise,
+                          details: references.exercises[exercise.exercise.ref],
+                          isLogged: exercise.exercise.logged === 1
+                        });
+                        setShowPerformanceModal(true);
+                      }}
+                      onViewDetails={() => {
+                        setSelectedExercise({
+                          exercise: exercise.exercise,
+                          details: references.exercises[exercise.exercise.ref],
+                          isLogged: exercise.exercise.logged === 1
                         });
                         setShowDetailsModal(true);
-                      }
-                    }}
-                    selectedPlan={selectedPlan}
-                    exerciseNumber={index + 1}
-                  />
-                )}
-              </motion.div>
+                      }}
+                      selectedPlan={selectedPlan}
+                      exerciseNumber={index + 1}
+                    />
+                  ) : (
+                    <SupersetCard
+                      exercises={exercise.exercises}
+                      references={references.exercises}
+                      onLogPerformance={handleLogPerformance}
+                      onViewDetails={(exerciseRef) => {
+                        const exerciseDetails = exercise.exercises.find(e => e.ref === exerciseRef);
+                        if (exerciseDetails) {
+                          setSelectedExercise({
+                            exercise: exerciseDetails,
+                            details: references.exercises[exerciseRef],
+                            isLogged: exerciseDetails.logged === 1
+                          });
+                          setShowDetailsModal(true);
+                        }
+                      }}
+                      selectedPlan={selectedPlan}
+                      exerciseNumber={index + 1}
+                    />
+                  )}
+                </div>
+              </CSSTransition>
             ))
           ) : (
-            <RestDayCard />
+            <CSSTransition
+              timeout={300}
+              classNames="fade"
+            >
+              <RestDayCard />
+            </CSSTransition>
           )}
-        </div>
+        </TransitionGroup>
       </div>
 
       {/* Modals */}
-      <AnimatePresence>
-        {showPerformanceModal && selectedExercise && (
+      {showPerformanceModal && selectedExercise && (
+        <CSSTransition
+          in={showPerformanceModal}
+          timeout={300}
+          classNames="modal"
+          unmountOnExit
+        >
           <PerformanceModal
             isOpen={showPerformanceModal}
             onClose={() => {
@@ -1261,9 +1291,16 @@ export default function WorkoutPlans() {
             exerciseName={selectedExercise.exercise.ref}
             targetReps={selectedExercise.exercise.reps}
           />
-        )}
+        </CSSTransition>
+      )}
 
-        {showDetailsModal && selectedExercise && (
+      {showDetailsModal && selectedExercise && (
+        <CSSTransition
+          in={showDetailsModal}
+          timeout={300}
+          classNames="modal"
+          unmountOnExit
+        >
           <ExerciseDetailsModal
             isOpen={showDetailsModal}
             onClose={() => {
@@ -1274,8 +1311,8 @@ export default function WorkoutPlans() {
             details={selectedExercise.details}
             isLogged={selectedExercise.isLogged}
           />
-        )}
-      </AnimatePresence>
+        </CSSTransition>
+      )}
     </div>
   );
 }

@@ -1,35 +1,25 @@
-// src/components/onboarding/steps/GenderStep.tsx
 import { useState } from 'react';
-import { Button } from "@nextui-org/react";
-import { motion } from "framer-motion";
-import { PersonStanding, Triangle, AlertCircle } from 'lucide-react';
+import { Button, Chip } from "@nextui-org/react";
+import { PersonStanding, Triangle, AlertCircle, Check } from 'lucide-react';
 import type { GenderStepProps } from '@/types/onboarding';
+import { cn } from '@/utils/cn';
 
 const GenderStep = ({ onComplete, isLoading = false }: GenderStepProps) => {
   const [selected, setSelected] = useState<'Male' | 'Female' | null>(null);
   const [error, setError] = useState('');
-
-  const handleSelect = (value: 'Male' | 'Female') => {
-    setSelected(value);
-    setError('');
-  };
 
   const genderOptions = [
     {
       value: 'Male' as const,
       icon: PersonStanding,
       color: 'primary',
-      metrics: [
-        { label: 'Recovery Time', value: '24-48 hours' },
-      ]
+      aspects: ['Higher muscle mass', 'Faster metabolism', 'Longer recovery time']
     },
     {
       value: 'Female' as const,
       icon: Triangle,
       color: 'secondary',
-      metrics: [
-        { label: 'Recovery Time', value: '24-36 hours' },
-      ]
+      aspects: ['Higher flexibility', 'Efficient fat burning', 'Better endurance']
     }
   ] as const;
 
@@ -42,74 +32,78 @@ const GenderStep = ({ onComplete, isLoading = false }: GenderStepProps) => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-2 gap-6">
-        {genderOptions.map(({ value, icon: Icon, color, metrics }) => (
-          <motion.button
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        {genderOptions.map(({ value, icon: Icon, color, aspects }) => (
+          <button
             key={value}
-            onClick={() => handleSelect(value)}
-            className={`
-              relative p-6 rounded-xl text-center transition-all duration-300
-              ${selected === value 
-                ? `bg-${color}-500/20 border-2 border-${color}-500` 
-                : 'bg-content/5 border border-content/10 hover:border-content/20'
-              }
-            `}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              setSelected(value);
+              setError('');
+            }}
+            className={cn(
+              "relative p-4 rounded-xl text-center",
+              "transition-all duration-150",
+              "active:scale-[0.98]",
+              "outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+              selected === value 
+                ? `bg-${color}-500/20 ring-2 ring-${color}-500` 
+                : 'bg-content/5 hover:bg-content/10'
+            )}
           >
-            {/* Icon */}
-            <div className="flex justify-center mb-4">
-              <div className={`
-                w-16 h-16 rounded-full
-                ${selected === value ? `bg-${color}-500` : `bg-${color}-500/10`}
-                flex items-center justify-center
-              `}>
-                <Icon 
-                  className={selected === value ? 'text-white' : `text-${color}-500`} 
-                  size={32} 
-                />
+            {/* Selected indicator */}
+            {selected === value && (
+              <div className="absolute top-2 right-2">
+                <div className={`w-5 h-5 rounded-full bg-${color}-500 flex items-center justify-center`}>
+                  <Check size={12} className="text-white" />
+                </div>
               </div>
+            )}
+
+            {/* Icon */}
+            <div className={cn(
+              "w-16 h-16 rounded-full mx-auto mb-3",
+              "transition-colors duration-150",
+              "flex items-center justify-center",
+              selected === value
+                ? `bg-${color}-500`
+                : `bg-${color}-500/10`
+            )}>
+              <Icon 
+                className={selected === value ? 'text-white' : `text-${color}-500`} 
+                size={28} 
+              />
             </div>
 
-            {/* Label */}
-            <h3 className="text-lg font-medium mb-4">{value}</h3>
+            {/* Content */}
+            <h3 className="text-lg font-medium mb-3">{value}</h3>
 
-            {/* Metrics */}
-            <div className="space-y-2">
-              {metrics.map(({ label, value: metricValue }) => (
-                <div key={label} className="text-sm">
-                  <p className="text-foreground/60">{label}</p>
-                  <p className="font-medium">{metricValue}</p>
-                </div>
+            <div className="flex flex-col gap-2">
+              {aspects.map((aspect, index) => (
+                <Chip
+                  key={index}
+                  size="sm"
+                  className={cn(
+                    "transition-colors duration-150",
+                    selected === value
+                      ? `bg-${color}-500/20 text-${color}-500`
+                      : 'bg-content/10'
+                  )}
+                >
+                  {aspect}
+                </Chip>
               ))}
             </div>
-          </motion.button>
+          </button>
         ))}
       </div>
 
-      {/* Info Box */}
-      <div className="flex items-start gap-3 p-4 rounded-xl bg-primary-500/5">
-        <AlertCircle className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-        <div className="space-y-2">
-          <p className="text-sm text-foreground/70">
-            Your sex helps me calculate your nutritional needs and customize your training program based on physiological differences.
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="p-2 rounded-lg bg-content/5 text-xs">
-              <span className="font-medium">Metabolism:</span> Different caloric needs
-            </div>
-            <div className="p-2 rounded-lg bg-content/5 text-xs">
-              <span className="font-medium">Hormones:</span> Different recovery patterns
-            </div>
-            <div className="p-2 rounded-lg bg-content/5 text-xs">
-              <span className="font-medium">Strength:</span> Different muscle development
-            </div>
-            <div className="p-2 rounded-lg bg-content/5 text-xs">
-              <span className="font-medium">Body Comp:</span> Different fat distribution
-            </div>
-          </div>
-        </div>
+      {/* Compact Info Box */}
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-500/5">
+        <AlertCircle size={16} className="text-primary-500 shrink-0" />
+        <p className="text-xs text-foreground/70">
+          Your sex helps calculate nutritional needs and customize training based on physiological differences
+        </p>
       </div>
 
       {error && (

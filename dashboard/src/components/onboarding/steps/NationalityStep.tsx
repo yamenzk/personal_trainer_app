@@ -41,23 +41,10 @@ const NationalityStep = ({ onComplete, isLoading = false }: NationalityStepProps
         type="text"
         label="Search Countries"
         value={search}
+        variant="underlined"
+        color="primary"
         onValueChange={setSearch}
         startContent={<Search className="text-default-400" size={18} />}
-        classNames={{
-          label: "text-foreground/90",
-          input: [
-            "bg-transparent",
-            "text-foreground/90",
-          ],
-          innerWrapper: "bg-transparent",
-          inputWrapper: [
-            "shadow-sm",
-            "bg-content/10",
-            "backdrop-blur-sm",
-            "hover:bg-content/20",
-            "group-data-[focused=true]:bg-content/20",
-          ],
-        }}
       />
 
       {/* Common Countries */}

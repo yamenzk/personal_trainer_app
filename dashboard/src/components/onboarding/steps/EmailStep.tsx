@@ -1,8 +1,8 @@
-// src/components/onboarding/steps/EmailStep.tsx 
 import { useState } from 'react';
-import { Input, Button } from "@nextui-org/react";
+import { Input, Button, Tooltip } from "@nextui-org/react";
 import { motion } from "framer-motion";
-import { Mail, AlertCircle, Bell, Shield } from 'lucide-react';
+import { Mail, AlertCircle, Bell, Shield, ChevronRight } from 'lucide-react';
+import { cn } from '@/utils/cn';
 
 interface EmailStepProps {
   onComplete: (value: string) => void;
@@ -32,82 +32,92 @@ const EmailStep = ({ onComplete, isLoading = false }: EmailStepProps) => {
     onComplete(email);
   };
 
+  const features = [
+    {
+      icon: Bell,
+      title: 'Progress Updates',
+      description: 'Get notified about your achievements and milestones',
+      color: 'primary'
+    },
+    {
+      icon: Shield,
+      title: 'Account Security',
+      description: 'Password recovery and account protection',
+      color: 'success'
+    },
+    {
+      icon: Mail,
+      title: 'Weekly Reports',
+      description: 'Receive detailed progress summaries and insights',
+      color: 'secondary'
+    }
+  ];
+
   return (
-    <div className="space-y-8">
-      {/* Email Input */}
-      <Input
-        type="email"
-        label="Email Address"
-        value={email}
-        onValueChange={(value) => {
-          setEmail(value);
-          setError('');
-        }}
-        errorMessage={error}
-        isInvalid={!!error}
-        startContent={<Mail className="text-default-400" size={18} />}
-        classNames={{
-          label: "text-foreground/90",
-          input: [
-            "bg-transparent",
-            "text-foreground/90",
-            "placeholder:text-foreground/50",
-          ],
-          innerWrapper: "bg-transparent",
-          inputWrapper: [
-            "shadow-sm",
-            "bg-content/10",
-            "backdrop-blur-sm",
-            "hover:bg-content/20",
-            "group-data-[focused=true]:bg-content/20",
-            "!cursor-text",
-          ],
-        }}
-      />
+    <div className="space-y-6">
+      {/* Input Group */}
+      <div className="space-y-4">
+        <Input
+          type="email"
+          label="Email Address"
+          value={email}
+          variant="underlined"
+          color="primary"
+          onValueChange={(value) => {
+            setEmail(value);
+            setError('');
+          }}
+          errorMessage={error}
+          isInvalid={!!error}
+          startContent={<Mail className="text-default-400" size={18} />}
+        />
 
-      {/* Features */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          {
-            icon: Bell,
-            title: 'Updates',
-            description: 'Get progress notifications',
-            color: 'primary'
-          },
-          {
-            icon: Shield,
-            title: 'Security',
-            description: 'Account recovery & backup',
-            color: 'success'
-          },
-          {
-            icon: Mail,
-            title: 'Reports',
-            description: 'Weekly progress summaries',
-            color: 'secondary'
-          }
-        ].map(({ icon: Icon, title, description, color }) => (
-          <div 
-            key={title}
-            className={`p-4 rounded-xl bg-${color}-500/5 space-y-2`}
-          >
-            <div className={`w-8 h-8 rounded-lg bg-${color}-500/10 flex items-center justify-center`}>
-              <Icon className={`w-4 h-4 text-${color}-500`} />
-            </div>
-            <div>
-              <h3 className="font-medium">{title}</h3>
-              <p className="text-sm text-foreground/60">{description}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+        {/* Compact Features List */}
+        <div className="space-y-2">
+          {features.map(({ icon: Icon, title, description, color }) => (
+            <Tooltip 
+              key={title}
+              content={description}
+              placement="right"
+              delay={0}
+              closeDelay={0}
+            >
+              <motion.div
+                className={cn(
+                  "p-2 rounded-lg transition-all duration-200",
+                  `hover:bg-${color}-500/5 group cursor-pointer`
+                )}
+                whileHover={{ x: 4 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200",
+                    `bg-${color}-500/10 group-hover:bg-${color}-500/20`
+                  )}>
+                    <Icon className={`w-4 h-4 text-${color}-500`} />
+                  </div>
+                  <div className="flex-1 flex items-center justify-between">
+                    <span className="font-medium text-sm">{title}</span>
+                    <ChevronRight 
+                      size={16} 
+                      className={cn(
+                        "opacity-0 transition-all duration-200",
+                        "group-hover:opacity-100",
+                        `text-${color}-500`
+                      )} 
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </Tooltip>
+          ))}
+        </div>
 
-      {/* Privacy Note */}
-      <div className="flex items-start gap-3 p-4 rounded-xl bg-primary-500/5">
-        <AlertCircle className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-foreground/70">
-          Your email is kept private and is only used for important notifications about your fitness journey. We never share your data with third parties.
-        </p>
+        {/* Compact Privacy Note */}
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-500/5 text-xs text-foreground/70">
+          <Shield className="w-4 h-4 text-primary-500 flex-shrink-0" />
+          Your email is private and only used for essential notifications
+        </div>
       </div>
 
       <Button

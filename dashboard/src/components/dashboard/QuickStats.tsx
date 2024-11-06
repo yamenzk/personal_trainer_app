@@ -1,8 +1,8 @@
 // src/components/dashboard/QuickStats.tsx
-import { motion } from "framer-motion";
-import { Activity, Flame, Target, Scale, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
+import { Activity, Flame, Target, Scale, ArrowUp, ArrowDown } from 'lucide-react';
 import { Client } from '@/types/client';
 import { GlassCard } from '../shared/GlassCard';
+
 
 interface QuickStatsProps {
   client: Client;
@@ -59,18 +59,15 @@ export const QuickStats = ({ client }: QuickStatsProps) => {
   return (
     <>
       {todayStats.map((stat, index) => (
-        <motion.div
+        <div
           key={stat.label}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
+          className={`fade-slide-in`}
+          style={{ animationDelay: `${index * 100}ms` }}
         >
           <GlassCard
-          key={stat.label}
-          variant="frosted"
-          className="hover:scale-102 transition-transform p-3"
-        >
-            {/* Stat content remains the same but without glass effect */}
+            variant="frosted"
+            className="hover:scale-102 transition-transform duration-300 p-3"
+          >
             <div className="space-y-2">
               <h3 className="text-sm text-foreground/60">{stat.label}</h3>
               <div className="space-y-1">
@@ -86,7 +83,7 @@ export const QuickStats = ({ client }: QuickStatsProps) => {
               </div>
             </div>
           </GlassCard>
-        </motion.div>
+        </div>
       ))}
     </>
   );
