@@ -1,10 +1,17 @@
 // src/components/dashboard/HeroSection.tsx
-import { Avatar, Chip } from "@nextui-org/react";
-import { Target, TrendingDown, TrendingUp, Dumbbell, ArrowRight } from 'lucide-react';
+import { Avatar, Chip, Progress, Card, CardBody } from "@nextui-org/react";
+import { 
+  Target, 
+  TrendingDown, 
+  TrendingUp, 
+  Dumbbell, 
+  Clock,
+  Award,
+  Activity
+} from 'lucide-react';
 import { Client } from '@/types/client';
 import { Plan } from '@/types/plan';
-import { GlassCard } from '../shared/GlassCard';
-
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface HeroSectionProps {
   client: Client;
@@ -14,13 +21,12 @@ interface HeroSectionProps {
 }
 
 export const HeroSection = ({ client, activePlan, currentDay, planProgress }: HeroSectionProps) => {
+  const { theme } = useTheme();
   const firstName = client.client_name?.split(' ')[0] ?? 'there';
   const weightChange = client.weight[0]?.weight - client.current_weight;
   const isWeightLoss = client.goal === 'Weight Loss';
   const isWeightGain = client.goal === 'Weight Gain';
-  const isMaintenance = client.goal === 'Maintenance';
   
-  // Get contextual greeting based on time of day
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -28,50 +34,88 @@ export const HeroSection = ({ client, activePlan, currentDay, planProgress }: He
     return 'Good evening';
   };
 
-  return (
-    <GlassCard 
-    variant="gradient" 
-    gradient="from-primary-500/20 via-transparent to-secondary-500/20"
-    intensity="heavy"
-  >
-      <div className="p-6 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full blur-3xl" />
-        </div>
+  const stats = [
+    {
+      icon: Activity,
+      label: "Weekly Progress",
+      value: `${Math.round(planProgress)}%`,
+      color: "primary",
+      background: "bg-primary-500/10",
+      textColor: "text-primary-500"
+    },
+    {
+      icon: Target,
+      label: isWeightLoss ? "Weight Lost" : isWeightGain ? "Weight Gained" : "Weight Change",
+      value: `${Math.abs(weightChange).toFixed(1)} kg`,
+      color: isWeightLoss ? "success" : isWeightGain ? "warning" : "secondary",
+      background: isWeightLoss ? "bg-success-500/10" : isWeightGain ? "bg-warning-500/10" : "bg-secondary-500/10",
+      textColor: isWeightLoss ? "text-success-500" : isWeightGain ? "text-warning-500" : "text-secondary-500"
+    },
+    {
+      icon: Clock,
+      label: "Current Day",
+      value: `Day ${currentDay}/7`,
+      color: "secondary",
+      background: "bg-secondary-500/10",
+      textColor: "text-secondary-500"
+    },
+    {
+      icon: Award,
+      label: "Level",
+      value: `${Math.floor(client.total_exercises_completed / 50) + 1}`,
+      color: "warning",
+      background: "bg-warning-500/10",
+      textColor: "text-warning-500"
+    }
+  ];
 
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-          {/* Avatar and Greeting */}
-          <div className="flex items-center gap-4">
-            <div className="scale-in-center">
+  return (
+    <Card 
+      isBlurred={theme === 'dark'} 
+      className="border-none"
+    >
+      <CardBody className="p-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Profile Section */}
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full blur-xl opacity-20" />
               <Avatar
                 src={client.image}
-                className="w-20 h-20"
+                className="w-24 h-24 text-large ring-2 ring-offset-2 ring-offset-background ring-primary-500/30"
                 showFallback
                 name={client.client_name ?? ''}
+                classNames={{
+                  base: "bg-gradient-to-br from-primary-500/20 to-secondary-500/20",
+                  icon: "text-white/90"
+                }}
               />
             </div>
-
             <div className="space-y-1">
-              <p className="text-foreground/60">{getGreeting()},</p>
-              <h1 className="text-2xl font-bold">{firstName}!</h1>
-              <div className="flex items-center gap-2">
+              <div className="space-y-0.5">
+                <p className="text-foreground-500">{getGreeting()}</p>
+                <h1 className="text-2xl font-bold tracking-tight">{firstName}!</h1>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
                 {client.goal && (
                   <Chip
-                    size="sm"
-                    className={
-                      isWeightLoss ? "bg-success-500/10 text-success-500" :
-                      isWeightGain ? "bg-warning-500/10 text-warning-500" :
-                      "bg-primary-500/10 text-primary-500"
+                    startContent={<Award className="w-3 h-3" />}
+                    variant="flat"
+                    color={
+                      isWeightLoss ? "success" :
+                      isWeightGain ? "warning" : "primary"
                     }
+                    size="sm"
                   >
                     {client.goal}
                   </Chip>
                 )}
                 {client.equipment && (
                   <Chip
+                    startContent={<Dumbbell className="w-3 h-3" />}
+                    variant="flat"
+                    color="secondary"
                     size="sm"
-                    className="bg-secondary-500/10 text-secondary-500"
                   >
                     {client.equipment}
                   </Chip>
@@ -80,82 +124,39 @@ export const HeroSection = ({ client, activePlan, currentDay, planProgress }: He
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-            {/* Weight Progress */}
-            <div className={`p-4 rounded-xl ${
-              isWeightLoss ? "bg-success-500/10" :
-              isWeightGain ? "bg-warning-500/10" :
-              "bg-primary-500/10"
-            }`}>
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${
-                  isWeightLoss ? "bg-success-500/20" :
-                  isWeightGain ? "bg-warning-500/20" :
-                  "bg-primary-500/20"
-                }`}>
-                  <Target className={
-                    isWeightLoss ? "w-5 h-5 text-success-500" :
-                    isWeightGain ? "w-5 h-5 text-warning-500" :
-                    "w-5 h-5 text-primary-500"
-                  } />
-                </div>
-                <div>
-                  <p className="text-sm text-foreground/60">
-                    {isWeightLoss ? 'Weight Lost' :
-                     isWeightGain ? 'Weight Gained' :
-                     'Weight Change'}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-semibold">
-                      {Math.abs(weightChange).toFixed(1)} kg
-                    </p>
-                    {weightChange !== 0 && (
-                      weightChange < 0 ? 
-                        <TrendingDown className="w-4 h-4 text-success-500" /> :
-                        <TrendingUp className="w-4 h-4 text-warning-500" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Active Plan */}
-            {activePlan && (
-              <div className="p-4 rounded-xl bg-secondary-500/10">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-secondary-500/20">
-                    <Dumbbell className="w-5 h-5 text-secondary-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-foreground/60">Current Plan</p>
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-lg font-semibold">Day {currentDay}</p>
-                      <p className="text-xs text-foreground/60">of 7</p>
+          {/* Stats Grid */}
+          <div className="flex-1">
+            <div className="grid grid-cols-2 gap-4">
+              {stats.map((stat, index) => (
+                <Card
+                  key={index}
+                  shadow="none"
+                  className="bg-content-100/5"
+                >
+                  <CardBody className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-xl ${stat.background}`}>
+                        <stat.icon className={`w-5 h-5 ${stat.textColor}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm text-foreground-500">{stat.label}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xl font-semibold">{stat.value}</p>
+                          {stat.label.includes('Weight') && weightChange !== 0 && (
+                            weightChange < 0 ? 
+                              <TrendingDown className="w-4 h-4 text-success-500" /> :
+                              <TrendingUp className="w-4 h-4 text-warning-500" />
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Overall Progress */}
-            <div className="p-4 rounded-xl bg-content/5">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-foreground/60">Overall Progress</p>
-                  <p className="text-sm font-medium">{Math.round(planProgress)}%</p>
-                </div>
-                <div className="h-2 bg-content/10 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full transition-all duration-1000"
-                    style={{ width: `${planProgress}%` }}
-                  />
-                </div>
-              </div>
+                  </CardBody>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
-      </div>
-    </GlassCard>
+      </CardBody>
+    </Card>
   );
 };

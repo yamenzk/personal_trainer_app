@@ -3,8 +3,9 @@ import { useMemo } from 'react';
 import { GlassCard } from '../shared/GlassCard';
 import { Dumbbell, Info } from 'lucide-react';
 import { Client } from '@/types/client';
+import { useTheme } from '../../contexts/ThemeContext';
 
-import { Tooltip } from '@nextui-org/react';
+import { Card, CardBody, CardHeader, Tooltip } from '@nextui-org/react';
 import {
   RadialBarChart,
   RadialBar,
@@ -18,6 +19,8 @@ interface MuscleGroupsChartProps {
 }
 
 export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
+  const { theme } = useTheme();
+
   const muscleData = useMemo(() => [
     {
       name: 'Chest',
@@ -54,27 +57,19 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
   const maxExercises = Math.max(...muscleData.map(d => d.exercises));
 
   return (
-    <GlassCard 
-      variant="frosted"
-      gradient="from-background via-primary-500/5 to-background"
-      intensity="heavy"
+    <Card 
+      isBlurred={theme === 'dark'} 
+      className="border-none" 
+      shadow="sm"
     >
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold">Muscle Focus</h3>
-            <p className="text-sm text-foreground/60">Exercise distribution</p>
-          </div>
-          <Tooltip
-            content="Shows which muscle groups you've been focusing on in your workouts"
-            className="max-w-xs"
-          >
-            <div className="p-2 rounded-lg bg-content/10 cursor-help">
-              <Info className="w-5 h-5 text-foreground/60" />
-            </div>
-          </Tooltip>
+      <CardHeader className="px-6 pb-0">
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold">Muscle Focus</h3>
+          <p className="text-sm text-foreground/60">Exercise distribution</p>
         </div>
-
+      </CardHeader>
+      <CardBody className="px-6">
+        {/* Chart content */}
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <RadialBarChart 
@@ -87,7 +82,7 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
             >
               <PolarGrid />
               <RadialBar
-                label={{ fill: '#fff', position: 'insideStart' }}
+                label={{ fill: '#ffffff01', position: 'insideStart' }}
                 background
                 dataKey="exercises"
               />
@@ -96,12 +91,13 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
           </ResponsiveContainer>
         </div>
 
-        {/* Muscle Group Stats */}
+        {/* Muscle Groups Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {muscleData.map((group) => (
-            <div
+            <Card
               key={group.name}
-              className="p-3 rounded-xl bg-content/5 transition-transform duration-300 hover:scale-102"
+              shadow="none"
+              className="bg-content-100/5"
             >
               <div className="flex items-start gap-2">
                 <div className="p-2 rounded-lg bg-content/10">
@@ -114,10 +110,10 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
-      </div>
-    </GlassCard>
+      </CardBody>
+    </Card>
   );
 };
