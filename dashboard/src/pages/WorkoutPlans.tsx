@@ -17,6 +17,8 @@ import {
   Tab,
   Tabs,
   Progress,
+  CircularProgress,
+  Switch,
 } from "@nextui-org/react";
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import {
@@ -51,9 +53,9 @@ import {
   ChevronDown,
   History,
   ChevronUp,
+  ArrowRight,
   Timer,
 } from 'lucide-react';
-import { format, addDays } from 'date-fns';
 import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
 import { logPerformance, isPlanDayCompleted } from '../utils/api';
@@ -62,6 +64,8 @@ import { GlassCard } from '@/components/shared/GlassCard';
 import { calculatePlanProgress } from '../utils/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { format, addDays, isToday, isSameDay, differenceInDays } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Helper Components
 interface ExercisePerformance {
@@ -81,76 +85,6 @@ interface ExerciseCardProps {
   selectedPlan: 'active' | 'history';
   exerciseNumber?: number;
 }
-
-interface WeekDayButtonProps {
-  day: number;
-  date: Date;
-  isSelected: boolean;
-  isCompleted: boolean;
-  isCurrent: boolean;
-  onClick: () => void;
-  hasWorkout?: boolean;
-}
-
-export const WeekDayButton = ({
-  date,
-  isSelected,
-  isCompleted,
-  isCurrent,
-  onClick,
-  hasWorkout = false
-}: WeekDayButtonProps) => {
-  return (
-    <button
-      onClick={onClick}
-
-    >
-      <div className="space-y-2">
-        {/* Date Header */}
-        <div className="flex flex-col items-center">
-          <span className={cn(
-            "text-xs text-foreground/60",
-            isCurrent && "text-primary-500"
-          )}>
-            {format(date, 'EEEE')}
-          </span>
-          <span className={cn(
-            "text-2xl font-bold",
-            isCurrent && "text-primary-500"
-          )}>
-            {format(date, 'd')}
-          </span>
-        </div>
-
-        {/* Status Indicator */}
-        <div className="flex items-center justify-center gap-1">
-          {hasWorkout ? (
-            <div className={cn(
-              "p-1.5 rounded-lg",
-              isSelected
-                ? "bg-primary-500"
-                : isCompleted
-                  ? "bg-success-500"
-                  : "bg-content/20"
-            )}>
-              <Dumbbell
-                size={14}
-                className={cn(
-                  isSelected || isCompleted ? "text-white" : "text-foreground/40"
-                )}
-              />
-            </div>
-          ) : (
-            <div className="p-1.5 rounded-lg bg-content/10">
-              <Moon size={14} className="text-foreground/40" />
-            </div>
-          )}
-        </div>
-      </div>
-    </button>
-  );
-};
-
 
 const RestDayCard = () => {
   const { theme } = useTheme();  // Move the hook inside the component
@@ -1337,65 +1271,17 @@ const PerformanceModal = ({
   );
 };
 
-// Replace the PlanSelector component with this:
-const PlanSelector = ({
-  plans,
-  selectedPlanIndex,
-  onSelect
-}: {
-  plans: any[];
-  selectedPlanIndex: number;
-  onSelect: (index: number) => void;
-}) => {
-  const getPlanDateRange = (plan: any) => {
-    const start = format(new Date(plan.start), 'MMM d');
-    const end = format(new Date(plan.end), 'MMM d, yyyy');
-    return `${start} - ${end}`;
-  };
 
-  return (
-    <div className="flex items-center gap-2">
-      <Button
-        size="sm"
-        isIconOnly
-        variant="light"
-        isDisabled={selectedPlanIndex === plans.length - 1}
-        onPress={() => onSelect(selectedPlanIndex + 1)}
-      >
-        <ChevronLeft size={16} />
-      </Button>
-      <Card
-        className="bg-primary/1"
-        style={{ boxShadow: "none" }}
-      >
-        <span className="text-sm">
-          {getPlanDateRange(plans[selectedPlanIndex])}
-        </span>
-      </Card>
-      <Button
-        size="sm"
-        isIconOnly
-        variant="light"
-        isDisabled={selectedPlanIndex === 0}
-        onPress={() => onSelect(selectedPlanIndex - 1)}
-      >
-        <ChevronRight size={16} />
-      </Button>
-    </div>
-  );
-};
 
 // Replace the PlanHero component with this new design:
 interface PlanHeroProps {
   plan: any;
-  selectedDay: number | null;  // Update type to allow null
-  currentDay: number | null;   // Update type to allow null
+  selectedDay: number | null;
+  currentDay: number | null;
   onDaySelect: (day: number) => void;
   selectedPlan: 'active' | 'history';
   onPlanTypeChange: (key: 'active' | 'history') => void;
   completedPlansCount: number;
-  daysContainerRef: React.RefObject<HTMLDivElement>;
-  // Add these new props
   completedPlans: any[];
   historicalPlanIndex: number;
   onHistoricalPlanSelect: (index: number) => void;
@@ -1409,241 +1295,330 @@ const PlanHero = ({
   selectedPlan,
   onPlanTypeChange,
   completedPlansCount,
-  daysContainerRef,  // Add this prop
-  // Add these new props
   completedPlans,
   historicalPlanIndex,
-  onHistoricalPlanSelect
+  onHistoricalPlanSelect,
 }: PlanHeroProps) => {
-  const planProgress = calculatePlanProgress(plan);
-  const startDate = new Date(plan.start);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const isCurrentWeek = selectedPlan === 'active';
+  const startDate = new Date(plan.start);
+  const initialScrollApplied = useRef(false);
 
-  const getDayDate = (dayIndex: number) => addDays(startDate, dayIndex);
-  const isToday = (date: Date) => {
+  useEffect(() => {
+    if (!initialScrollApplied.current && scrollRef.current && currentDay) {
+      const container = scrollRef.current;
+      const dayElements = container.children;
+      
+      if (dayElements.length > 0) {
+        const dayElement = dayElements[currentDay - 1] as HTMLElement;
+        if (dayElement) {
+          // Calculate the center position
+          const containerWidth = container.clientWidth;
+          const elementWidth = dayElement.offsetWidth;
+          const elementLeft = dayElement.offsetLeft;
+          const scrollPosition = elementLeft - (containerWidth / 2) + (elementWidth / 2);
+  
+          // Apply scroll with a slight delay to ensure layout is ready
+          setTimeout(() => {
+            container.scrollTo({
+              left: Math.max(0, scrollPosition),
+              behavior: 'smooth'
+            });
+            initialScrollApplied.current = true;
+          }, 100);
+        }
+      }
+    }
+  }, [currentDay, scrollRef.current]);
+
+  // Calculate statistics
+  const stats = {
+    total: {
+      workouts: Object.values(plan.days).reduce((total: number, day: any) => 
+        total + (day.exercises?.length > 0 ? 1 : 0), 0),
+      exercises: Object.values(plan.days).reduce((total: number, day: any) => 
+        total + (day.exercises?.length || 0), 0),
+    },
+    completed: {
+      workouts: Object.values(plan.days).filter((day: any) => 
+        day.exercises?.length > 0 && day.exercises.every((e: any) => 
+          e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
+        )
+      ).length,
+      exercises: Object.values(plan.days).reduce((total: number, day: any) => 
+        total + (day.exercises?.filter((e: any) => 
+          e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
+        ).length || 0), 0),
+    }
+  };
+
+  // Calculate streak (counting consecutive days with completed workouts)
+  const calculateStreak = () => {
+    let streak = 0;
+    let currentStreak = 0;
     const today = new Date();
+
+    for (let i = 0; i < completedPlans.length; i++) {
+      const plan = completedPlans[i];
+      const planEnd = new Date(plan.end);
+      
+      // Only count streaks up to today
+      if (differenceInDays(planEnd, today) > 0) continue;
+
+      Object.values(plan.days).forEach((day: any) => {
+        if (day.exercises?.length > 0 && 
+            day.exercises.every((e: any) => 
+              e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
+            )) {
+          currentStreak++;
+          streak = Math.max(streak, currentStreak);
+        } else {
+          currentStreak = 0;
+        }
+      });
+    }
+    return streak;
+  };
+
+  const DayButton = ({ dayIndex }: { dayIndex: number }) => {
+    const date = addDays(startDate, dayIndex - 1);
+    const dayKey = `day_${dayIndex}`;
+    const dayData = plan.days[dayKey];
+    const exerciseCount = dayData?.exercises?.length || 0;
+    const isCompleted = dayData?.exercises?.every((e: any) => 
+      e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
+    );
+    const isSelected = selectedDay === dayIndex;
+    const isCurrent = isToday(date);
+
     return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
+      <Button
+        className={cn(
+          "w-[90px] h-[90px] p-3",
+          "flex flex-col items-center justify-between",
+          "transition-all duration-300",
+          "bg-foreground/5 hover:bg-foreground/10",
+          isSelected && "bg-gradient-to-br from-primary-500 to-secondary-500 text-white scale-105 shadow-lg",
+          isCompleted && !isSelected && "bg-success-500/10 hover:bg-success-500/20",
+          isCurrent && !isSelected && "bg-primary-500/10 hover:bg-primary-500/20",
+        )}
+        variant="flat"
+        onPress={() => onDaySelect(dayIndex)}
+      >
+        <div className="text-center">
+          <p className={cn(
+            "text-[11px] uppercase tracking-wider",
+            isCurrent && "text-primary-500",
+            isSelected && "text-white/90"
+          )}>
+            {format(date, 'EEE')}
+          </p>
+          <p className={cn(
+            "text-xl font-bold",
+            isCurrent && !isSelected && "text-primary-500"
+          )}>
+            {format(date, 'd')}
+          </p>
+        </div>
+
+        {exerciseCount > 0 ? (
+          <Chip
+            size="sm"
+            className={cn(
+              "h-5 px-2",
+              isSelected 
+                ? "bg-white/20 text-white" 
+                : isCompleted
+                  ? "bg-success-500/20 text-success-500"
+                  : "bg-content/10"
+            )}
+          >
+            <div className="flex items-center gap-1">
+              <Dumbbell className="w-3 h-3" />
+              <span className="text-xs">{exerciseCount}</span>
+            </div>
+          </Chip>
+        ) : (
+          <Chip
+            size="sm"
+            className={cn(
+              "h-5 px-2", "bg-content/10"
+            )}
+          >
+            <Moon className="w-3 h-3" />
+          </Chip>
+        )}
+
+        {(isCompleted || (isCurrent && !isCompleted)) && (
+          <div className="absolute -top-0 -right-0">
+            {isCompleted ? (
+              <div className="w-5 h-5 rounded-tr-lg rounded-bl-lg bg-success-500 flex items-center justify-center">
+                <CheckCircle2 className="w-3 h-3 text-white" />
+              </div>
+            ) : isCurrent && (
+              <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center">
+                <Zap className="w-3 h-3 text-white" />
+              </div>
+            )}
+          </div>
+        )}
+      </Button>
     );
   };
 
   return (
-    <div className="space-y-6">
-      {/* Main Header Card */}
-      <GlassCard
-        variant="frosted"
+    <Card className="relative overflow-hidden border-none">
+      {/* Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-secondary-500/5 to-primary-500/5" />
+      
+      {/* Content */}
+      <div className="relative p-4 space-y-4">
+        {/* Top Row with Progress and History Switch */}
+        <div className="flex items-center justify-between">
+  <div className="flex items-center gap-2">
+  <Switch
+  size="sm"
+  color="danger"
+  startContent={<History className="w-3 h-3" />}
+  endContent={<Zap className="w-3 h-3" />}
+  isSelected={selectedPlan === 'history'}
+  onValueChange={(isSelected) => onPlanTypeChange(isSelected ? 'history' : 'active')}
+  isDisabled={completedPlansCount === 0}
+  classNames={{
+    wrapper: selectedPlan === 'active' ? "bg-secondary-500" : "bg-primary-500", // Apply bg-secondary-500 only when selectedPlan is 'active'
+  }}
+>
+  <span className="text-xs">
+    {selectedPlan === 'history' ? 'History Mode' : 'Current Week'}
+  </span>
+</Switch>
+
+    {selectedPlan === 'history' && (
+      <Chip size="sm" >
+        Week {completedPlans.length - historicalPlanIndex} of {completedPlans.length}
+      </Chip>
+    )}
+  </div>
+          
+          <CircularProgress
+            value={(stats.completed.exercises / stats.total.exercises) * 100}
+            color="primary"
+            classNames={{
+              svg: "w-12 h-12 drop-shadow",
+              indicator: "stroke-primary-500",
+              track: "stroke-white/10",
+              value: "text-sm font-semibold text-primary-500",
+            }}
+            aria-label="Progress"
+            showValueLabel={true}
+            valueLabel={`${Math.round((stats.completed.exercises / stats.total.exercises) * 100)}%`}
+          />
+        </div>
+
+        {/* Date Navigation Row */}
+        <div className="flex items-center justify-between">
+  <div className="flex items-center gap-3">
+    {selectedPlan === 'history' && (
+      <Button
+        isIconOnly
+        variant="flat"
+        isDisabled={historicalPlanIndex === completedPlans.length - 1}
+        onPress={() => onHistoricalPlanSelect(historicalPlanIndex + 1)}
+        className="bg-content/5"
       >
+        <ChevronLeft className="w-4 h-4" />
+      </Button>
+    )}
 
-        {/* Content */}
-        <div className="relative p-6 space-y-6">
-          {/* Top Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-primary-500 text-white shadow-lg shadow-primary-500/20">
-                <Calendar className="w-6 h-6" />
-              </div>
-              {selectedPlan === 'active' ? (
-                <div>
-                  <h1 className="text-xl font-bold">
-                    {format(startDate, 'MMM d')} - {format(addDays(startDate, 6), 'MMM d')}
-                  </h1>
-                  <p className="text-sm text-foreground/60">
-                    {format(startDate, 'yyyy')}
-                  </p>
-                </div>
-              ) : (
-                <PlanSelector
-                  plans={completedPlans}
-                  selectedPlanIndex={historicalPlanIndex}
-                  onSelect={onHistoricalPlanSelect}
-                />
-              )}
+    <div className="flex items-center gap-2">
+      <Calendar className="w-4 h-4 text-primary-500" />
+      <h3 className="text-base font-semibold">
+        {format(startDate, 'MMM d')} - {format(addDays(startDate, 6), 'MMM d')}
+      </h3>
+    </div>
+
+    {selectedPlan === 'history' && (
+      <Button
+        isIconOnly
+        variant="flat"
+        isDisabled={historicalPlanIndex === 0}
+        onPress={() => onHistoricalPlanSelect(historicalPlanIndex - 1)}
+        className="bg-content/5"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </Button>
+    )}
+  </div>
+</div>
+
+        {/* Stats Row - Now with more space */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-xl bg-content/5 p-3 flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-secondary-500/10">
+              <Target className="w-4 h-4 text-secondary-500" />
             </div>
-
-            {/* Plan Type Selector */}
-            <Card className="flex shrink gap-2 p-1 bg-white/10 rounded-xl flex-row">
-              <Button
-                size="sm"
-                variant={selectedPlan === 'active' ? 'solid' : 'light'}
-                onPress={() => onPlanTypeChange('active')}
-                className={cn(
-                  "rounded-lg shadow-lg",
-                  selectedPlan === 'active' && "bg-gradient-to-r from-primary-500 to-secondary-500 text-white"
-                )}
-                startContent={<Zap size={16} className={selectedPlan === 'active' ? "text-white" : ""} />}
-              >
-                Current Week
-              </Button>
-              <Button
-                size="sm"
-                variant={selectedPlan === 'history' ? 'solid' : 'light'}
-                onPress={() => onPlanTypeChange('history')}
-                isDisabled={completedPlansCount === 0}
-                className={cn(
-                  "rounded-lg shadow-lg",
-                  selectedPlan === 'history' && "bg-gradient-to-r from-primary-500 to-secondary-500 text-white"
-                )}
-                startContent={<Clock size={16} className={selectedPlan === 'history' ? "text-white" : ""} />}
-              >
-                History ({completedPlansCount})
-              </Button>
-            </Card>
+            <div>
+              <p className="text-xs text-foreground/60">Workouts</p>
+              <p className="text-sm font-semibold">
+                {stats.completed.workouts}/{stats.total.workouts}
+              </p>
+            </div>
           </div>
 
-          {/* Progress Section */}
-          <div>
-            {/* <GlassCard variant="frosted" className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary-500/10">
-                  <Target className="w-5 h-5 text-primary-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-foreground/60">Progress</p>
-                  <p className="text-lg font-semibold">{Math.round(planProgress)}%</p>
-                </div>
-              </div>
-            </GlassCard>
-
-            <GlassCard variant="frosted" className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-secondary-500/10">
-                  <Dumbbell className="w-5 h-5 text-secondary-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-foreground/60">Workouts</p>
-                  <p className="text-lg font-semibold">{plan.config.weekly_workouts}/week</p>
-                </div>
-              </div>
-            </GlassCard>
-
-            <GlassCard variant="frosted" className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-success-500/10">
-                  <Activity className="w-5 h-5 text-success-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-foreground/60">Completed</p>
-                  <p className="text-lg font-semibold">
-                    {Object.values(plan.days).filter((day: any) => isPlanDayCompleted(day)).length} days
-                  </p>
-                </div>
-              </div>
-            </GlassCard> */}
-
-            {/* Week Calendar */}
-            <div className="relative">
-              {/* Shadow Indicators */}
-              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10" />
-              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10" />
-
-              {/* Scrollable Container */}
-              <div
-                ref={daysContainerRef}
-                className="flex gap-3 overflow-x-auto pb-4 pt-2 scrollbar-hide -mx-2"
-                style={{
-                  scrollSnapType: 'x mandatory',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                {Array.from({ length: 7 }, (_, i) => {
-                  const day = i + 1;
-                  const date = getDayDate(i);
-                  const dayExercises = plan.days[`day_${day}`]?.exercises || [];
-                  const isCompleted = isPlanDayCompleted(plan.days[`day_${day}`]);
-                  const isCurrentDay = isCurrentWeek && currentDay === day;  // Fix comparison
-                  const isTodayDate = isToday(date);
-
-                  return (
-                    <div
-                      key={day}
-                      className="flex-none"
-                      style={{ scrollSnapAlign: 'start' }}
-                    >
-                      <Card
-
-                        className={cn(
-                          "cursor-pointer transition-all duration-300 h-full",
-                          "hover:scale-[1.02] active:scale-[0.98]",
-                          isCompleted && selectedDay !== day && "bg-success-500/20 border-success-500/20",
-                          selectedDay === day && "bg-primary/50 shadow-md shadow-primary-500/20",
-                          !isCompleted && selectedDay !== day && "bg-secondary-500/20"
-                        )}
-                        isPressable
-                        onPress={() => onDaySelect(day)}
-                      >
-                        <div className="py-4 px-4 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className={cn(
-                              "text-sm",
-                              "text-foreground/60"
-                            )}>
-                              {format(date, 'EEE')}
-                            </span>
-                            <span className={cn(
-                              "text-2xl font-bold",
-                            )}>
-                              {format(date, 'd')}
-                            </span>
-                          </div>
-
-                          <div className="space-y-3">
-                            {dayExercises.length > 0 ? (
-                              <>
-                                <div className="flex items-center gap-2">
-                                  <Dumbbell
-                                    size={16}
-                                    className={cn(
-                                      isCompleted ? "text-success-500" : "text-foreground/40",
-                                      isCurrentDay && "text-primary-500"
-                                    )}
-                                  />
-                                  <span className="text-sm text-foreground/60">
-                                    {dayExercises.length} exercise{dayExercises.length !== 1 ? 's' : ''}
-                                  </span>
-                                </div>
-                                <div className="h-px bg-content/10" />
-                                {/* <div className="text-xs text-foreground/60">
-                            {dayExercises.slice(0, 2).map((ex: any, idx: number) => (
-                              <div key={idx} className="truncate">
-                                • {ex.type === 'regular' ? ex.exercise.ref : 'Superset'}
-                              </div>
-                            ))}
-                            {dayExercises.length > 2 && (
-                              <div className="text-primary-500">
-                                +{dayExercises.length - 2} more
-                              </div>
-                            ))}
-                          </div> */}
-                              </>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <Moon size={16} className="text-foreground/40" />
-                                <span className="text-sm text-foreground/60">Rest Day</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {isCompleted && (
-                            <div className="absolute top-0 right-0">
-                              <div className="w-6 h-6 rounded-full bg-success-500/10 flex items-center justify-center">
-                                <CheckCircle2 size={14} className="text-success-500" />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </Card>
-                    </div>
-                  );
-                })}
-              </div>
+          <div className="rounded-xl bg-content/5 p-3 flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-success-500/10">
+              <Dumbbell className="w-4 h-4 text-success-500" />
             </div>
+            <div>
+              <p className="text-xs text-foreground/60">Exercises</p>
+              <p className="text-sm font-semibold">
+                {stats.completed.exercises}/{stats.total.exercises}
+              </p>
+            </div>
+          </div>
 
+          <div className="rounded-xl bg-content/5 p-3 flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-warning-500/10">
+              <Timer className="w-4 h-4 text-warning-500" />
+            </div>
+            <div>
+              <p className="text-xs text-foreground/60">Streak</p>
+              <p className="text-sm font-semibold">{calculateStreak()} days</p>
+            </div>
           </div>
         </div>
-      </GlassCard>
+
+        {/* Days Row */}
+        <div className="relative -mx-4 px-4">
+          {/* Shadow Indicators */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10" />
+
+          <motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.3 }}
+  className="flex gap-2 overflow-x-auto hide-scrollbar py-2 -mx-2 px-2"
+  ref={scrollRef}
+  style={{
+    scrollSnapType: 'x mandatory',
+    WebkitOverflowScrolling: 'touch',
+    scrollBehavior: 'smooth' // Added for smoother scrolling
+  }}
+>
+  {Array.from({ length: 7 }, (_, i) => (
+    <div
+      key={i + 1}
+      className="flex-none"
+      style={{ scrollSnapAlign: 'center' }}
+    >
+      <DayButton dayIndex={i + 1} />
     </div>
+  ))}
+</motion.div>
+        </div>
+      </div>
+    </Card>
   );
 };
 
@@ -1793,23 +1768,18 @@ export default function WorkoutPlans() {
     <div className="min-h-screen w-full bg-background relative overflow-hidden">
       <div className="container mx-auto">
         <div className="flex flex-col gap-4">
-          <PlanHero
-            plan={currentPlan}
-            selectedDay={selectedDay || 1}  // Provide default value
-            currentDay={currentDay}
-            onDaySelect={setSelectedDay}
-            selectedPlan={selectedPlan}
-            onPlanTypeChange={(key) => {
-              setSelectedPlan(key);
-              setHistoricalPlanIndex(0);
-            }}
-            completedPlansCount={completedPlans.length}
-            daysContainerRef={daysContainerRef}  // Pass the ref here
-            // Add these new props
-            completedPlans={completedPlans}
-            historicalPlanIndex={historicalPlanIndex}
-            onHistoricalPlanSelect={setHistoricalPlanIndex}
-          />
+        <PlanHero
+  plan={currentPlan}  // Use currentPlan instead of plan
+  selectedDay={selectedDay}
+  currentDay={currentDay}
+  onDaySelect={setSelectedDay}
+  selectedPlan={selectedPlan}
+  onPlanTypeChange={setSelectedPlan}  // Use setSelectedPlan directly
+  completedPlansCount={completedPlans.length}
+  completedPlans={completedPlans}
+  historicalPlanIndex={historicalPlanIndex}
+  onHistoricalPlanSelect={setHistoricalPlanIndex}
+/>
         </div>
 
         {/* Only show SectionTitle and exercises if it's not a rest day */}
