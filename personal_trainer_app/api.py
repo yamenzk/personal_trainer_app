@@ -46,7 +46,7 @@ class MembershipCache:
     def get_membership_version(self, membership_id: str) -> str:
         """Get version hash based on membership, client, and plans data"""
         try:
-            CODE_VERSION = "1.3"
+            CODE_VERSION = "1.4"
             membership_doc = frappe.get_doc("Membership", membership_id)
             client_doc = frappe.get_doc("Client", membership_doc.client)
             
@@ -379,7 +379,8 @@ def process_plans_batch(plan_docs: List[Any]) -> Tuple[Dict[str, Any], List[Dict
     performance_docs = frappe.get_all(
         "Performance Log",
         filters={"exercise": ["in", list(all_exercises)]},
-        fields=["exercise", "weight", "reps", "date"]
+        fields=["exercise", "weight", "reps", "date", "creation"],
+        order_by="creation desc"  # or "creation asc" for ascending order
     )
     for doc in performance_docs:
         if doc.exercise not in reference_data['performance']:

@@ -1,4 +1,4 @@
-import { Modal, ModalContent, Button, Tabs, Tab, Card, Chip } from "@nextui-org/react";
+import { Modal, ModalContent, Button, Tabs, Tab, Card, Chip, Avatar } from "@nextui-org/react";
 import { ExerciseBase, ExerciseReference } from "@/types/workout";
 import { useState, useEffect, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -74,8 +74,8 @@ export const ExerciseDetailsModal = ({
     const QuickStatChip = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
       <Chip
         startContent={<Icon size={14} />}
-        className="bg-content/10 h-auto py-2"
-        size="sm"
+        className="bg-content-secondary/30 h-auto py-2 px-4 min-w-full"
+        size="md"
       >
         <div className="flex flex-col items-start">
           <span className="text-xs text-foreground/60">{label}</span>
@@ -111,9 +111,9 @@ export const ExerciseDetailsModal = ({
         isOpen={isOpen}
         onClose={onClose}
         hideCloseButton
-        className="bg-background/98 dark:bg-background/95"
+        className="bg-white/50 dark:bg-black/50"
+        backdrop="blur"
         classNames={{
-          backdrop: "bg-[#000000]/80 backdrop-blur-md",
           base: "h-[100dvh] max-h-[100dvh]",
         }}
         scrollBehavior="inside"
@@ -121,11 +121,14 @@ export const ExerciseDetailsModal = ({
         <ModalContent>
           <div className="flex flex-col h-[100dvh]">
             {/* Fixed Header/Navigation */}
-            <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-content/10">
+            <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md pb-2 ">
               <div className="px-4 py-3 flex items-center justify-between">
-                <div>
+                <div className="flex gap-4">
+                <Avatar isBordered color="secondary" src={images[0].url} />
+                <div className="flex flex-col">
                   <h2 className="text-lg font-semibold truncate">{exercise.ref}</h2>
                   <p className="text-sm text-foreground/60">{details.primary_muscle}</p>
+                  </div>
                 </div>
                 <Button
                   isIconOnly
@@ -137,17 +140,16 @@ export const ExerciseDetailsModal = ({
                 </Button>
               </div>
   
-              <div className="px-4">
+              <div className="px-4 flex justify-center">
                 <Tabs
                   selectedKey={selectedTab}
                   onSelectionChange={(key) => setSelectedTab(key.toString())}
-                  color="primary"
-                  variant="underlined"
+                  color="secondary"
+                  variant="solid"
+                  radius="full"
                   classNames={{
-                    tabList: "gap-6",
-                    cursor: "w-full bg-primary-500",
-                    tab: "max-w-fit px-2 h-12",
-                    tabContent: "group-data-[selected=true]:text-primary",
+                    tabList: "bg-content-secondary/60",
+                    cursor: "w-full",
                   }}
                 >
                   {tabs.map(({ key, icon: Icon, label }) => (
@@ -189,7 +191,7 @@ export const ExerciseDetailsModal = ({
                             className="bg-background/10 backdrop-blur-md"
                             onPress={() => setImageIndex((prev) => (prev === 0 ? 1 : 0))}
                           >
-                            <ChevronLeft className="w-4 h-4" />
+                            <ChevronLeft className="w-4 h-4 text-white" />
                           </Button>
                           <Button
                             isIconOnly
@@ -199,9 +201,9 @@ export const ExerciseDetailsModal = ({
                             onPress={() => setIsPlaying(!isPlaying)}
                           >
                             {isPlaying ? (
-                              <Pause className="w-4 h-4" />
+                              <Pause className="w-4 h-4 text-white" />
                             ) : (
-                              <Play className="w-4 h-4" />
+                              <Play className="w-4 h-4 text-white" />
                             )}
                           </Button>
                           <Button
@@ -211,7 +213,7 @@ export const ExerciseDetailsModal = ({
                             className="bg-background/10 backdrop-blur-md"
                             onPress={() => setImageIndex((prev) => (prev === 1 ? 0 : 1))}
                           >
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className="w-4 h-4 text-white" />
                           </Button>
                         </div>
                         <span className="text-sm text-white/90 bg-background/30 px-3 py-1 rounded-full backdrop-blur-sm">
@@ -249,7 +251,7 @@ export const ExerciseDetailsModal = ({
                     {/* Instructions */}
                     <div className="space-y-3">
                       <h4 className="text-lg font-semibold flex items-center gap-2">
-                        <ScrollText className="w-5 h-5 text-primary-500" />
+                        <ScrollText className="w-5 h-5 text-secondary-500" />
                         Instructions
                       </h4>
                       <Card className="p-4">
@@ -262,27 +264,29 @@ export const ExerciseDetailsModal = ({
                     {/* Muscles Grid */}
                     <div className="space-y-3">
                       <h4 className="text-lg font-semibold flex items-center gap-2">
-                        <Flame className="w-5 h-5 text-primary-500" />
+                        <Flame className="w-5 h-5 text-secondary-500" />
                         Muscles Worked
                       </h4>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex gap-2">
                         <Chip
-                          className="bg-warning-500/10 text-warning-500 h-auto py-2"
+                          className="h-auto py-2"
                           startContent={<Target size={14} />}
+                          color="warning"
+                          variant="solid"
                         >
                           <div className="flex flex-col items-start">
-                            <span className="text-xs">Primary</span>
                             <span className="font-medium">{details.primary_muscle}</span>
                           </div>
                         </Chip>
                         {details.secondary_muscles?.map((muscle, index) => (
                           <Chip
+                            className="h-auto py-2"
                             key={index}
-                            className="bg-content/10 h-auto py-2"
+                            variant="faded"
+                            color="warning"
                             startContent={<Activity size={14} />}
                           >
                             <div className="flex flex-col items-start">
-                              <span className="text-xs text-foreground/60">Secondary</span>
                               <span className="font-medium">{muscle.muscle}</span>
                             </div>
                           </Chip>
@@ -299,34 +303,34 @@ export const ExerciseDetailsModal = ({
                     <>
                       {/* Performance Stats Grid */}
                       <div className="grid grid-cols-2 gap-4">
-                        <Card className="p-4 bg-primary-500/10 border-none">
+                        <Card isBlurred className="p-4 bg-primary-500 border-none">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-primary-500">
                               <Trophy className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                              <p className="text-sm text-foreground/60">Personal Best</p>
-                              <p className="text-2xl font-bold">
+                              <p className="text-sm text-white/60">Personal Best</p>
+                              <p className="text-2xl font-bold text-white">
                                 {Math.max(...performance.map(p => p.weight))} kg
                               </p>
-                              <p className="text-xs text-foreground/60">
+                              <p className="text-xs text-white/60">
                                 {performance.find(p => p.weight === Math.max(...performance.map(p => p.weight)))?.date}
                               </p>
                             </div>
                           </div>
                         </Card>
   
-                        <Card className="p-4 bg-secondary-500/10 border-none">
+                        <Card isBlurred className="p-4 bg-secondary-500 border-none">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-secondary-500">
                               <Medal className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                              <p className="text-sm text-foreground/60">Most Reps</p>
-                              <p className="text-2xl font-bold">
+                              <p className="text-sm text-white/60">Most Reps</p>
+                              <p className="text-2xl font-bold text-white">
                                 {Math.max(...performance.map(p => p.reps))}
                               </p>
-                              <p className="text-xs text-foreground/60">
+                              <p className="text-xs text-white/60">
                                 {performance.find(p => p.reps === Math.max(...performance.map(p => p.reps)))?.date}
                               </p>
                             </div>
@@ -335,7 +339,7 @@ export const ExerciseDetailsModal = ({
                       </div>
   
                       {/* Performance Chart */}
-                      <Card className="p-4 border-none">
+                      <Card isBlurred className="p-4 border-none bg-content-secondary/70">
                         <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
                           <TrendingUp className="w-5 h-5 text-primary-500" />
                           Progress Chart
@@ -386,10 +390,10 @@ export const ExerciseDetailsModal = ({
                       <div className="space-y-3">
                         <h4 className="text-lg font-semibold">Recent History</h4>
                         <div className="space-y-2">
-                          {[...performance].reverse().slice(0, 5).map((perf, index) => (
+                          {[...performance].slice(0, 5).map((perf, index) => (
                             <Card
                               key={index}
-                              className="bg-content/5 border-none"
+                              className="bg-content-secondary/30 border-none"
                             >
                               <div className="p-3 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -408,7 +412,7 @@ export const ExerciseDetailsModal = ({
                                 {index === 0 && (
                                   <Chip
                                     size="sm"
-                                    className="bg-success-500/10 text-success-500"
+                                    variant="shadow"
                                     startContent={<Activity size={14} />}
                                   >
                                     Latest
@@ -422,8 +426,8 @@ export const ExerciseDetailsModal = ({
                     </>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <div className="p-4 rounded-full bg-primary-500/10 mb-4">
-                        <Activity className="w-8 h-8 text-primary-500" />
+                      <div className="p-4 rounded-full bg-secondary-500/10 mb-4">
+                        <Activity className="w-8 h-8 text-secondary-500" />
                       </div>
                       <p className="text-lg font-semibold">No Performance Data</p>
                       <p className="text-foreground/60 mt-2">
