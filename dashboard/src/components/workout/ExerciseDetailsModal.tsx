@@ -254,7 +254,7 @@ export const ExerciseDetailsModal = ({
                         <ScrollText className="w-5 h-5 text-secondary-500" />
                         Instructions
                       </h4>
-                      <Card className="p-4">
+                      <Card className="p-4 bg-content-secondary/70">
                         <p className="text-foreground/80 leading-relaxed text-sm sm:text-base">
                           {details.instructions}
                         </p>
@@ -413,6 +413,7 @@ export const ExerciseDetailsModal = ({
                                   <Chip
                                     size="sm"
                                     variant="shadow"
+                                    color="success"
                                     startContent={<Activity size={14} />}
                                   >
                                     Latest

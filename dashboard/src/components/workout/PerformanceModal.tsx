@@ -113,10 +113,8 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
         isOpen={isOpen}
         onClose={onClose}
         hideCloseButton
-        className="bg-background/98"
-        classNames={{
-          backdrop: "bg-[#000000]/80 backdrop-blur-md",
-        }}
+        backdrop='blur'
+        className="bg-white/50 dark:bg-black/50"
       >
         <ModalContent>
           <div className="p-6 space-y-6">
@@ -148,30 +146,30 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
               )}>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Personal Best Card */}
-                  <div className="p-4 rounded-xl bg-primary-500/10 space-y-2">
+                  <div className="p-4 rounded-xl bg-primary-500 space-y-2">
                     <div className="flex items-center gap-2">
-                      <Trophy className="w-4 h-4 text-primary-500" />
-                      <span className="text-sm font-medium">Personal Best</span>
+                      <Trophy className="w-4 h-4 text-white" />
+                      <span className="text-sm font-medium text-white">Personal Best</span>
                     </div>
-                    <div className="text-2xl font-bold">
+                    <div className="text-2xl font-bold text-white">
                       {personalBest.weight} kg × {personalBest.reps}
                     </div>
-                    <div className="text-xs text-foreground/60">
-                      {new Date(personalBest.date).toLocaleDateString()}
+                    <div className="text-xs text-white/60">
+                      {new Date(personalBest.date).toLocaleDateString("en-AE")}
                     </div>
                   </div>
   
                   {/* Last Performance Card */}
-                  <div className="p-4 rounded-xl bg-secondary-500/10 space-y-2">
+                  <div className="p-4 rounded-xl bg-secondary-500 space-y-2">
                     <div className="flex items-center gap-2">
-                      <History className="w-4 h-4 text-secondary-500" />
-                      <span className="text-sm font-medium">Last Performance</span>
+                      <History className="w-4 h-4 text-white" />
+                      <span className="text-sm font-medium text-white">Last Performance</span>
                     </div>
-                    <div className="text-2xl font-bold">
+                    <div className="text-2xl font-bold text-white">
                       {lastPerformance.weight} kg × {lastPerformance.reps}
                     </div>
-                    <div className="text-xs text-foreground/60">
-                      {new Date(lastPerformance.date).toLocaleDateString()}
+                    <div className="text-xs text-white/60">
+                      {new Date(lastPerformance.date).toLocaleDateString("en-AE")}
                     </div>
                   </div>
                 </div>
@@ -237,11 +235,30 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
                     placeholder="Enter weight"
                     className="flex-1"
                     classNames={{
-                      input: "text-lg",
+                      label: "text-black/50 dark:text-white/90",
+                      input: [
+                        "text-lg",
+                        "bg-transparent",
+                        "text-black/90 dark:text-white/90",
+                        "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                      ],
+                      innerWrapper: "bg-transparent",
+                      inputWrapper: [
+                        "shadow-xl",
+                        "bg-default-200/50",
+                        "dark:bg-default/50",
+                        "backdrop-blur-xl",
+                        "backdrop-saturate-200",
+                        "hover:bg-default-200/70",
+                        "dark:hover:bg-default/70",
+                        "group-data-[focus=true]:bg-default-200/50",
+                        "dark:group-data-[focus=true]:bg-default/60",
+                        "!cursor-text",
+                      ],
                     }}
                     min={0}
                     startContent={
-                      <Dumbbell className="w-4 h-4 text-default-400" />
+                      <Dumbbell className="w-4 h-4" />
                     }
                   />
                   <div className="flex flex-col gap-1">
@@ -279,11 +296,30 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
                     placeholder="Enter reps"
                     className="flex-1"
                     classNames={{
-                      input: "text-lg",
+                      label: "text-black/50 dark:text-white/90",
+                      input: [
+                        "text-lg",
+                        "bg-transparent",
+                        "text-black/90 dark:text-white/90",
+                        "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                      ],
+                      innerWrapper: "bg-transparent",
+                      inputWrapper: [
+                        "shadow-xl",
+                        "bg-default-200/50",
+                        "dark:bg-default/50",
+                        "backdrop-blur-xl",
+                        "backdrop-saturate-200",
+                        "hover:bg-default-200/70",
+                        "dark:hover:bg-default/70",
+                        "group-data-[focus=true]:bg-default-200/50",
+                        "dark:group-data-[focus=true]:bg-default/60",
+                        "!cursor-text",
+                      ],
                     }}
                     min={0}
                     startContent={
-                      <Timer className="w-4 h-4 text-default-400" />
+                      <Timer className="w-4 h-4" />
                     }
                   />
                   <div className="flex flex-col gap-1">
@@ -322,6 +358,7 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
                 variant="bordered"
                 onPress={onClose}
                 className="flex-1"
+                color="danger"
               >
                 Cancel
               </Button>

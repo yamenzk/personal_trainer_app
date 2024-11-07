@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardFooter, Chip, Button, Image, Skeleton } from "@nextui-org/react";
-import { Dumbbell, Clock, Trophy, ArrowUp, CheckCircle2, Zap } from "lucide-react";
+import { Dumbbell, Clock, Trophy, ArrowUp, CheckCircle2, Zap, History } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useState } from "react";
 import { ExerciseBase, ExerciseReference } from "@/types/workout";
@@ -72,11 +72,14 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
         <p className="text-tiny text-white uppercase font-bold tracking-wide">
           {details.primary_muscle}
         </p>
-        <h3 className="font-semibold text-2xl text-white">
+        <h3 className="font-semibold flex text-2xl text-white">
           {!isSuperset && exerciseNumber && (
             <span className="text-white/80">{exerciseNumber}.</span>
           )}
           {exercise.ref}
+          {isLogged && (
+      <CheckCircle2 className="w-4 h-4 text-white-500" />
+    )}
         </h3>
       </CardHeader>
 
@@ -101,87 +104,90 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
       </div>
 
       <CardFooter
+  className={cn(
+    "absolute bottom-0 z-20",
+    "bg-black/60 backdrop-blur-md",
+    "flex justify-between items-center flex-wrap gap-2"
+  )}
+>
+  {/* Tags section */}
+  <div className={cn("flex flex-wrap gap-2", {
+    "max-w-[70%]": (!isLogged && !isSuperset && selectedPlan === 'active'),
+  })}>
+    <Chip
+      size="sm"
+      className={cn(
+        "border-2 border-primary-500",
+        "bg-primary-500/30 backdrop-blur-md",
+        "text-white font-medium"
+      )}
+      startContent={<Dumbbell size={14} className="text-white" />}
+    >
+      {exercise.sets} × {exercise.reps}
+    </Chip>
+
+    <Chip
+      size="sm"
+      className={cn(
+        "border-2 border-secondary-500",
+        "bg-secondary-500/30 backdrop-blur-md",
+        "text-white font-medium"
+      )}
+      startContent={<Clock size={14} className="text-white" />}
+    >
+      {exercise.rest}s rest
+    </Chip>
+
+    {personalBest && (
+      <Chip
+        size="sm"
         className={cn(
-          "absolute bottom-0 z-20 border-t-1 border-zinc-100/50",
-          "justify-between flex-wrap gap-2",
-          "bg-black/60 backdrop-blur-md"
+          "border-2 border-warning-500",
+          "bg-warning-500/30 backdrop-blur-md",
+          "text-white font-medium"
         )}
+        startContent={<Trophy size={14} className="text-white" />}
       >
-        <div className="flex flex-wrap gap-2">
-          <Chip
-            size="sm"
-            className={cn(
-              "border-2 border-primary-500",
-              "bg-primary-500/30 backdrop-blur-md",
-              "text-white font-medium"
-            )}
-            startContent={<Dumbbell size={14} className="text-white" />}
-          >
-            {exercise.sets} × {exercise.reps}
-          </Chip>
+        {personalBest.weight}kg × {personalBest.reps}
+      </Chip>
+    )}
 
-          <Chip
-            size="sm"
-            className={cn(
-              "border-2 border-secondary-500",
-              "bg-secondary-500/30 backdrop-blur-md",
-              "text-white font-medium"
-            )}
-            startContent={<Clock size={14} className="text-white" />}
-          >
-            {exercise.rest}s rest
-          </Chip>
+    {lastPerformance && lastPerformance !== personalBest && (
+      <Chip
+        size="sm"
+        className={cn(
+          "border-2 border-success-500",
+          "bg-success-500/30 backdrop-blur-md",
+          "text-white font-medium"
+        )}
+        startContent={<History size={14} className="text-white" />}
+      >
+        {lastPerformance.weight}kg × {lastPerformance.reps}
+      </Chip>
+    )}
+  </div>
 
-          {personalBest && (
-            <Chip
-              size="sm"
-              className={cn(
-                "border-2 border-warning-500",
-                "bg-warning-500/30 backdrop-blur-md",
-                "text-white font-medium"
-              )}
-              startContent={<Trophy size={14} className="text-white" />}
-            >
-              PB: {personalBest.weight}kg × {personalBest.reps}
-            </Chip>
-          )}
+  {/* Button section */}
+  <div className="flex items-center gap-2 ml-auto">
+    {!isLogged && !isSuperset && selectedPlan === 'active' && (
+      <Button
+        className={cn(
+          "bg-primary-500 text-white",
+          "shadow-lg shadow-primary-500/20",
+          "hover:bg-primary-600"
+        )}
+        radius="full"
+        size="sm"
+        startContent={<Zap size={14} />}
+        onPress={onLogSet}
+      >
+        Log Set
+      </Button>
+    )}
+  </div>
+</CardFooter>
 
-          {lastPerformance && lastPerformance !== personalBest && (
-            <Chip
-              size="sm"
-              className={cn(
-                "border-2 border-success-500",
-                "bg-success-500/30 backdrop-blur-md",
-                "text-white font-medium"
-              )}
-              startContent={<ArrowUp size={14} className="text-white" />}
-            >
-              Last: {lastPerformance.weight}kg × {lastPerformance.reps}
-            </Chip>
-          )}
-        </div>
 
-        <div className="flex items-center gap-2">
-          {!isLogged && !isSuperset && selectedPlan === 'active' && (
-            <Button
-              className={cn(
-                "bg-primary-500 text-white",
-                "shadow-lg shadow-primary-500/20",
-                "hover:bg-primary-600"
-              )}
-              radius="full"
-              size="sm"
-              startContent={<Zap size={14} />}
-              onPress={onLogSet}
-            >
-              Log Set
-            </Button>
-          )}
-          {isLogged && (
-            <CheckCircle2 className="w-4 h-4 text-success-500" />
-          )}
-        </div>
-      </CardFooter>
     </Card>
   );
 };
