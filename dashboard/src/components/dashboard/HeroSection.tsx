@@ -1,5 +1,5 @@
 // src/components/dashboard/HeroSection.tsx
-import { Avatar, Chip, Progress, Card, CardBody } from "@nextui-org/react";
+import { Avatar, Chip, Card, CardBody } from "@nextui-org/react";
 import { 
   Target, 
   TrendingDown, 
@@ -20,7 +20,7 @@ interface HeroSectionProps {
   planProgress: number;
 }
 
-export const HeroSection = ({ client, activePlan, currentDay, planProgress }: HeroSectionProps) => {
+export const HeroSection = ({ client, currentDay, planProgress }: HeroSectionProps) => {
   const { theme } = useTheme();
   const firstName = client.client_name?.split(' ')[0] ?? 'there';
   const weightChange = client.weight[0]?.weight - client.current_weight;
@@ -37,7 +37,7 @@ export const HeroSection = ({ client, activePlan, currentDay, planProgress }: He
   const stats = [
     {
       icon: Activity,
-      label: "Weekly Progress",
+      label: "Progress",
       value: `${Math.round(planProgress)}%`,
       color: "primary",
       background: "bg-primary-500/10",
@@ -86,7 +86,7 @@ export const HeroSection = ({ client, activePlan, currentDay, planProgress }: He
                 showFallback
                 name={client.client_name ?? ''}
                 classNames={{
-                  base: "bg-gradient-to-br from-primary-500/20 to-secondary-500/20",
+                  base: "bg-gradient-to-br from-primary-500/50 to-secondary-500/50",
                   icon: "text-white/90"
                 }}
               />
@@ -100,7 +100,7 @@ export const HeroSection = ({ client, activePlan, currentDay, planProgress }: He
                 {client.goal && (
                   <Chip
                     startContent={<Award className="w-3 h-3" />}
-                    variant="flat"
+                    variant="bordered"
                     color={
                       isWeightLoss ? "success" :
                       isWeightGain ? "warning" : "primary"
@@ -113,7 +113,7 @@ export const HeroSection = ({ client, activePlan, currentDay, planProgress }: He
                 {client.equipment && (
                   <Chip
                     startContent={<Dumbbell className="w-3 h-3" />}
-                    variant="flat"
+                    variant="solid"
                     color="secondary"
                     size="sm"
                   >
@@ -133,7 +133,7 @@ export const HeroSection = ({ client, activePlan, currentDay, planProgress }: He
                   shadow="none"
                   className="bg-content-100/5"
                 >
-                  <CardBody className="p-4">
+                  <CardBody className="p-2">
                     <div className="flex items-start gap-3">
                       <div className={`p-2 rounded-xl ${stat.background}`}>
                         <stat.icon className={`w-5 h-5 ${stat.textColor}`} />
@@ -141,7 +141,7 @@ export const HeroSection = ({ client, activePlan, currentDay, planProgress }: He
                       <div>
                         <p className="text-sm text-foreground-500">{stat.label}</p>
                         <div className="flex items-center gap-2">
-                          <p className="text-xl font-semibold">{stat.value}</p>
+                          <p className="text-md font-semibold">{stat.value}</p>
                           {stat.label.includes('Weight') && weightChange !== 0 && (
                             weightChange < 0 ? 
                               <TrendingDown className="w-4 h-4 text-success-500" /> :

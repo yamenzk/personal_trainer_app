@@ -9,6 +9,7 @@ module.exports = {
   ],
   theme: {
     extend: {
+      
       colors: {
         // Base interface colors
         background: {
@@ -129,6 +130,7 @@ module.exports = {
   plugins: [
     nextui({
       themes: {
+        
         light: {
           colors: {
             // Base interface colors

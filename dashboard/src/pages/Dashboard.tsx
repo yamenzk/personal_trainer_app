@@ -15,9 +15,8 @@ import { AchievementCard } from '../components/dashboard/AchievementCard';
 import { MuscleGroupsChart } from '../components/dashboard/MuscleGroupsChart';
 import { WeightModal } from '../components/shared/WeightModal';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
-import { GlassCard } from '@/components/shared/GlassCard';
 import { AlertTriangle } from 'lucide-react';
-import { Button, Card, CardBody, CardHeader, CardFooter } from '@nextui-org/react';
+import { Button, Card, CardBody, CardHeader } from '@nextui-org/react';
 
 // src/pages/Dashboard.tsx (continued)
 export default function Dashboard() {

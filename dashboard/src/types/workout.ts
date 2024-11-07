@@ -32,4 +32,5 @@ export interface ExerciseReference {
   video: string;
   instructions: string;
   secondary_muscles: Array<{ muscle: string }>;
+  
 }

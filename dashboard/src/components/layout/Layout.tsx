@@ -1,6 +1,5 @@
 // src/components/layout/Layout.tsx
 import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import TopNavbar from './TopNavbar';
 import BottomNavbar from './BottomNavbar';
 import { useLocation } from 'react-router-dom';
@@ -26,17 +25,15 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
         <div 
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] 
             bg-gradient-to-b from-primary-500/20 via-secondary-500/20 to-transparent 
-            blur-3xl opacity-50 animate-gradient-y" 
+            blur-3xl opacity-50" 
         />
         
-        {/* Secondary floating orbs */}
+        {/* Secondary static orbs */}
         <div className="absolute -top-[40vh] -right-[40vh] w-[80vh] h-[80vh] rounded-full 
-          bg-primary-500/20 blur-3xl animate-float" 
-          style={{ animationDelay: '-2s' }}
+          bg-primary-500/20 blur-3xl" 
         />
         <div className="absolute -bottom-[40vh] -left-[40vh] w-[80vh] h-[80vh] rounded-full 
-          bg-secondary-500/20 blur-3xl animate-float" 
-          style={{ animationDelay: '-1s' }}
+          bg-secondary-500/20 blur-3xl"
         />
         
         {/* Subtle grid pattern */}
@@ -66,17 +63,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
           !hideNavigation && "pt-16 pb-16"
         )}>
           <div className="container mx-auto px-4 py-4">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
+            {children}
           </div>
         </main>
         

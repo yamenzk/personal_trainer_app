@@ -1,15 +1,12 @@
 import { Button, Card, CardBody, CardHeader, Chip, Progress } from "@nextui-org/react";
 import { 
   Dumbbell,
-  Calendar,
   CheckCircle2,
-  Clock,
   ArrowRight,
   Trophy,
   Target,
   TimerIcon
 } from 'lucide-react';
-import { format } from 'date-fns';
 import { Client } from '@/types/client';
 import { Plan } from '@/types/plan';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -23,7 +20,6 @@ interface WorkoutProgressProps {
 }
 
 export const WorkoutProgress = ({
-  client,
   activePlan,
   completedPlans,
   currentDay,

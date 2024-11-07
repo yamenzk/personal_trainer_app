@@ -1,16 +1,14 @@
 // src/components/dashboard/MuscleGroupsChart.tsx
 import { useMemo } from 'react';
-import { GlassCard } from '../shared/GlassCard';
-import { Dumbbell, Info } from 'lucide-react';
+import { Dumbbell } from 'lucide-react';
 import { Client } from '@/types/client';
 import { useTheme } from '../../contexts/ThemeContext';
 
-import { Card, CardBody, CardHeader, Tooltip } from '@nextui-org/react';
+import { Card, CardBody, CardHeader } from '@nextui-org/react';
 import {
   RadialBarChart,
   RadialBar,
   ResponsiveContainer,
-  Legend,
   PolarGrid
 } from 'recharts';
 

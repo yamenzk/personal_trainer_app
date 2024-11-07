@@ -1,10 +1,7 @@
 // src/components/dashboard/WeightTracker.tsx
-import { Card, CardBody, CardHeader, Button, Chip, Tooltip, Divider } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Button, Chip, Tooltip } from "@nextui-org/react";
 import { 
   Scale, 
-  TrendingUp, 
-  TrendingDown,
-  Target,
   AlertCircle,
   ChevronRight
 } from 'lucide-react';
@@ -149,7 +146,7 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
         </div>
         <Button
           color="primary"
-          variant="flat"
+          variant="solid"
           endContent={<Scale size={16} />}
           onPress={onLogWeight}
           size="sm"

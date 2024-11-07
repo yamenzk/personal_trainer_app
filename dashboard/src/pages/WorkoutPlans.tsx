@@ -1,11 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Button,
-  Progress,
   Chip,
-  Tooltip,
-  Tabs,
-  Tab,
   Input,
   Modal,
   ModalBody,
@@ -14,10 +10,13 @@ import {
   ModalContent,
   Card,
   CardHeader,
-  CardBody,
   Image,
   CardFooter,
   cn,
+  Skeleton,
+  Tab,
+  Tabs,
+  Progress,
 } from "@nextui-org/react";
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import {
@@ -25,42 +24,64 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  Gauge,
-  Boxes,
   Target,
   ChevronLeft,
   ChevronRight,
+  Heart,
   Zap,
   Flame,
-  ArrowRight,
-  BarChart3,
-  Heart,
   Scale,
   AlertTriangle,
-  Trophy,
-  Medal,
-  ArrowUp,
-  Save,
   Info,
   Repeat,
   Activity,
-  ArrowUpRight,
   Battery,
   Coffee,
   Moon,
   ScrollText,
+  Trophy,
+  ArrowUp,
+  Pause,
+  X,
+  Play,
+  Video,
+  TrendingUp,
+  Medal,
+  CheckCircle,
+  ChevronDown,
+  History,
+  ChevronUp,
+  Timer,
 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
 import { logPerformance, isPlanDayCompleted } from '../utils/api';
-import { Exercise, ExerciseBase, ExerciseReference } from '@/types/workout';
-import { ApiResponse } from '@/types/api';
+import { ExerciseBase, ExerciseReference } from '@/types/workout';
 import { GlassCard } from '@/components/shared/GlassCard';
-import { useNavigate } from 'react-router-dom';
 import { calculatePlanProgress } from '../utils/api';
+import { useTheme } from '../contexts/ThemeContext';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 // Helper Components
+interface ExercisePerformance {
+  weight: number;
+  reps: number;
+  date: string;
+}
+
+interface ExerciseCardProps {
+  exercise: ExerciseBase;
+  references: { [key: string]: ExerciseReference };
+  performance?: { [key: string]: ExercisePerformance[] };
+  isLogged?: boolean;
+  isSuperset?: boolean;
+  onLogSet?: () => void;
+  onViewDetails: () => void;
+  selectedPlan: 'active' | 'history';
+  exerciseNumber?: number;
+}
+
 interface WeekDayButtonProps {
   day: number;
   date: Date;
@@ -72,7 +93,6 @@ interface WeekDayButtonProps {
 }
 
 export const WeekDayButton = ({
-  day,
   date,
   isSelected,
   isCompleted,
@@ -132,84 +152,99 @@ export const WeekDayButton = ({
 };
 
 
-const RestDayCard = () => (
-  <GlassCard
-    className="p-6 space-y-4 mt-6"
-    style={{ border: '0' }}
-  >
-    <div className="flex items-center gap-3 mb-6">
-      <div className="p-3 rounded-xl bg-primary-500/10">
-        <Battery className="w-6 h-6 text-primary-500" />
-      </div>
-      <div>
-        <h3 className="text-lg font-semibold">Rest Day</h3>
-        <p className="text-foreground/60">Time to recover and recharge</p>
-      </div>
-    </div>
+const RestDayCard = () => {
+  const { theme } = useTheme();  // Move the hook inside the component
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="p-4 rounded-xl bg-content/5">
-        <div className="flex items-center gap-2 mb-2">
-          <Heart className="w-4 h-4 text-danger-500" />
-          <span className="text-sm font-medium">Recovery Focus</span>
+  return (
+    <Card
+      className="p-6 space-y-4 mt-6 bg-background/1"
+      style={{ border: '0' }}
+    >
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 rounded-xl bg-primary-500/10">
+          <Battery className="w-6 h-6 text-primary-500" />
         </div>
-        <p className="text-sm text-foreground/60">
-          Let your muscles repair and grow stronger
+        <div>
+          <h3 className="text-lg font-semibold">Rest Day</h3>
+          <p className="text-foreground/60">Time to recover and recharge</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 rounded-xl bg-content/5">
+          <div className="flex items-center gap-2 mb-2">
+            <Heart className="w-4 h-4 text-danger-500" />
+            <span className="text-sm font-medium">Recovery Focus</span>
+          </div>
+          <p className="text-sm text-foreground/60">
+            Let your muscles repair and grow stronger
+          </p>
+        </div>
+
+        <div className="p-4 rounded-xl bg-content/5">
+          <div className="flex items-center gap-2 mb-2">
+            <Activity className="w-4 h-4 text-success-500" />
+            <span className="text-sm font-medium">Light Activity</span>
+          </div>
+          <p className="text-sm text-foreground/60">
+            Consider a light walk or gentle stretching
+          </p>
+        </div>
+
+        <div className="p-4 rounded-xl bg-content/5">
+          <div className="flex items-center gap-2 mb-2">
+            <Coffee className="w-4 h-4 text-warning-500" />
+            <span className="text-sm font-medium">Recovery Tips</span>
+          </div>
+          <p className="text-sm text-foreground/60">
+            Stay hydrated and get quality sleep
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-primary-500/5 border border-primary-500/10 mt-6">
+        <Info className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-foreground/70">
+          Rest days are crucial for preventing injury and ensuring optimal performance in your next workout.
+          Use this time to focus on nutrition and mobility work.
         </p>
       </div>
-
-      <div className="p-4 rounded-xl bg-content/5">
-        <div className="flex items-center gap-2 mb-2">
-          <Activity className="w-4 h-4 text-success-500" />
-          <span className="text-sm font-medium">Light Activity</span>
-        </div>
-        <p className="text-sm text-foreground/60">
-          Consider a light walk or gentle stretching
-        </p>
-      </div>
-
-      <div className="p-4 rounded-xl bg-content/5">
-        <div className="flex items-center gap-2 mb-2">
-          <Coffee className="w-4 h-4 text-warning-500" />
-          <span className="text-sm font-medium">Recovery Tips</span>
-        </div>
-        <p className="text-sm text-foreground/60">
-          Stay hydrated and get quality sleep
-        </p>
-      </div>
-    </div>
-
-    <div className="flex items-start gap-3 p-4 rounded-xl bg-primary-500/5 border border-primary-500/10 mt-6">
-      <Info className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-      <p className="text-sm text-foreground/70">
-        Rest days are crucial for preventing injury and ensuring optimal performance in your next workout.
-        Use this time to focus on nutrition and mobility work.
-      </p>
-    </div>
-  </GlassCard>
-);
+    </Card>
+  );
+};
 
 const ExerciseCard = ({
   exercise,
   references,
+  performance,
   isLogged = false,
   isSuperset = false,
   onLogSet,
   onViewDetails,
   selectedPlan,
-  exerciseNumber // Add this prop
-}: {
-  exercise: ExerciseBase;
-  references: { [key: string]: ExerciseReference };
-  isLogged?: boolean;
-  isSuperset?: boolean;
-  onLogSet?: () => void;
-  onViewDetails: () => void;
-  selectedPlan: 'active' | 'history';
-  exerciseNumber?: number; // Add this type
-}) => {
+  exerciseNumber
+}: ExerciseCardProps) => {
   const details = references[exercise.ref];
   const [isHovered, setIsHovered] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
+
+  // Get performance data for this exercise
+  const exercisePerformance = performance?.[exercise.ref] || [];
+
+  // Calculate personal best
+  const personalBest = exercisePerformance.reduce((best, current) => {
+    // You could modify this logic based on how you want to determine "best"
+    // Currently using weight as the primary metric
+    if (!best || current.weight > best.weight) {
+      return current;
+    }
+    return best;
+  }, null as ExercisePerformance | null);
+
+  // Get last performance (most recent)
+  const lastPerformance = exercisePerformance.length > 0
+    ? exercisePerformance[exercisePerformance.length - 1]
+    : null;
 
   return (
     <Card
@@ -224,9 +259,8 @@ const ExerciseCard = ({
       isPressable
       onPress={onViewDetails}
     >
-      {/* Add gradient overlay for better text visibility */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
-      
+
       <CardHeader className="absolute z-20 top-1 flex-col items-start">
         <p className="text-tiny text-white uppercase font-bold tracking-wide">
           {details.primary_muscle}
@@ -238,22 +272,35 @@ const ExerciseCard = ({
           {exercise.ref}
         </h3>
       </CardHeader>
-      
-      <Image
-        removeWrapper
-        alt="Card example background"
-        className="z-0 w-full h-full scale-125 -translate-y-6 object-cover"
-        src={details.thumbnail || details.starting}
-      />
-      
-      <CardFooter 
+
+      <div className="relative w-full h-full">
+        {isImageLoading && (
+          <Skeleton className="absolute inset-0 w-full h-full rounded-lg">
+            <div className="w-full h-full bg-default-300"></div>
+          </Skeleton>
+        )}
+
+        <Image
+          removeWrapper
+          alt="Card example background"
+          className={cn(
+            "z-0 w-full h-full scale-125 -translate-y-6 object-cover",
+            "transition-opacity duration-300",
+            isImageLoading ? "opacity-0" : "opacity-100"
+          )}
+          src={details.thumbnail || details.starting}
+          onLoad={() => setIsImageLoading(false)}
+        />
+      </div>
+
+      <CardFooter
         className={cn(
           "absolute bottom-0 z-20 border-t-1 border-zinc-100/50",
-          "justify-between",
+          "justify-between flex-wrap gap-2",
           "bg-black/60 backdrop-blur-md"
         )}
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Chip
             size="sm"
             className={cn(
@@ -265,6 +312,7 @@ const ExerciseCard = ({
           >
             {exercise.sets} × {exercise.reps}
           </Chip>
+
           <Chip
             size="sm"
             className={cn(
@@ -276,26 +324,56 @@ const ExerciseCard = ({
           >
             {exercise.rest}s rest
           </Chip>
+
+          {personalBest && (
+            <Chip
+              size="sm"
+              className={cn(
+                "border-2 border-warning-500",
+                "bg-warning-500/30 backdrop-blur-md",
+                "text-white font-medium"
+              )}
+              startContent={<Trophy size={14} className="text-white" />}
+            >
+              PB: {personalBest.weight}kg × {personalBest.reps}
+            </Chip>
+          )}
+
+          {lastPerformance && lastPerformance !== personalBest && (
+            <Chip
+              size="sm"
+              className={cn(
+                "border-2 border-success-500",
+                "bg-success-500/30 backdrop-blur-md",
+                "text-white font-medium"
+              )}
+              startContent={<ArrowUp size={14} className="text-white" />}
+            >
+              Last: {lastPerformance.weight}kg × {lastPerformance.reps}
+            </Chip>
+          )}
         </div>
-        
-        {!isLogged && !isSuperset && selectedPlan === 'active' && (
-          <Button 
-            className={cn(
-              "bg-primary-500 text-white",
-              "shadow-lg shadow-primary-500/20",
-              "hover:bg-primary-600"
-            )} 
-            radius="full" 
-            size="sm" 
-            startContent={<Zap size={14} />} 
-            onPress={onLogSet}
-          >
-            Log Set
-          </Button>
-        )}
-        {isLogged && (
-          <CheckCircle2 className="w-4 h-4 text-success-500" />
-        )}
+
+        <div className="flex items-center gap-2">
+          {!isLogged && !isSuperset && selectedPlan === 'active' && (
+            <Button
+              className={cn(
+                "bg-primary-500 text-white",
+                "shadow-lg shadow-primary-500/20",
+                "hover:bg-primary-600"
+              )}
+              radius="full"
+              size="sm"
+              startContent={<Zap size={14} />}
+              onPress={onLogSet}
+            >
+              Log Set
+            </Button>
+          )}
+          {isLogged && (
+            <CheckCircle2 className="w-4 h-4 text-success-500" />
+          )}
+        </div>
       </CardFooter>
     </Card>
   );
@@ -304,9 +382,7 @@ const ExerciseCard = ({
 const SupersetCard = ({
   exercises,
   references,
-  onLogPerformance,
   onViewDetails,
-  selectedPlan,
   exerciseNumber
 }: {
   exercises: ExerciseBase[];
@@ -318,7 +394,7 @@ const SupersetCard = ({
 }) => {
   return (
     <Card className="w-full bg-background/1  border-none"
-    style={{ boxShadow: 'none' }}
+      style={{ boxShadow: 'none' }}
     >
       <div className="p-6 space-y-6">
         {/* Superset Header */}
@@ -350,7 +426,7 @@ const SupersetCard = ({
               >
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
-                
+
                 {/* Exercise Image */}
                 <Image
                   removeWrapper
@@ -358,7 +434,7 @@ const SupersetCard = ({
                   className="z-0 w-full h-full object-cover"
                   src={references[exercise.ref].thumbnail || references[exercise.ref].starting}
                 />
-                
+
                 {/* Content */}
                 <div className="absolute inset-0 z-20 p-4 flex flex-col justify-between">
                   {/* Header */}
@@ -370,7 +446,7 @@ const SupersetCard = ({
                       {exercise.ref}
                     </h4>
                   </div>
-                  
+
                   {/* Footer */}
                   <div className="flex items-center justify-between">
                     <div className="flex gap-2">
@@ -418,173 +494,523 @@ const SupersetCard = ({
   );
 };
 
+
+interface ExerciseDetailsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  exercise: ExerciseBase;
+  details: ExerciseReference;
+  isLogged: boolean;
+  performance?: {
+    weight: number;
+    reps: number;
+    date: string;
+  }[];
+}
+
 const ExerciseDetailsModal = ({
   isOpen,
   onClose,
   exercise,
   details,
   isLogged,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  exercise: ExerciseBase;
-  details: ExerciseReference;
-  isLogged: boolean;
-}) => (
-  <Modal
-    isOpen={isOpen}
-    onClose={onClose}
-    size="3xl"
-    backdrop="blur"
-    scrollBehavior="inside"
-    classNames={{
-      backdrop: "bg-background/70",
-      base: "bg-background/95",
-      body: "p-0",
-      closeButton: "hover:bg-white/5 active:bg-white/10",
-    }}
-  >
-    <ModalContent>
-      {(onClose) => (
-        <>
-          <ModalHeader className="flex flex-col gap-1 px-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-semibold">{exercise.ref}</h3>
-                  {isLogged && <CheckCircle2 className="w-5 h-5 text-success-500" />}
-                </div>
-                <p className="text-foreground/60">{details.primary_muscle}</p>
-              </div>
+  performance,
+}: ExerciseDetailsModalProps) => {
+  const [selectedTab, setSelectedTab] = useState("overview");
+  const [imageIndex, setImageIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
 
-              <div className="flex items-center gap-2">
-                <Chip size="sm"
-                  className="bg-primary-500/10"
-                  startContent={<Target size={14} />}
-                >
-                  {details.level}
-                </Chip>
-                <Chip
-                  size="sm"
-                  className="bg-secondary-500/10"
-                  startContent={<Activity size={14} />}
-                >
-                  {details.mechanic || 'Compound'}
-                </Chip>
-              </div>
-            </div>
-          </ModalHeader>
+  const images = [
+    {
+      url: details.starting,
+      label: "Starting Position",
+    },
+    {
+      url: details.ending,
+      label: "Ending Position",
+    },
+  ];
 
-          <ModalBody className="px-6 py-4 space-y-6">
-            {/* Exercise Images */}
-            <div className="grid grid-cols-2 gap-6">
+  // Auto-advance images
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        setImageIndex((prev) => (prev === 0 ? 1 : 0));
+      }, 1500);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+  // Auto-start playing when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsPlaying(true);
+    }
+    return () => setIsPlaying(false);
+  }, [isOpen]);
+
+  // Prepare performance data for the chart
+  const chartData = useMemo(() => {
+    if (!performance) return [];
+    return [...performance]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map(p => ({
+        date: p.date,
+        weight: p.weight,
+        reps: p.reps,
+      }));
+  }, [performance]);
+
+  const QuickStatChip = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
+    <Chip
+      startContent={<Icon size={14} />}
+      className="bg-content/10 h-auto py-2"
+      size="sm"
+    >
+      <div className="flex flex-col items-start">
+        <span className="text-xs text-foreground/60">{label}</span>
+        <span className="font-medium">{value}</span>
+      </div>
+    </Chip>
+  );
+
+  // Available tabs
+  const tabs = [
+    {
+      key: "overview",
+      icon: Info,
+      label: "Overview",
+    },
+    {
+      key: "performance",
+      icon: Activity,
+      label: "Performance",
+    },
+    // Only show video tab if video URL exists
+    ...(details.video ? [{
+      key: "video",
+      icon: Video,
+      label: "Video",
+    }] : []),
+  ];
+
+  return (
+    <Modal
+      size="full"
+      radius="lg"
+      isOpen={isOpen}
+      onClose={onClose}
+      hideCloseButton
+      className="bg-background/98 dark:bg-background/95"
+      classNames={{
+        backdrop: "bg-[#000000]/80 backdrop-blur-md",
+        base: "h-[100dvh] max-h-[100dvh]",
+      }}
+      scrollBehavior="inside"
+    >
+      <ModalContent>
+        <div className="flex flex-col h-[100dvh]">
+          {/* Fixed Header/Navigation */}
+          <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-content/10">
+            <div className="px-4 py-3 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-foreground/60 mb-2">Starting Position</p>
-                <img
-                  src={details.starting}
-                  alt="Starting position"
-                  className="rounded-xl w-full aspect-square object-cover"
-                />
+                <h2 className="text-lg font-semibold truncate">{exercise.ref}</h2>
+                <p className="text-sm text-foreground/60">{details.primary_muscle}</p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground/60 mb-2">Ending Position</p>
-                <img
-                  src={details.ending}
-                  alt="Ending position"
-                  className="rounded-xl w-full aspect-square object-cover"
-                />
-              </div>
+              <Button
+                isIconOnly
+                variant="light"
+                onPress={onClose}
+                className="min-w-unit-8 w-unit-8 h-unit-8"
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
 
-            {/* Exercise Details */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-primary-500/10">
-                  <Info className="w-5 h-5 text-primary-500" />
-                </div>
-                <h4 className="text-lg font-semibold">Exercise Details</h4>
-              </div>
+            <div className="px-4">
+              <Tabs
+                selectedKey={selectedTab}
+                onSelectionChange={(key) => setSelectedTab(key.toString())}
+                color="primary"
+                variant="underlined"
+                classNames={{
+                  tabList: "gap-6",
+                  cursor: "w-full bg-primary-500",
+                  tab: "max-w-fit px-2 h-12",
+                  tabContent: "group-data-[selected=true]:text-primary",
+                }}
+              >
+                {tabs.map(({ key, icon: Icon, label }) => (
+                  <Tab
+                    key={key}
+                    title={
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4" />
+                        <span className="text-sm">{label}</span>
+                      </div>
+                    }
+                  />
+                ))}
+              </Tabs>
+            </div>
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-content/5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Dumbbell className="w-4 h-4 text-primary-500" />
-                    <p className="font-medium">Equipment</p>
-                  </div>
-                  <p className="text-foreground/80">{details.equipment || 'Bodyweight'}</p>
-                </div>
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
+            {selectedTab === "overview" && (
+              <div className="space-y-6">
+                {/* Image Section - Adjusted for full visibility */}
+                <div className="relative bg-black">
+                  <img
+                    src={images[imageIndex].url}
+                    alt={images[imageIndex].label}
+                    className="w-full h-auto object-contain mx-auto"
+                    style={{ maxHeight: "40vh" }}
+                  />
 
-                <div className="p-4 rounded-xl bg-content/5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Target className="w-4 h-4 text-primary-500" />
-                    <p className="font-medium">Force Type</p>
-                  </div>
-                  <p className="text-foreground/80">{details.force}</p>
-                </div>
-              </div>
-
-              {/* Muscles Worked */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-warning-500/10">
-                    <Activity className="w-5 h-5 text-warning-500" />
-                  </div>
-                  <h4 className="text-lg font-semibold">Muscles Worked</h4>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-foreground/60">Primary</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Chip
-                        className="bg-warning-500/10 text-warning-500"
-                        size="sm"
-                      >
-                        {details.primary_muscle}
-                      </Chip>
+                  {/* Image Controls */}
+                  <div className="absolute bottom-4 left-4 right-4 z-20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-background/10 backdrop-blur-md"
+                          onPress={() => setImageIndex((prev) => (prev === 0 ? 1 : 0))}
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-background/10 backdrop-blur-md"
+                          onPress={() => setIsPlaying(!isPlaying)}
+                        >
+                          {isPlaying ? (
+                            <Pause className="w-4 h-4" />
+                          ) : (
+                            <Play className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          className="bg-background/10 backdrop-blur-md"
+                          onPress={() => setImageIndex((prev) => (prev === 1 ? 0 : 1))}
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <span className="text-sm text-white/90 bg-background/30 px-3 py-1 rounded-full backdrop-blur-sm">
+                        {images[imageIndex].label}
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  {details.secondary_muscles?.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-foreground/60">Secondary</p>
-                      <div className="flex flex-wrap gap-2">
-                        {details.secondary_muscles.map((muscle, index) => (
-                          <Chip
+                <div className="p-4 space-y-6">
+                  {/* Quick Stats Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <QuickStatChip
+                      icon={Dumbbell}
+                      label="Equipment"
+                      value={details.equipment || "Bodyweight"}
+                    />
+                    <QuickStatChip
+                      icon={Target}
+                      label="Force Type"
+                      value={details.force}
+                    />
+                    <QuickStatChip
+                      icon={Clock}
+                      label="Rest"
+                      value={`${exercise.rest}s`}
+                    />
+                    <QuickStatChip
+                      icon={Activity}
+                      label="Type"
+                      value={details.mechanic || "Compound"}
+                    />
+                  </div>
+
+                  {/* Instructions */}
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold flex items-center gap-2">
+                      <ScrollText className="w-5 h-5 text-primary-500" />
+                      Instructions
+                    </h4>
+                    <Card className="p-4">
+                      <p className="text-foreground/80 leading-relaxed text-sm sm:text-base">
+                        {details.instructions}
+                      </p>
+                    </Card>
+                  </div>
+
+                  {/* Muscles Grid */}
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold flex items-center gap-2">
+                      <Flame className="w-5 h-5 text-primary-500" />
+                      Muscles Worked
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Chip
+                        className="bg-warning-500/10 text-warning-500 h-auto py-2"
+                        startContent={<Target size={14} />}
+                      >
+                        <div className="flex flex-col items-start">
+                          <span className="text-xs">Primary</span>
+                          <span className="font-medium">{details.primary_muscle}</span>
+                        </div>
+                      </Chip>
+                      {details.secondary_muscles?.map((muscle, index) => (
+                        <Chip
+                          key={index}
+                          className="bg-content/10 h-auto py-2"
+                          startContent={<Activity size={14} />}
+                        >
+                          <div className="flex flex-col items-start">
+                            <span className="text-xs text-foreground/60">Secondary</span>
+                            <span className="font-medium">{muscle.muscle}</span>
+                          </div>
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedTab === "performance" && (
+              <div className="p-4 space-y-6">
+                {performance && performance.length > 0 ? (
+                  <>
+                    {/* Performance Stats Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <Card className="p-4 bg-primary-500/10 border-none">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary-500">
+                            <Trophy className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-foreground/60">Personal Best</p>
+                            <p className="text-2xl font-bold">
+                              {Math.max(...performance.map(p => p.weight))} kg
+                            </p>
+                            <p className="text-xs text-foreground/60">
+                              {performance.find(p => p.weight === Math.max(...performance.map(p => p.weight)))?.date}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+
+                      <Card className="p-4 bg-secondary-500/10 border-none">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-secondary-500">
+                            <Medal className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-foreground/60">Most Reps</p>
+                            <p className="text-2xl font-bold">
+                              {Math.max(...performance.map(p => p.reps))}
+                            </p>
+                            <p className="text-xs text-foreground/60">
+                              {performance.find(p => p.reps === Math.max(...performance.map(p => p.reps)))?.date}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+
+                    {/* Performance Chart */}
+                    <Card className="p-4 border-none">
+                      <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-primary-500" />
+                        Progress Chart
+                      </h4>
+                      <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData}>
+                            <XAxis
+                              dataKey="date"
+                              stroke="#888888"
+                              fontSize={12}
+                              tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                            />
+                            <YAxis
+                              stroke="#888888"
+                              fontSize={12}
+                              label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft' }}
+                            />
+                            <Tooltip
+                              content={({ active, payload, label }) => {
+                                if (active && payload && payload.length) {
+                                  return (
+                                    <div className="bg-background/95 backdrop-blur-md p-2 rounded-lg border border-content/10">
+                                      <p className="text-sm">{new Date(label).toLocaleDateString()}</p>
+                                      <p className="text-sm font-medium text-primary-500">
+                                        {payload[0].value} kg × {payload[0].payload.reps} reps
+                                      </p>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="weight"
+                              stroke="#7828c8"
+                              strokeWidth={2}
+                              dot={{ fill: "#7828c8", strokeWidth: 2 }}
+                              activeDot={{ r: 8 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </Card>
+
+                    {/* Recent History */}
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-semibold">Recent History</h4>
+                      <div className="space-y-2">
+                        {[...performance].reverse().slice(0, 5).map((perf, index) => (
+                          <Card
                             key={index}
-                            className="bg-content/10"
-                            size="sm"
+                            className="bg-content/5 border-none"
                           >
-                            {muscle.muscle}
-                          </Chip>
+                            <div className="p-3 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary-500/10">
+                                  <Dumbbell className="w-4 h-4 text-primary-500" />
+                                </div>
+                                <div>
+                                  <p className="font-medium">
+                                    {perf.weight} kg × {perf.reps} reps
+                                  </p>
+                                  <p className="text-sm text-foreground/60">
+                                    {new Date(perf.date).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                              {index === 0 && (
+                                <Chip
+                                  size="sm"
+                                  className="bg-success-500/10 text-success-500"
+                                  startContent={<Activity size={14} />}
+                                >
+                                  Latest
+                                </Chip>
+                              )}
+                            </div>
+                          </Card>
                         ))}
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Instructions */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-success-500/10">
-                    <ScrollText className="w-5 h-5 text-success-500" />
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="p-4 rounded-full bg-primary-500/10 mb-4">
+                      <Activity className="w-8 h-8 text-primary-500" />
+                    </div>
+                    <p className="text-lg font-semibold">No Performance Data</p>
+                    <p className="text-foreground/60 mt-2">
+                      Start logging your sets to track your progress
+                    </p>
                   </div>
-                  <h4 className="text-lg font-semibold">Instructions</h4>
-                </div>
-                <div className="p-4 rounded-xl bg-content/5">
-                  <p className="text-foreground/80 leading-relaxed">
-                    {details.instructions}
-                  </p>
+                )}
+              </div>
+            )}
+
+            {selectedTab === "video" && details.video && (
+              <div className="p-4 space-y-6">
+                <Card className="w-full aspect-video overflow-hidden border-none">
+                  <iframe
+                    className="w-full h-full"
+                    src={details.video}
+                    title={`${exercise.ref} demonstration`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </Card>
+
+                <Card className="p-4 bg-warning-500/10 border-none">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-warning-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-warning-500">Video Guide</p>
+                      <p className="text-sm text-foreground/70 mt-1">
+                        Watch the demonstration video to learn proper form and technique.
+                        Pay attention to movement patterns and key positions.
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Quick Reference */}
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold">Quick Reference</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Card className="p-4 border-none">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-success-500/10">
+                          <Target className="w-4 h-4 text-success-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Key Points</p>
+                          <ul className="text-sm text-foreground/70 mt-2 space-y-1 list-disc list-inside">
+                            <li>Maintain proper form throughout</li>
+                            <li>Control the movement</li>
+                            <li>Focus on muscle engagement</li>
+                            <li>Keep proper breathing pattern</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-4 border-none">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-danger-500/10">
+                          <AlertTriangle className="w-4 h-4 text-danger-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Common Mistakes</p>
+                          <ul className="text-sm text-foreground/70 mt-2 space-y-1 list-disc list-inside">
+                            <li>Using momentum</li>
+                            <li>Incorrect positioning</li>
+                            <li>Going too heavy too soon</li>
+                            <li>Rushing the movement</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
                 </div>
               </div>
-            </div>
-          </ModalBody>
-        </>
-      )}
-    </ModalContent>
-  </Modal>
-);
+            )}
+          </div>
+        </div>
+      </ModalContent>
+    </Modal>
+  );
+};
+
+
+interface PerformanceModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (weight: number, reps: number) => Promise<void>;
+  exerciseName: string;
+  targetReps: number;
+  previousPerformance?: {
+    weight: number;
+    reps: number;
+    date: string;
+  }[];
+}
 
 const PerformanceModal = ({
   isOpen,
@@ -592,21 +1018,43 @@ const PerformanceModal = ({
   onSubmit,
   exerciseName,
   targetReps,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (weight: number, reps: number) => Promise<void>;
-  exerciseName: string;
-  targetReps: number;
-}) => {
-  const [weight, setWeight] = useState('');
-  const [actualReps, setActualReps] = useState('');
+  previousPerformance = [],
+}: PerformanceModalProps) => {
+  const [weight, setWeight] = useState<string>("");
+  const [actualReps, setActualReps] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [showPrevious, setShowPrevious] = useState(true);
+
+  // Calculate previous bests
+  const personalBest = previousPerformance.reduce(
+    (best, current) => {
+      if (current.weight > best.weight) {
+        return current;
+      }
+      if (current.weight === best.weight && current.reps > best.reps) {
+        return current;
+      }
+      return best;
+    },
+    { weight: 0, reps: 0, date: "" }
+  );
+
+  const lastPerformance = previousPerformance[previousPerformance.length - 1];
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setWeight(lastPerformance ? lastPerformance.weight.toString() : "");
+      setActualReps(targetReps.toString());
+      setError("");
+      setShowPrevious(true);
+    }
+  }, [isOpen, lastPerformance, targetReps]);
 
   const handleSubmit = async () => {
     if (!weight || !actualReps) {
-      setError('Please enter both weight and reps');
+      setError("Please enter both weight and reps");
       return;
     }
 
@@ -614,116 +1062,276 @@ const PerformanceModal = ({
     const repsNum = parseInt(actualReps);
 
     if (isNaN(weightNum) || weightNum <= 0) {
-      setError('Please enter a valid weight');
+      setError("Please enter a valid weight");
       return;
     }
 
     if (isNaN(repsNum) || repsNum <= 0) {
-      setError('Please enter valid reps');
+      setError("Please enter valid reps");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       await onSubmit(weightNum, repsNum);
       onClose();
     } catch (err) {
-      setError('Failed to log performance');
+      setError("Failed to log performance");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleQuickIncrement = (type: 'weight' | 'reps', amount: number) => {
+    if (type === 'weight') {
+      const currentWeight = parseFloat(weight) || 0;
+      setWeight((currentWeight + amount).toString());
+    } else {
+      const currentReps = parseInt(actualReps) || 0;
+      setActualReps((currentReps + amount).toString());
+    }
+  };
+
+  const getProgressColor = (current: number, target: number) => {
+    const percentage = (current / target) * 100;
+    if (percentage >= 100) return "success";
+    if (percentage >= 80) return "primary";
+    if (percentage >= 50) return "warning";
+    return "danger";
+  };
+
   return (
     <Modal
+      size="2xl"
+      radius="lg"
       isOpen={isOpen}
       onClose={onClose}
-      backdrop="blur"
-      scrollBehavior="inside"
-      placement="center"
+      hideCloseButton
+      className="bg-background/98"
       classNames={{
-        backdrop: "bg-background/70",
-        base: "bg-background/95",
+        backdrop: "bg-[#000000]/80 backdrop-blur-md",
       }}
     >
       <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1 px-6">
-              <div className="space-y-1">
-                <h3 className="text-xl font-semibold">Log Performance</h3>
-                <p className="text-foreground/60">{exerciseName}</p>
+        <div className="p-6 space-y-6">
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-xl font-bold">{exerciseName}</h2>
+              <div className="flex items-center gap-2 mt-1">
+                <Target className="w-4 h-4 text-primary" />
+                <span className="text-sm text-foreground/60">
+                  Target: {targetReps} reps
+                </span>
               </div>
-            </ModalHeader>
+            </div>
+            <Button
+              isIconOnly
+              variant="light"
+              onPress={onClose}
+            >
+              <AlertTriangle className="w-4 h-4" />
+            </Button>
+          </div>
 
-            <ModalBody className="px-6 py-4 space-y-6">
-              <div className="p-4 rounded-xl bg-content/5">
-                <div className="flex items-center gap-2 mb-1">
-                  <Target className="w-4 h-4 text-primary-500" />
-                  <span className="text-sm text-foreground/60">Target</span>
-                </div>
-                <p className="text-lg font-semibold">{targetReps} reps</p>
-              </div>
-
+          {/* Previous Performance Section */}
+          {previousPerformance.length > 0 && (
+            <div className={cn(
+              "space-y-4 overflow-hidden transition-all duration-300",
+              showPrevious ? "max-h-80" : "max-h-0"
+            )}>
               <div className="grid grid-cols-2 gap-4">
+                {/* Personal Best Card */}
+                <div className="p-4 rounded-xl bg-primary-500/10 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-primary-500" />
+                    <span className="text-sm font-medium">Personal Best</span>
+                  </div>
+                  <div className="text-2xl font-bold">
+                    {personalBest.weight} kg × {personalBest.reps}
+                  </div>
+                  <div className="text-xs text-foreground/60">
+                    {new Date(personalBest.date).toLocaleDateString()}
+                  </div>
+                </div>
+
+                {/* Last Performance Card */}
+                <div className="p-4 rounded-xl bg-secondary-500/10 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <History className="w-4 h-4 text-secondary-500" />
+                    <span className="text-sm font-medium">Last Performance</span>
+                  </div>
+                  <div className="text-2xl font-bold">
+                    {lastPerformance.weight} kg × {lastPerformance.reps}
+                  </div>
+                  <div className="text-xs text-foreground/60">
+                    {new Date(lastPerformance.date).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Indicators */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground/60">Weight Progress</span>
+                    <span className="text-sm font-medium">
+                      {((parseFloat(weight) / personalBest.weight) * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <Progress
+                    value={(parseFloat(weight) / personalBest.weight) * 100}
+                    color={getProgressColor(parseFloat(weight), personalBest.weight)}
+                    className="h-2"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground/60">Reps Progress</span>
+                    <span className="text-sm font-medium">
+                      {((parseInt(actualReps) / targetReps) * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <Progress
+                    value={(parseInt(actualReps) / targetReps) * 100}
+                    color={getProgressColor(parseInt(actualReps), targetReps)}
+                    className="h-2"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Toggle Previous Performance */}
+          {previousPerformance.length > 0 && (
+            <Button
+              variant="light"
+              onPress={() => setShowPrevious(!showPrevious)}
+              className="w-full"
+              endContent={showPrevious ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            >
+              {showPrevious ? "Hide" : "Show"} Previous Performance
+            </Button>
+          )}
+
+          {/* Input Section */}
+          <div className="space-y-4">
+            {/* Weight Input */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 mb-1">
+                <Scale className="w-4 h-4 text-primary" />
+                <label className="text-sm font-medium">Weight (kg)</label>
+              </div>
+              <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  label="Weight Used"
-                  placeholder="Enter weight"
                   value={weight}
-                  onChange={(e) => {
-                    setWeight(e.target.value);
-                    setError('');
+                  onValueChange={setWeight}
+                  placeholder="Enter weight"
+                  className="flex-1"
+                  classNames={{
+                    input: "text-lg",
                   }}
-                  startContent={<Scale className="text-default-400" size={16} />}
-                  endContent={
-                    <div className="pointer-events-none flex items-center">
-                      <span className="text-default-400 text-small">kg</span>
-                    </div>
+                  min={0}
+                  startContent={
+                    <Dumbbell className="w-4 h-4 text-default-400" />
                   }
                 />
+                <div className="flex flex-col gap-1">
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="flat"
+                    onPress={() => handleQuickIncrement('weight', 2.5)}
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="flat"
+                    onPress={() => handleQuickIncrement('weight', -2.5)}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
 
+            {/* Reps Input */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 mb-1">
+                <Repeat className="w-4 h-4 text-primary" />
+                <label className="text-sm font-medium">Reps</label>
+              </div>
+              <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  label="Reps Completed"
-                  placeholder="Enter reps"
                   value={actualReps}
-                  onChange={(e) => {
-                    setActualReps(e.target.value);
-                    setError('');
+                  onValueChange={setActualReps}
+                  placeholder="Enter reps"
+                  className="flex-1"
+                  classNames={{
+                    input: "text-lg",
                   }}
-                  startContent={<Repeat className="text-default-400" size={16} />}
+                  min={0}
+                  startContent={
+                    <Timer className="w-4 h-4 text-default-400" />
+                  }
                 />
-              </div>
-
-              {error && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-danger-500/10 text-danger">
-                  <AlertTriangle className="w-4 h-4" />
-                  <p className="text-sm">{error}</p>
+                <div className="flex flex-col gap-1">
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="flat"
+                    onPress={() => handleQuickIncrement('reps', 1)}
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="flat"
+                    onPress={() => handleQuickIncrement('reps', -1)}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
                 </div>
-              )}
-            </ModalBody>
+              </div>
+            </div>
+          </div>
 
-            <ModalFooter className="px-6 py-4">
-              <Button
-                variant="light"
-                onPress={onClose}
-              >
-                Cancel
-              </Button>
-              <Button
-                color="primary"
-                onPress={handleSubmit}
-                isLoading={loading}
-                className="bg-gradient-to-r from-primary-500 to-secondary-500"
-              >
-                Log Performance
-              </Button>
-            </ModalFooter>
-          </>
-        )}
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-danger-500/10 text-danger">
+              <AlertTriangle className="w-4 h-4" />
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="bordered"
+              onPress={onClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              className="flex-1"
+              onPress={handleSubmit}
+              isLoading={loading}
+              startContent={!loading && <CheckCircle className="w-4 h-4" />}
+            >
+              Log Performance
+            </Button>
+          </div>
+        </div>
       </ModalContent>
     </Modal>
   );
@@ -1219,6 +1827,7 @@ export default function WorkoutPlans() {
                     <ExerciseCard
                       exercise={exercise.exercise}
                       references={references.exercises}
+                      performance={references.performance}  // Add this line
                       isLogged={exercise.exercise.logged === 1}
                       onLogSet={() => {
                         setSelectedExercise({
@@ -1282,15 +1891,16 @@ export default function WorkoutPlans() {
           unmountOnExit
         >
           <PerformanceModal
-            isOpen={showPerformanceModal}
-            onClose={() => {
-              setShowPerformanceModal(false);
-              setSelectedExercise(null);
-            }}
-            onSubmit={(weight, reps) => handleLogPerformance(selectedExercise.exercise.ref, weight, reps)}
-            exerciseName={selectedExercise.exercise.ref}
-            targetReps={selectedExercise.exercise.reps}
-          />
+  isOpen={showPerformanceModal}
+  onClose={() => {
+    setShowPerformanceModal(false);
+    setSelectedExercise(null);
+  }}
+  onSubmit={(weight, reps) => handleLogPerformance(selectedExercise.exercise.ref, weight, reps)}
+  exerciseName={selectedExercise.exercise.ref}
+  targetReps={selectedExercise.exercise.reps}
+  previousPerformance={references.performance[selectedExercise.exercise.ref]}
+/>
         </CSSTransition>
       )}
 
@@ -1302,15 +1912,16 @@ export default function WorkoutPlans() {
           unmountOnExit
         >
           <ExerciseDetailsModal
-            isOpen={showDetailsModal}
-            onClose={() => {
-              setShowDetailsModal(false);
-              setSelectedExercise(null);
-            }}
-            exercise={selectedExercise.exercise}
-            details={selectedExercise.details}
-            isLogged={selectedExercise.isLogged}
-          />
+  isOpen={showDetailsModal}
+  onClose={() => {
+    setShowDetailsModal(false);
+    setSelectedExercise(null);
+  }}
+  exercise={selectedExercise.exercise}
+  details={selectedExercise.details}
+  isLogged={selectedExercise.isLogged}
+  performance={references.performance[selectedExercise.exercise.ref]}
+/>
         </CSSTransition>
       )}
     </div>
