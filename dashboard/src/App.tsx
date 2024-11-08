@@ -17,6 +17,7 @@ import OnboardingWizard from './components/onboarding/OnboardingWizard';
 import { AnimatePresence } from "framer-motion";
 import { Client } from './types/client';
 import dayjs from 'dayjs';
+import { NavigationProvider } from './contexts/NavigationContext';
 
 // Interface for components that can receive preferences update
 export interface WithPreferencesUpdate {
@@ -189,7 +190,6 @@ export const usePreferencesUpdate = () => {
 };
 
 function App() {
-
   return (
     <FrappeProvider
       socketPort={import.meta.env.VITE_SOCKET_PORT ?? '9000'}
@@ -198,27 +198,30 @@ function App() {
       <NextUIProvider>
         <ThemeProvider>
           <Router>
-            <AuthProvider>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/*" element={
-                  <ProtectedRoute>
-                    <Routes>
-                      <Route index element={<Dashboard />} />
-                      <Route path="workouts" element={<WorkoutPlans />} />
-                      <Route path="meals" element={<MealPlans />} />
-                      <Route path="profile" element={<Profile />} />
-                      <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                  </ProtectedRoute>
-                } />
-              </Routes>
-            </AuthProvider>
+            <NavigationProvider>
+              <AuthProvider>
+                <AnimatePresence mode="wait">
+                  <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/*" element={
+                      <ProtectedRoute>
+                        <Routes>
+                          <Route index element={<Dashboard />} />
+                          <Route path="workouts" element={<WorkoutPlans />} />
+                          <Route path="meals" element={<MealPlans />} />
+                          <Route path="profile" element={<Profile />} />
+                          <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                      </ProtectedRoute>
+                    } />
+                  </Routes>
+                </AnimatePresence>
+              </AuthProvider>
+            </NavigationProvider>
           </Router>
         </ThemeProvider>
       </NextUIProvider>
     </FrappeProvider>
   );
 }
-
 export default App;

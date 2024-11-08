@@ -3,6 +3,8 @@ import { Activity, Flame, Target, Scale, ArrowUp, ArrowDown } from 'lucide-react
 import { Client } from '@/types/client';
 import { Card, CardBody } from '@nextui-org/react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
 
 interface QuickStatsProps {
   client: Client;
@@ -59,33 +61,46 @@ export const QuickStats = ({ client }: QuickStatsProps) => {
   ];
 
   return (
-    <>
+    <Swiper
+      slidesPerView="auto"
+      spaceBetween={16}
+      className="w-full quick-stats-slider"
+      centerInsufficientSlides={true}
+    >
       {todayStats.map((stat, index) => (
-        <Card
+        <SwiperSlide
           key={stat.label}
-          isBlurred={theme === 'dark'}
-          shadow="sm"
-          className="hover:scale-102 transition-all duration-300"
-          style={{ animationDelay: `${index * 100}ms` }}
+          className="!w-[280px] first:ml-6 last:mr-6"
         >
-          <CardBody className="p-4">
-            <div className="space-y-2">
-              <h3 className="text-sm text-foreground/60">{stat.label}</h3>
-              <div className="space-y-1">
-                <p className="text-2xl font-semibold">{stat.value}</p>
-                <div className="flex items-center gap-1 text-sm">
-                  {stat.change.trend === 'up' ? (
-                    <ArrowUp className="w-4 h-4 text-success-500" />
-                  ) : (
-                    <ArrowDown className="w-4 h-4 text-danger-500" />
-                  )}
-                  <span className="text-foreground/60">{stat.change.value}</span>
+          <Card
+            isBlurred
+            shadow="sm"
+            className="w-full bg-content-secondary"
+          >
+            <CardBody className="p-4">
+              <div className="flex items-start gap-4">
+                <div className={`p-2 rounded-full bg-${stat.color}-500/10`}>
+                  <stat.icon className={`w-5 h-5 text-${stat.color}-500`} />
+                </div>
+                <div className="space-y-2 flex-1">
+                  <h3 className="text-sm text-foreground/60">{stat.label}</h3>
+                  <div className="space-y-1">
+                    <p className="text-2xl font-semibold">{stat.value}</p>
+                    <div className="flex items-center gap-1 text-sm">
+                      {stat.change.trend === 'up' ? (
+                        <ArrowUp className="w-4 h-4 text-success-500" />
+                      ) : (
+                        <ArrowDown className="w-4 h-4 text-danger-500" />
+                      )}
+                      <span className="text-foreground/60">{stat.change.value}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardBody>
-        </Card>
+            </CardBody>
+          </Card>
+        </SwiperSlide>
       ))}
-    </>
+    </Swiper>
   );
 };

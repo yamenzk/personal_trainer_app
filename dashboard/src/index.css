@@ -178,3 +178,15 @@
   transform: translateY(20px);
   transition: opacity 300ms, transform 300ms;
 }
+.quick-stats-slider .swiper-wrapper {
+  padding: 8px 0;
+}
+
+.quick-stats-slider .swiper-slide {
+  width: auto;
+  height: auto;
+}
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}

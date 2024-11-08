@@ -1,9 +1,13 @@
 // src/components/dashboard/WeightTracker.tsx
-import { Card, CardBody, CardHeader, Button, Chip, Tooltip } from "@nextui-org/react";
+import { Card, CardBody, Button, Chip, Divider } from "@nextui-org/react";
 import { 
   Scale, 
-  AlertCircle,
-  ChevronRight
+  TrendingDown,
+  TrendingUp,
+  Target,
+  Activity,
+  ChevronRight,
+  InfoIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Client } from '@/types/client';
@@ -135,195 +139,226 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
       : 'Try to maintain a more stable weight';
   };
 
+  // Add weight range calculations
+  const weights = client.weight.map(w => w.weight);
+  const minWeight = Math.min(...weights, client.target_weight);
+  const maxWeight = Math.max(...weights, client.target_weight);
+  const weightRange = maxWeight - minWeight;
+  
+  // Calculate padding for y-axis (10% of weight range)
+  const yAxisPadding = weightRange * 0.1;
+  const yMin = Math.max(0, Math.floor(minWeight - yAxisPadding));
+  const yMax = Math.ceil(maxWeight + yAxisPadding);
+
   return (
-    <Card isBlurred={theme === 'dark'} shadow="sm">
-      <CardHeader className="flex justify-between items-center">
+    <Card className="border-none shadow-none bg-transparent overflow-hidden">
+      <CardBody className="p-4 gap-4">
+        {/* Header without button */}
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold">Weight Progress</h3>
-          <p className="text-sm text-foreground-500">
-            {getProgressMessage()}
-          </p>
-        </div>
-        <Button
-          color="primary"
-          variant="solid"
-          endContent={<Scale size={16} />}
-          onPress={onLogWeight}
-          size="sm"
-        >
-          Log Weight
-        </Button>
-      </CardHeader>
-
-      <CardBody className="gap-6">
-        {/* Weight Overview */}
-        <div className="grid grid-cols-3 gap-4">
-          {weightStats.map((stat, index) => (
-            <Card
-              key={stat.label}
-              shadow="none"
-              className={`bg-content-100/5 border border-foreground/20 ${
-                stat.label === 'Current' ? 'relative overflow-visible' : ''
-              }`}
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-semibold">Weight Journey</h2>
+            <Chip
+              size="sm"
+              variant="flat"
+              color={evaluateProgress() === 'good' ? 'success' : 
+                     evaluateProgress() === 'bad' ? 'danger' : 'primary'}
             >
-              <CardBody className="p-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-foreground-500">{stat.label} Weight</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-semibold">{stat.value}</span>
-                    {stat.label === 'Current' && (
-                      <div className="absolute -top-2 -right-2">
-                        {/* <Chip
-                          size="sm"
-                          variant="flat"
-                          color={evaluateProgress() === 'good' ? 'success' : 
-                                evaluateProgress() === 'bad' ? 'danger' : 
-                                'primary'}
-                          className="shadow-sm"
-                        >
-                          {client.goal}
-                        </Chip> */}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
+              {client.goal}
+            </Chip>
+          </div>
+          <p className="text-sm text-foreground/60">{getProgressMessage()}</p>
         </div>
 
-        {/* Chart Section */}
-        <Card className="bg-content-100/5" shadow="none">
-          <CardBody className="p-0">
-            <div className="p-4 border-b border-foreground/20">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium">Weight Trend</h4>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: chartColors.line }} />
-                    <span className="text-xs text-foreground-500">Current</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full border-2" style={{ borderColor: chartColors.reference }} />
-                    <span className="text-xs text-foreground-500">Target</span>
-                  </div>
+        {/* Weight Logging CTA */}
+        <Card className="bg-primary-500/10 border-none">
+          <CardBody className="py-3 px-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-primary-500/20">
+                  <InfoIcon className="w-5 h-5 text-primary-500" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium">Track Your Progress Daily</p>
+                  <p className="text-sm text-foreground/60">
+                    Regular weight logging helps us adjust your plan for optimal results
+                  </p>
                 </div>
               </div>
-            </div>
-            <div className="h-[300px] p-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={weightData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                      {chartColors.gradient.map((stop, index) => (
-                        <stop
-                          key={index}
-                          offset={stop.offset}
-                          stopColor={stop.color}
-                          stopOpacity={stop.opacity}
-                        />
-                      ))}
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="var(--content)"
-                    opacity={0.1}
-                  />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="currentColor" 
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    dy={10}
-                  />
-                  <YAxis 
-                    stroke="currentColor"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    width={40}
-                    domain={['auto', 'auto']}
-                    dx={-10}
-                  />
-                  <RechartsTooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-content-100/90 backdrop-blur-sm border border-content-100/20 rounded-lg p-2 shadow-lg">
-                            <p className="text-sm font-medium">{payload[0].payload.date}</p>
-                            <p className="text-sm text-foreground-500">
-                              {payload[0].value} kg
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <ReferenceLine 
-                    y={client.target_weight} 
-                    stroke={chartColors.reference}
-                    strokeDasharray="3 3" 
-                    strokeWidth={2}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="weight"
-                    stroke={chartColors.line}
-                    strokeWidth={2}
-                    fill="url(#weightGradient)"
-                    dot={{
-                      stroke: chartColors.line,
-                      strokeWidth: 2,
-                      fill: '#ffffff',
-                      r: 4
-                    }}
-                    activeDot={{
-                      stroke: chartColors.line,
-                      strokeWidth: 2,
-                      fill: '#ffffff',
-                      r: 6
-                    }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <Button
+                color="primary"
+                variant="shadow"
+                onPress={onLogWeight}
+                size="md"
+                className="px-4"
+              >
+                Log Weight
+              </Button>
             </div>
           </CardBody>
         </Card>
 
-        {/* BMI Section */}
-        <Card shadow="none" className="bg-content-100/5">
-          <CardBody className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-xl bg-content/10">
-                  <Scale className="w-5 h-5 text-primary" />
+
+        {/* Chart Section */}
+        <div className="space-y-2 my-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4  justify-end w-full">
+              <div className="flex items-center gap-2 ">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: chartColors.line }} />
+                <span className="text-sm text-foreground/60">Progress</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full border-2" style={{ borderColor: chartColors.reference }} />
+                <span className="text-sm text-foreground/60">Target</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-[200px] w-full">
+            <ResponsiveContainer>
+              <AreaChart 
+                data={weightData} 
+                margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
+              >
+                <defs>
+                  <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                    {getChartColors().gradient.map((stop, index) => (
+                      <stop
+                        key={index}
+                        offset={stop.offset}
+                        stopColor={stop.color}
+                        stopOpacity={stop.opacity}
+                      />
+                    ))}
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--nextui-content)"
+                  opacity={0.1}
+                  vertical={false}
+                />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="currentColor"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                />
+                <YAxis 
+                  stroke="currentColor"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  width={35}
+                  domain={[yMin, yMax]}
+                  tickCount={5}
+                  tickFormatter={(value) => `${value.toFixed(0)}`}
+                />
+                <RechartsTooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <Card className="border-small border-foreground/10">
+                          <CardBody className="p-2">
+                            <p className="text-sm font-medium">{payload[0].payload.date}</p>
+                            <div className="flex items-baseline gap-2">
+                              <p className="text-lg font-semibold">
+                                {Number(payload[0].value).toFixed(1)}
+                              </p>
+                              <p className="text-xs text-foreground/60">kg</p>
+                            </div>
+                          </CardBody>
+                        </Card>
+                      );
+                    }
+                    return null;
+                  }}
+                  cursor={{ stroke: chartColors.line, strokeWidth: 1, strokeDasharray: '4 4' }}
+                />
+                <ReferenceLine 
+                  y={client.target_weight} 
+                  stroke={chartColors.reference}
+                  strokeDasharray="3 3" 
+                  strokeWidth={2}
+                  label={{
+                    value: 'Target',
+                    position: 'right',
+                    fill: chartColors.reference,
+                    fontSize: 12
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="weight"
+                  stroke={chartColors.line}
+                  strokeWidth={2}
+                  fill="url(#weightGradient)"
+                  dot={{
+                    stroke: chartColors.line,
+                    strokeWidth: 2,
+                    fill: 'var(--nextui-background)',
+                    r: 3
+                  }}
+                  activeDot={{
+                    stroke: chartColors.line,
+                    strokeWidth: 2,
+                    fill: 'var(--nextui-background)',
+                    r: 4
+                  }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Stats and BMI Section */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Weight Stats */}
+          <Card className="bg-primary-700 border-none">
+            <CardBody className="p-3">
+              <div className="flex justify-between items-start">
+                <div className="space-y-3">
+                  {weightStats.map((stat, index) => (
+                    <div key={stat.label} className="flex items-baseline gap-2">
+                      <span className="text-sm text-white/60 w-16">{stat.label}</span>
+                      <span className="text-base font-semibold text-white">{stat.value}</span> 
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">BMI Score</span>
-                    <Tooltip content="Body Mass Index based on your current weight and height">
-                      <AlertCircle className="w-4 h-4 text-foreground-500 cursor-help" />
-                    </Tooltip>
-                  </div>
-                  <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-primary-500/10">
+                  <Target className="w-5 h-5 text-primary-500" />
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* BMI Card */}
+          <Card className="bg-content-secondary border-none">
+            <CardBody className="p-3">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <span className="text-sm text-foreground/60">BMI Score</span>
+                  <div className="flex items-baseline gap-2">
                     <span className="text-2xl font-semibold">{bmi.toFixed(1)}</span>
                     <Chip
                       size="sm"
                       color={bmiCategory.color as any}
                       variant="flat"
+                      className="capitalize"
                     >
                       {bmiCategory.label}
                     </Chip>
                   </div>
                 </div>
+                <div className="p-2 rounded-xl bg-primary-500/10">
+                  <Activity className="w-5 h-5 text-primary-500" />
+                </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-foreground-500" />
-            </div>
-          </CardBody>
-        </Card>
+            </CardBody>
+          </Card>
+        </div>
+
       </CardBody>
     </Card>
   );

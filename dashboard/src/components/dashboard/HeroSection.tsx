@@ -71,8 +71,8 @@ export const HeroSection = ({ client, currentDay, planProgress }: HeroSectionPro
 
   return (
     <Card 
-      isBlurred={theme === 'dark'} 
-      className="border-none"
+      isBlurred 
+      className="border-none bg-content-secondary/60 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)]"
     >
       <CardBody className="p-6">
         <div className="flex flex-col lg:flex-row gap-6">
