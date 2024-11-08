@@ -433,7 +433,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.fetched",
+   "depends_on": "eval:!doc.fetched",
    "fieldname": "fetch_premade_exercises",
    "fieldtype": "Button",
    "label": "Fetch Premade Exercises"
@@ -442,7 +442,7 @@
    "default": "0",
    "fieldname": "fetched",
    "fieldtype": "Check",
-   "label": "Fetched",
+   "label": "Exercises Fetched",
    "read_only": 1
   },
   {
@@ -468,7 +468,7 @@
    "default": "0",
    "fieldname": "food_fetched",
    "fieldtype": "Check",
-   "label": "Fetched",
+   "label": "Foods Fetched",
    "read_only": 1
   }
  ],
@@ -476,7 +476,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-11-03 13:06:57.030146",
+ "modified": "2024-11-08 20:20:31.328203",
  "modified_by": "Administrator",
  "module": "Personal Trainer",
  "name": "PT Settings",
