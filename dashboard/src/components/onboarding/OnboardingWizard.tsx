@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Progress, Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Client } from '@/types/client';
+import { motion, AnimatePresence } from "framer-motion";
 
 // Import step components
 import ActivityLevelStep from './steps/ActivityLevelStep';
@@ -326,7 +327,17 @@ export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWi
                 </div>
               </CardHeader>
               <CardBody className="px-8 py-8">
-                {renderCurrentStep()}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentStep}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {renderCurrentStep()}
+                  </motion.div>
+                </AnimatePresence>
               </CardBody>
             </Card>
           </div>

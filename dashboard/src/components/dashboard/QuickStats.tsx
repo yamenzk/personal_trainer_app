@@ -73,9 +73,8 @@ export const QuickStats = ({ client }: QuickStatsProps) => {
           className="!w-[280px] first:ml-6 last:mr-6"
         >
           <Card
-            isBlurred
             shadow="sm"
-            className="w-full bg-content-secondary"
+            className="w-full bg-content2/70"
           >
             <CardBody className="p-4">
               <div className="flex items-start gap-4">

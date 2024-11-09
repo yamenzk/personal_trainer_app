@@ -1,7 +1,6 @@
 // src/pages/WorkoutPlans.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Skeleton, Button } from "@nextui-org/react";
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { AlertTriangle, Dumbbell } from 'lucide-react';
 import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
@@ -16,6 +15,7 @@ import { PerformanceModal } from '../components/workout/PerformanceModal';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { Client } from '@/types/client';
 import { Plan } from '@/types/plan';
+import { motion, AnimatePresence } from "framer-motion";
 
 // Skeleton Component
 const WorkoutPlanSkeleton = () => {
@@ -137,15 +137,18 @@ const WorkoutPlansContent = ({
 
         {/* Only show SectionTitle and exercises if it's not a rest day */}
         {hasWorkout && <SectionTitle />}
-        <TransitionGroup className="space-y-4">
-          {hasWorkout ? (
-            exercises.map((exercise, index) => (
-              <CSSTransition
-                key={index}
-                timeout={300}
-                classNames="fade-slide"
-              >
-                <div className="fade-slide-enter">
+        
+        <div className="space-y-4">
+          <AnimatePresence mode="wait">
+            {hasWorkout ? (
+              exercises.map((exercise, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.2, delay: index * 0.1 }}
+                >
                   {exercise.type === 'regular' ? (
                     <ExerciseCard
                       exercise={exercise.exercise}
@@ -191,18 +194,20 @@ const WorkoutPlansContent = ({
                       exerciseNumber={index + 1}
                     />
                   )}
-                </div>
-              </CSSTransition>
-            ))
-          ) : (
-            <CSSTransition
-              timeout={300}
-              classNames="fade"
-            >
-              <RestDayCard />
-            </CSSTransition>
-          )}
-        </TransitionGroup>
+                </motion.div>
+              ))
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+              >
+                <RestDayCard />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Modals */}

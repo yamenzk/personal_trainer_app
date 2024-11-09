@@ -1,20 +1,17 @@
 // src/components/dashboard/AchievementCard.tsx
 import { useMemo } from 'react';
 import { 
-  Trophy, 
-  Crown, 
-  Award, 
-  Star, 
-  Medal,
-  TrendingUp,
-  Dumbbell,
-  Flame,
-  Scale,
-  Zap
+  Trophy, Crown, Award, Star, Medal, TrendingUp, 
+  Dumbbell, Flame, Scale, Zap, ChevronLeft, ChevronRight 
 } from 'lucide-react';
-import { Card, CardBody, CardHeader, Chip, Progress, Tooltip } from '@nextui-org/react';
+import { Card, CardBody, CardHeader, CircularProgress, Button, ScrollShadow } from '@nextui-org/react';
 import { Client } from '@/types/client';
 import { useTheme } from '../../contexts/ThemeContext';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 const MILESTONES = {
   exercises: [25, 50, 100, 200, 300, 500, 1000],
@@ -99,133 +96,168 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
     }
   ];
 
-  const progressCards = [
+  const progressStats = [
     {
-      title: "Total Exercises",
-      icon: <Dumbbell className="text-primary" />,
+      title: "Exercises",
+      icon: Dumbbell,
       color: "primary",
-      data: milestoneProgress.exercises
+      level: Math.floor(client.total_exercises_completed / 50) + 1,
+      progress: milestoneProgress.exercises.progress,
+      current: client.total_exercises_completed,
+      next: milestoneProgress.exercises.next
     },
     {
       title: "Sets",
-      icon: <TrendingUp className="text-secondary" />,
+      icon: TrendingUp,
       color: "secondary",
-      data: milestoneProgress.sets
+      level: Math.floor(client.total_sets_played / 100) + 1,
+      progress: milestoneProgress.sets.progress,
+      current: client.total_sets_played,
+      next: milestoneProgress.sets.next
     },
     {
       title: "Reps",
-      icon: <Zap className="text-success" />,
+      icon: Zap,
       color: "success",
-      data: milestoneProgress.reps
+      level: Math.floor(client.total_reps_played / 1000) + 1,
+      progress: milestoneProgress.reps.progress,
+      current: client.total_reps_played,
+      next: milestoneProgress.reps.next
     }
   ];
 
   return (
-    <Card 
-      isBlurred={theme === 'dark'} 
-      shadow="sm"
-    >
-      <CardHeader className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-semibold">Achievements</h3>
-          <p className="text-sm text-foreground-500">Track your progress</p>
-        </div>
-        <Chip
-          startContent={<Crown className="w-4 h-4" />}
-          variant="shadow"
-          color="warning"
-        >
-          Level {Math.floor(client.total_exercises_completed / 50) + 1}
-        </Chip>
-      </CardHeader>
+    <Card className="border-none bg-transparent shadow-none">
+      <CardBody className="p-4 space-y-6">
+        {/* Main Achievement Card */}
+        <Card className="border-none">
+          <CardHeader className="flex justify-between items-center">
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold">Achievements</h3>
+              <p className="text-sm text-foreground-500">Track your progress</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-warning" />
+              <span className="text-xl font-semibold">
+                {Math.floor(client.total_exercises_completed / 50) + 1}
+              </span>
+            </div>
+          </CardHeader>
 
-      <CardBody className="gap-6">
-        {/* Progress Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {progressCards.map((card, index) => (
-            <Card key={index} shadow="none" className="bg-content-100/5">
-              <CardBody className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    {card.icon}
-                    <span className="text-sm font-medium">{card.title}</span>
+          <CardBody className="gap-6">
+            {/* Progress Circles */}
+            <div className="grid grid-cols-3 gap-4">
+              {progressStats.map((stat) => (
+                <div key={stat.title} className="flex flex-col items-center gap-2">
+                  <div className="relative">
+                    <CircularProgress
+                      value={stat.progress}
+                      strokeWidth={4}
+                      showValueLabel={false}
+                      color={stat.color as any}
+                      classNames={{
+                        svg: "w-24 h-24 drop-shadow-md",
+                        indicator: "stroke-foreground",
+                        track: "stroke-default-300",
+                        value: "font-semibold text-xl",
+                      }}
+                    />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <stat.icon className={`w-6 h-6 text-${stat.color}`} />
+                      <span className="text-xl font-bold">{stat.level}</span>
+                    </div>
                   </div>
-                  <Tooltip content={`${card.data.current} / ${card.data.next}`}>
-                    <Chip
-                      size="sm"
-                      variant="flat"
-                      color={card.color as any}
-                      className="cursor-help"
-                    >
-                      {formatNumber(card.data.current)}
-                    </Chip>
-                  </Tooltip>
+                  <div className="text-center">
+                    <p className="font-medium">{stat.title}</p>
+                    <p className="text-sm text-foreground-500">
+                      {formatNumber(stat.current)} / {formatNumber(stat.next)}
+                    </p>
+                  </div>
                 </div>
-                <Progress
-                  value={card.data.progress}
-                  color={card.color as any}
-                  size="sm"
-                  radius="sm"
-                  className="mb-2"
-                />
-                <div className="flex justify-between text-xs text-foreground-500">
-                  <span>Progress</span>
-                  <span>{Math.round(card.data.progress)}%</span>
+              ))}
+            </div>
+
+            {/* Achievements Carousel */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-foreground-500">Special Achievements</h4>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    variant="flat"
+                    className="achievement-prev"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    variant="flat"
+                    className="achievement-next"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <Swiper
+                modules={[Navigation, Pagination]}
+                spaceBetween={16}
+                slidesPerView={2}
+                navigation={{
+                  nextEl: '.achievement-next',
+                  prevEl: '.achievement-prev',
+                }}
+                pagination={{ clickable: true }}
+                className="achievement-swiper"
+              >
+                {oneTimeAchievements.map(({ id, name, description, icon: Icon, color, unlocked }) => (
+                  <SwiperSlide key={id}>
+                    <Card
+                      shadow="none"
+                      className={`bg-content1/5 transition-opacity ${!unlocked && 'opacity-50'}`}
+                    >
+                      <CardBody className="p-3">
+                        <div className="flex items-start gap-3">
+                          <div className={`
+                            w-10 h-10 rounded-lg flex items-center justify-center
+                            ${unlocked ? `bg-${color}-500` : 'bg-default-200'}
+                          `}>
+                            <Icon 
+                              className={unlocked ? 'text-white' : 'text-default-500'} 
+                              size={20} 
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium">{name}</p>
+                            <p className="text-sm text-foreground-500">{description}</p>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+
+            {/* Calories Summary */}
+            <Card shadow="none" className="bg-gradient-to-r from-danger-500/10 to-danger-500/20">
+              <CardBody className="py-3 px-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-danger" />
+                    <span className="font-medium">Total Calories</span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl font-semibold">
+                      {formatNumber(client.total_calories_burned)}
+                    </span>
+                    <span className="text-sm text-foreground-500">kcal</span>
+                  </div>
                 </div>
               </CardBody>
             </Card>
-          ))}
-        </div>
-
-        {/* Special Achievements */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-medium text-foreground-500">Special Achievements</h4>
-          <div className="grid grid-cols-2 gap-4">
-            {oneTimeAchievements.map(({ id, name, description, icon: Icon, color, unlocked }) => (
-              <Card
-                key={id}
-                shadow="none"
-                className={`bg-content-100/5 transition-opacity ${!unlocked && 'opacity-50'}`}
-              >
-                <CardBody className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`
-                      w-10 h-10 rounded-lg flex items-center justify-center
-                      ${unlocked ? `bg-${color}-500` : 'bg-default-200'}
-                    `}>
-                      <Icon 
-                        className={unlocked ? 'text-white' : 'text-default-500'} 
-                        size={20} 
-                      />
-                    </div>
-                    <div>
-                      <p className="font-medium">{name}</p>
-                      <p className="text-sm text-foreground-500">{description}</p>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Calories Summary */}
-        <Card shadow="none" className="bg-content-100/5">
-          <CardBody className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-danger" />
-                <span className="font-medium">Total Calories Burned</span>
-              </div>
-              <Chip
-                size="lg"
-                variant="flat"
-                color="danger"
-                startContent={<Scale className="w-4 h-4" />}
-              >
-                {formatNumber(client.total_calories_burned)} kcal
-              </Chip>
-            </div>
           </CardBody>
         </Card>
       </CardBody>

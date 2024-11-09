@@ -190,3 +190,23 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
+
+.achievement-swiper {
+  padding-bottom: 2rem !important;
+}
+
+.achievement-swiper .swiper-pagination-bullet {
+  background: var(--nextui-foreground);
+  opacity: 0.2;
+}
+
+.achievement-swiper .swiper-pagination-bullet-active {
+  background: var(--nextui-primary);
+  opacity: 1;
+}
+.progress-bar[style*="--muscle-color"] .progress-indicator {
+  background: linear-gradient(90deg, 
+    var(--muscle-color) 0%, 
+    color-mix(in srgb, var(--muscle-color) 70%, white) 100%
+  ) !important;
+}

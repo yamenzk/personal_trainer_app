@@ -151,58 +151,99 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
   const yMax = Math.ceil(maxWeight + yAxisPadding);
 
   return (
-    <Card className="border-none shadow-none bg-transparent overflow-hidden">
-      <CardBody className="p-4 gap-4">
-        {/* Header without button */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold">Weight Journey</h2>
-            <Chip
-              size="sm"
-              variant="flat"
-              color={evaluateProgress() === 'good' ? 'success' : 
-                     evaluateProgress() === 'bad' ? 'danger' : 'primary'}
-            >
-              {client.goal}
-            </Chip>
-          </div>
-          <p className="text-sm text-foreground/60">{getProgressMessage()}</p>
-        </div>
-
-        {/* Weight Logging CTA */}
-        <Card className="bg-primary-500/10 border-none">
-          <CardBody className="py-3 px-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-primary-500/20">
-                  <InfoIcon className="w-5 h-5 text-primary-500" />
+    <Card className="border-none bg-transparent shadow-none">
+      <CardBody className="p-4 space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-12 gap-4">
+          {/* Weight Stats Card */}
+          <Card className="col-span-6 border-none bg-gradient-to-br from-primary-500/5 via-primary-500/10 to-primary-500/20">
+            <CardBody className="p-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-primary-500/10">
+                  <Target className="w-5 h-5 text-primary-500" />
                 </div>
-                <div className="space-y-1">
-                  <p className="font-medium">Track Your Progress Daily</p>
-                  <p className="text-sm text-foreground/60">
-                    Regular weight logging helps us adjust your plan for optimal results
-                  </p>
+                <div>
+                  <p className="text-sm text-foreground/60">Weight Goals</p>
+                  <p className="text-lg font-semibold">{client.goal}</p>
                 </div>
               </div>
-              <Button
-                color="primary"
-                variant="shadow"
-                onPress={onLogWeight}
-                size="md"
-                className="px-4"
-              >
-                Log Weight
-              </Button>
-            </div>
-          </CardBody>
-        </Card>
+              <Divider className="my-3 bg-primary-500/10" />
+              <div className="grid grid-cols-3 gap-2">
+                {weightStats.map((stat) => (
+                  <div key={stat.label} className="space-y-1">
+                    <p className="text-xs text-foreground/60">{stat.label}</p>
+                    <p className="text-base font-semibold">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
 
+          {/* BMI Card */}
+          <Card className="col-span-6 border-none bg-gradient-to-br from-secondary-500/5 via-secondary-500/10 to-secondary-500/20">
+            <CardBody className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-secondary-500/10">
+                    <Activity className="w-5 h-5 text-secondary-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-foreground/60">BMI Score</p>
+                    <p className="text-lg font-semibold">{bmi.toFixed(1)}</p>
+                  </div>
+                </div>
+                <Chip
+                  size="sm"
+                  color={bmiCategory.color as any}
+                  variant="flat"
+                  className="capitalize"
+                >
+                  {bmiCategory.label}
+                </Chip>
+              </div>
+              <Divider className="my-3 bg-secondary-500/10" />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <p className="text-xs text-foreground/60">Height</p>
+                  <p className="text-base font-semibold">{client.height} cm</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-foreground/60">Weight</p>
+                  <p className="text-base font-semibold">{client.current_weight} kg</p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Progress Message Card */}
+          <Card className="col-span-12 border-none bg-gradient-to-br from-success-500/5 via-success-500/10 to-success-500/20">
+            <CardBody className="py-3 px-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-success-500/10">
+                  <TrendingUp className="w-5 h-5 text-success-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-foreground/60">Progress Update</p>
+                  <p className="text-base font-medium">{getProgressMessage()}</p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
 
         {/* Chart Section */}
-        <div className="space-y-2 my-6">
+        <div className="space-y-4 bg-content2 rounded-xl p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4  justify-end w-full">
-              <div className="flex items-center gap-2 ">
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold">Weight Progress</h3>
+              <p className="text-sm text-foreground/60">
+                {weightData.length > 1 
+                  ? getProgressMessage()
+                  : "Start logging your weight to see progress"}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: chartColors.line }} />
                 <span className="text-sm text-foreground/60">Progress</span>
               </div>
@@ -213,7 +254,7 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
             </div>
           </div>
 
-          <div className="h-[200px] w-full">
+          <div className="h-[250px] w-full">
             <ResponsiveContainer>
               <AreaChart 
                 data={weightData} 
@@ -312,53 +353,30 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
           </div>
         </div>
 
-        {/* Stats and BMI Section */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Weight Stats */}
-          <Card className="bg-primary-700 border-none">
-            <CardBody className="p-3">
-              <div className="flex justify-between items-start">
-                <div className="space-y-3">
-                  {weightStats.map((stat, index) => (
-                    <div key={stat.label} className="flex items-baseline gap-2">
-                      <span className="text-sm text-white/60 w-16">{stat.label}</span>
-                      <span className="text-base font-semibold text-white">{stat.value}</span> 
-                    </div>
-                  ))}
+        {/* Weight Logging CTA */}
+        <div className="relative overflow-hidden rounded-xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700" />
+          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10" />
+          <div className="relative py-3 px-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-white/10">
+                  <Scale className="w-5 h-5 text-white" />
                 </div>
-                <div className="p-2 rounded-xl bg-primary-500/10">
-                  <Target className="w-5 h-5 text-primary-500" />
-                </div>
+                <p className="font-medium text-white">
+                  Track your daily weight for better progress tracking
+                </p>
               </div>
-            </CardBody>
-          </Card>
-
-          {/* BMI Card */}
-          <Card className="bg-content-secondary border-none">
-            <CardBody className="p-3">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <span className="text-sm text-foreground/60">BMI Score</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-semibold">{bmi.toFixed(1)}</span>
-                    <Chip
-                      size="sm"
-                      color={bmiCategory.color as any}
-                      variant="flat"
-                      className="capitalize"
-                    >
-                      {bmiCategory.label}
-                    </Chip>
-                  </div>
-                </div>
-                <div className="p-2 rounded-xl bg-primary-500/10">
-                  <Activity className="w-5 h-5 text-primary-500" />
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+              <Button
+                className="bg-white text-primary-500 font-medium px-8"
+                size="sm"
+                onPress={onLogWeight}
+              >
+                Log Weight
+              </Button>
+            </div>
+          </div>
         </div>
-
       </CardBody>
     </Card>
   );

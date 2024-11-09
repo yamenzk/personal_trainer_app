@@ -1,6 +1,6 @@
 // src/pages/Dashboard.tsx
 import { useState } from 'react';
-import { CSSTransition } from 'react-transition-group';
+import { motion, AnimatePresence } from "framer-motion";
 import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
 import { calculatePlanProgress } from '../utils/api';
@@ -19,6 +19,7 @@ import { WeightModal } from '../components/shared/WeightModal';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 import { Client } from '@/types/client';
 import { Plan } from '@/types/plan';
+import { ExerciseReference } from '@/types/workout';
 
 // Skeleton Component
 const DashboardSkeleton = () => {
@@ -41,23 +42,25 @@ const DashboardSkeleton = () => {
           </div>
         </div>
 
+        {/* Workout Progress Skeleton */}
+        <div className="space-y-4">
+          <div className="px-6">
+            <Skeleton className="w-48 h-7 rounded-lg" />
+            <Skeleton className="w-72 h-5 mt-2 rounded-lg" />
+          </div>
+          <Skeleton className="w-full h-[350px] rounded-xl" />
+        </div>
+
         {/* Main Content Skeleton */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Left Column */}
-          <div className="xl:col-span-8 space-y-6">
-            {/* Weight Tracker Skeleton */}
+          <div className="xl:col-span-8">
             <Skeleton className="w-full h-[400px] rounded-xl" />
-            
-            {/* Workout Progress Skeleton */}
-            <Skeleton className="w-full h-[350px] rounded-xl" />
           </div>
 
           {/* Right Column */}
           <div className="xl:col-span-4 space-y-6">
-            {/* Achievement Card Skeleton */}
             <Skeleton className="w-full h-[300px] rounded-xl" />
-            
-            {/* Muscle Groups Chart Skeleton */}
             <Skeleton className="w-full h-[300px] rounded-xl" />
           </div>
         </div>
@@ -79,6 +82,7 @@ const DashboardContent = ({
   const { activePlan, completedPlans, currentDay } = usePlans(plans);
   const [showWeightModal, setShowWeightModal] = useState(false);
   const { theme } = useTheme();
+  const { references = { exercises: {} } } = useClientData(); // Add default value
 
   // Check for onboarding needs
   const needsOnboarding = !client.date_of_birth || !client.gender || !client.email ||
@@ -121,20 +125,29 @@ const DashboardContent = ({
           </div>
         </div>
 
+        {/* Workout Progress Section */}
+        <div className="space-y-4 fade-in-delayed">
+          <div className="px-4">
+            <h2 className="text-xl font-semibold">Today's Workout</h2>
+            <p className="text-sm text-foreground/60">Keep track of your workout progress</p>
+          </div>
+          <WorkoutProgress
+            client={client}
+            activePlan={activePlan}
+            completedPlans={completedPlans}
+            currentDay={currentDay}
+            planProgress={planProgress}
+            exerciseRefs={references?.exercises || {}}
+          />
+        </div>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          {/* Weight and Progress Section */}
-          <div className="xl:col-span-8 space-y-6">
+          {/* Weight Section */}
+          <div className="xl:col-span-8">
             <WeightTracker
               client={client}
               onLogWeight={() => setShowWeightModal(true)}
-            />
-            <WorkoutProgress
-              client={client}
-              activePlan={activePlan}
-              completedPlans={completedPlans}
-              currentDay={currentDay}
-              planProgress={planProgress}
             />
           </div>
 
@@ -146,21 +159,25 @@ const DashboardContent = ({
         </div>
       </div>
 
-      {/* Weight Modal */}
-      <CSSTransition
-        in={showWeightModal}
-        timeout={300}
-        classNames="modal"
-        unmountOnExit
-      >
-        <WeightModal
-          isOpen={showWeightModal}
-          onClose={() => setShowWeightModal(false)}
-          onWeightLogged={refreshData}
-          clientId={client.name}
-          currentWeight={client.current_weight}
-        />
-      </CSSTransition>
+      {/* Weight Modal with AnimatePresence */}
+      <AnimatePresence>
+        {showWeightModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <WeightModal
+              isOpen={showWeightModal}
+              onClose={() => setShowWeightModal(false)}
+              onWeightLogged={refreshData}
+              clientId={client.name}
+              currentWeight={client.current_weight}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
