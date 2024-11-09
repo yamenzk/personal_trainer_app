@@ -1,177 +1,213 @@
-import { useState } from 'react';
-import { Button, Chip } from "@nextui-org/react";
-import { Coffee, Utensils, Cookie, ChefHat, Check, ArrowRight } from 'lucide-react';
+// src/components/onboarding/steps/MealsStep.tsx
+import { useState, useEffect } from 'react';
+import { Card, CardBody, Chip } from "@nextui-org/react";
+import { Coffee, Utensils, Cookie, ChefHat, Timer, Check, Info } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { useStepValidation } from '@/hooks/useStepValidation';
 
 interface MealsStepProps {
   onComplete: (value: number) => void;
-  isLoading?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
+  initialValue?: number;
 }
 
-const MealsStep = ({ onComplete, isLoading = false }: MealsStepProps) => {
-  const [selected, setSelected] = useState<number | null>(null);
-  const [error, setError] = useState('');
+const mealOptions = [
+  {
+    value: 3,
+    title: '3 Meals',
+    description: 'Traditional schedule',
+    icon: Coffee,
+    color: 'primary',
+    schedule: [
+      { time: 'Morning', meal: 'Breakfast' },
+      { time: 'Afternoon', meal: 'Lunch' },
+      { time: 'Evening', meal: 'Dinner' }
+    ],
+    benefits: [
+      'Easier to maintain',
+      'Simple meal prep',
+      'Traditional timing'
+    ],
+    idealFor: 'Best for busy schedules and traditional lifestyles'
+  },
+  {
+    value: 4,
+    title: '4 Meals',
+    description: 'With afternoon snack',
+    icon: Cookie,
+    color: 'secondary',
+    schedule: [
+      { time: 'Morning', meal: 'Breakfast' },
+      { time: 'Noon', meal: 'Lunch' },
+      { time: '3-4 PM', meal: 'Snack' },
+      { time: 'Evening', meal: 'Dinner' }
+    ],
+    benefits: [
+      'Stable energy levels',
+      'Reduced hunger',
+      'Better portion control'
+    ],
+    idealFor: 'Perfect for weight management and steady energy throughout the day'
+  },
+  {
+    value: 5,
+    title: '5 Meals',
+    description: 'Frequent small portions',
+    icon: Utensils,
+    color: 'success',
+    schedule: [
+      { time: 'Early Morning', meal: 'Breakfast' },
+      { time: 'Mid-Morning', meal: 'Snack' },
+      { time: 'Afternoon', meal: 'Lunch' },
+      { time: 'Mid-Afternoon', meal: 'Snack' },
+      { time: 'Evening', meal: 'Dinner' }
+    ],
+    benefits: [
+      'Enhanced metabolism',
+      'Better nutrient absorption',
+      'Increased muscle gains'
+    ],
+    idealFor: 'Optimal for muscle building and active lifestyles'
+  },
+  {
+    value: 6,
+    title: '6 Meals',
+    description: 'Professional athlete plan',
+    icon: ChefHat,
+    color: 'warning',
+    schedule: [
+      { time: '7 AM', meal: 'Early Breakfast' },
+      { time: '10 AM', meal: 'Late Breakfast' },
+      { time: '1 PM', meal: 'Lunch' },
+      { time: '4 PM', meal: 'Afternoon Snack' },
+      { time: '7 PM', meal: 'Dinner' },
+      { time: '9 PM', meal: 'Evening Snack' }
+    ],
+    benefits: [
+      'Maximum nutrient timing',
+      'Optimal protein synthesis',
+      'Enhanced recovery'
+    ],
+    idealFor: 'Designed for athletes and intensive training programs'
+  }
+] as const;
 
-  const mealOptions = [
-    {
-      value: 3,
-      title: '3 Meals',
-      description: 'Traditional schedule',
-      schedule: ['Breakfast', 'Lunch', 'Dinner'],
-      color: 'primary',
-      icon: Coffee,
-      details: 'Best for busy schedules'
-    },
-    {
-      value: 4,
-      title: '4 Meals',
-      description: 'With afternoon snack',
-      schedule: ['Breakfast', 'Lunch', 'Snack', 'Dinner'],
-      color: 'secondary',
-      icon: Cookie,
-      details: 'Balanced energy levels'
-    },
-    {
-      value: 5,
-      title: '5 Meals',
-      description: 'Frequent small portions',
-      schedule: ['Breakfast', 'Morning Snack', 'Lunch', 'Afternoon Snack', 'Dinner'],
-      color: 'success',
-      icon: Utensils,
-      details: 'Optimal for muscle gain'
-    },
-    {
-      value: 6,
-      title: '6 Meals',
-      description: 'Professional athlete plan',
-      schedule: ['Early Breakfast', 'Late Breakfast', 'Lunch', 'Afternoon Snack', 'Dinner', 'Evening Snack'],
-      color: 'warning',
-      icon: ChefHat,
-      details: 'Maximum nutrient timing'
-    }
-  ] as const;
-
-  const handleSubmit = () => {
-    if (!selected) {
-      setError('Please select your preferred meal frequency');
-      return;
-    }
-    onComplete(selected);
-  };
+const MealsStep = ({ onComplete, onValidationChange, initialValue }: MealsStepProps) => {
+  const { selected, handleSelect } = useStepValidation(initialValue, onComplete, onValidationChange);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-3">
-        {mealOptions.map(({ value, title, description, schedule, color, icon: Icon, details }) => (
-          <button
+      {/* Meal Options */}
+      <div className="grid gap-4">
+        {mealOptions.map(({ value, title, description, icon: Icon, color, schedule, benefits, idealFor }) => (
+          <Card
             key={value}
-            onClick={() => {
-              setSelected(value);
-              setError('');
-            }}
+            isPressable
+            isHoverable
+            onPress={() => handleSelect(value)}
             className={cn(
-              "w-full text-left",
-              "p-4 rounded-xl",
-              "transition-all duration-150",
-              "active:scale-[0.98]",
-              "outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+              "w-full border-2 transition-all duration-200",
               selected === value 
-                ? `bg-${color}-500/20 ring-2 ring-${color}-500` 
-                : 'bg-content/5 hover:bg-content/10'
+                ? `border-${color}-500 bg-${color}-500/5`
+                : "border-transparent hover:bg-content1"
             )}
           >
-            <div className="flex gap-4">
-              {/* Icon */}
-              <div className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
-                "transition-colors duration-150",
-                selected === value
-                  ? `bg-${color}-500`
-                  : `bg-${color}-500/10 group-hover:bg-${color}-500/20`
-              )}>
-                <Icon 
-                  className={cn(
-                    "transition-colors duration-150",
-                    selected === value
-                      ? "text-white"
-                      : `text-${color}-500`
-                  )}
-                  size={20} 
-                />
-              </div>
-              
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                {/* Title and Description */}
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
-                    <h3 className="font-medium flex items-center gap-2">
-                      {title}
-                      {selected === value && (
-                        <Check size={16} className={`text-${color}-500`} />
-                      )}
-                    </h3>
-                    <p className="text-sm text-foreground/60">{description}</p>
-                  </div>
-                  <ArrowRight 
-                    size={16} 
-                    className={cn(
-                      "opacity-0 transition-opacity duration-200",
-                      selected === value && "opacity-100",
-                      `text-${color}-500`
-                    )}
+            <CardBody className="p-4">
+              {/* Header */}
+              <div className="flex items-start gap-4 mb-4">
+                <div className={cn(
+                  "w-12 h-12 rounded-lg flex items-center justify-center shrink-0",
+                  "transition-colors duration-200",
+                  selected === value
+                    ? `bg-${color}-500`
+                    : `bg-${color}-500/10`
+                )}>
+                  <Icon 
+                    className={selected === value ? "text-white" : `text-${color}-500`}
+                    size={24}
                   />
                 </div>
 
-                {/* Meals Schedule */}
-                <div className="flex flex-wrap gap-2">
-                  {schedule.map((meal, index) => (
-                    <Chip
-                      key={meal}
-                      size="sm"
+                <div className="flex-1">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-medium flex items-center gap-2">
+                        {title}
+                        {selected === value && (
+                          <Check className={`w-4 h-4 text-${color}-500`} />
+                        )}
+                      </h3>
+                      <p className="text-sm text-foreground/60">{description}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Schedule */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Timer className={`w-4 h-4 text-${color}-500`} />
+                  <p className="text-sm font-medium">Daily Schedule</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {schedule.map(({ time, meal }) => (
+                    <div
+                      key={`${time}-${meal}`}
                       className={cn(
-                        "transition-colors duration-150",
+                        "flex items-center gap-2 p-2 rounded-lg text-sm",
                         selected === value
-                          ? `bg-${color}-500/20 text-${color}-500`
-                          : 'bg-content/10'
+                          ? `bg-${color}-500/10`
+                          : "bg-content2/20"
                       )}
-                      startContent={
-                        <span className="w-2 h-2 rounded-full bg-current opacity-70" />
-                      }
                     >
-                      {meal}
+                      <span className={`text-${color}-500 font-medium text-xs`}>{time}</span>
+                      <span className="text-foreground/60 text-xs">{meal}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Benefits */}
+              <div className="space-y-2">
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                  {benefits.map((benefit) => (
+                    <Chip
+                      key={benefit}
+                      size="sm"
+                      variant="bordered"
+                      color={color}
+                      className={selected === value ? 'opacity-100' : 'opacity-70'}
+                    >
+                      {benefit}
                     </Chip>
                   ))}
                 </div>
 
-                {/* Details */}
-                {selected === value && (
-                  <div className={cn(
-                    "mt-3 p-2 rounded-lg text-sm",
-                    `bg-${color}-500/10 text-${color}-500`
-                  )}>
-                    {details}
-                  </div>
-                )}
+                <div className={cn(
+                  "flex items-start gap-2 p-2 rounded-lg text-sm",
+                )}>
+                  <Info className={`w-4 h-4 text-${color}-500 flex-shrink-0 mt-0.5`} />
+                  <p className="text-foreground/60">{idealFor}</p>
+                </div>
               </div>
-            </div>
-          </button>
+            </CardBody>
+          </Card>
         ))}
       </div>
 
-      {error && (
-        <p className="text-danger text-sm text-center">{error}</p>
-      )}
-
-      <Button
-        color="primary"
-        size="lg"
-        className="w-full bg-gradient-to-r from-primary-500 to-secondary-500"
-        onPress={handleSubmit}
-        isLoading={isLoading}
-      >
-        Continue
-      </Button>
+      {/* Help Text */}
+      <Card className="bg-content2">
+        <CardBody className="p-3">
+          <div className="flex gap-2">
+            <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-foreground/70">
+              Choose a meal frequency that fits your lifestyle and schedule. You can always 
+              adjust this later as your routine changes. I'll help you plan portions and 
+              timing for optimal results.
+            </p>
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 };

@@ -124,7 +124,7 @@ module.exports = {
   plugins: [
     nextui({
       prefix: "nextui",
-      addCommonColors: false,
+      addCommonColors: true,
       defaultTheme: "light",
       defaultExtendTheme: "light",
       layout: {

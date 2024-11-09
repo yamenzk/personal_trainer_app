@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Input, Button } from "@nextui-org/react";
-import { motion } from "framer-motion";
-import { Calendar, AlertCircle } from 'lucide-react';
+// src/components/onboarding/steps/DateOfBirthStep.tsx
+import { useState, useEffect } from 'react';
+import { Input, Card, CardBody } from "@nextui-org/react";
+import { Calendar } from 'lucide-react';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import { useStepValidation } from '@/hooks/useStepValidation';
 
 // Extend dayjs with needed plugins
 dayjs.extend(customParseFormat);
@@ -12,13 +13,14 @@ dayjs.extend(isSameOrBefore);
 
 interface DateOfBirthStepProps {
   onComplete: (value: string) => void;
-  isLoading?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
+  initialValue?: string;
 }
 
-const DateOfBirthStep = ({ onComplete, isLoading = false }: DateOfBirthStepProps) => {
-  const [displayDate, setDisplayDate] = useState('');
+const DateOfBirthStep = ({ onComplete, onValidationChange, initialValue = '' }: DateOfBirthStepProps) => {
+  const [displayDate, setDisplayDate] = useState(initialValue ? dayjs(initialValue).format('DD/MM/YYYY') : '');
   const [error, setError] = useState('');
-  const [isValid, setIsValid] = useState(false);
+  const { selected, handleSelect } = useStepValidation<string>(initialValue, onComplete, onValidationChange);
 
   // Helper function to check if a date is valid
   const isValidDate = (dateStr: string): boolean => {
@@ -47,13 +49,6 @@ const DateOfBirthStep = ({ onComplete, isLoading = false }: DateOfBirthStepProps
     return true;
   };
 
-  // Convert dd/mm/yyyy to yyyy-mm-dd
-  const convertToISODate = (dateStr: string): string | null => {
-    if (!dateStr || !isValidDate(dateStr)) return null;
-    const parsed = dayjs(dateStr, 'DD/MM/YYYY', true);
-    return parsed.format('YYYY-MM-DD');
-  };
-
   const formatDateInput = (input: string): string => {
     // Remove any non-digit characters
     const numbers = input.replace(/\D/g, '');
@@ -65,7 +60,7 @@ const DateOfBirthStep = ({ onComplete, isLoading = false }: DateOfBirthStepProps
   };
 
   const getDateValidationError = (dateStr: string): string => {
-    if (!dateStr) return '';
+    if (!dateStr) return 'Please enter your date of birth';
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return 'Please enter a complete date';
 
     const [day, month, year] = dateStr.split('/').map(Number);
@@ -78,14 +73,14 @@ const DateOfBirthStep = ({ onComplete, isLoading = false }: DateOfBirthStepProps
     }
 
     if (year < 1900) return 'Year must be after 1900';
-    if (year > new Date().getFullYear()) return 'Date cannot be in the future';
+    if (year > new Date().getFullYear()) return 'Date cannot be in the future.';
 
     const inputDate = dayjs(dateStr, 'DD/MM/YYYY', true);
-    if (inputDate.isAfter(dayjs())) return 'Date cannot be in the future';
+    if (inputDate.isAfter(dayjs())) return 'Date cannot be in the future.';
 
     const age = dayjs().diff(inputDate, 'year');
-    if (age < 16) return 'You must be at least 16 years old';
-    if (age > 100) return 'Please enter a valid age below 100';
+    if (age < 18) return 'You must be at least 18 years old.';
+    if (age > 100) return 'Please enter a valid age.';
 
     return '';
   };
@@ -94,36 +89,16 @@ const DateOfBirthStep = ({ onComplete, isLoading = false }: DateOfBirthStepProps
     const formattedValue = formatDateInput(value);
     setDisplayDate(formattedValue);
     
-    // Only validate if we have a complete date
     if (formattedValue.length === 10) {
       const validationError = getDateValidationError(formattedValue);
       setError(validationError);
-      setIsValid(!validationError);
+      if (!validationError) {
+        const isoDate = dayjs(formattedValue, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        handleSelect(isoDate);
+      }
     } else {
       setError('');
-      setIsValid(false);
     }
-  };
-
-  const handleSubmit = () => {
-    if (!displayDate) {
-      setError('Please enter your date of birth');
-      return;
-    }
-
-    const validationError = getDateValidationError(displayDate);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    const isoDate = convertToISODate(displayDate);
-    if (!isoDate) {
-      setError('Please enter a valid date in DD/MM/YYYY format');
-      return;
-    }
-
-    onComplete(isoDate);
   };
 
   const getAge = (dateStr: string): number | null => {
@@ -131,61 +106,80 @@ const DateOfBirthStep = ({ onComplete, isLoading = false }: DateOfBirthStepProps
     return dayjs().diff(dayjs(dateStr, 'DD/MM/YYYY'), 'year');
   };
 
+  // Initial validation on mount if there's an initial value
+  useEffect(() => {
+    if (initialValue) {
+      const formattedDate = dayjs(initialValue).format('DD/MM/YYYY');
+      handleDateChange(formattedDate);
+    }
+  }, [initialValue]);
+
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <Input
-          type="text"
-          label="Date of Birth"
-          variant="underlined"
-          color="primary"
-          value={displayDate}
-          onValueChange={handleDateChange}
-          maxLength={10}
-          errorMessage={error}
-          isInvalid={!!error}
-        />
-        <p className="text-sm text-foreground/50 pl-1">
-          Enter your date of birth in the format: 31/12/1990
-        </p>
-
-        {/* Date Preview */}
-        {displayDate && isValid && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-4 rounded-xl bg-primary-500/5 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-primary-500" />
-              <span className="font-medium">
-                {dayjs(displayDate, 'DD/MM/YYYY').format('DD MMMM YYYY')}
-              </span>
-            </div>
-            <span className="text-sm text-foreground/60">
-              Age: {getAge(displayDate)} years
-            </span>
-          </motion.div>
-        )}
-
-        {/* Info Box */}
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-primary-500/5">
-          <AlertCircle className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-foreground/70">
-            Your age helps me create a safe and effective fitness program tailored to your life stage and capabilities.
-          </p>
+    <div className="space-y-6">
+      {/* Date Preview */}
+      <div className="flex flex-col items-center gap-4 mb-8">
+        <div className="w-20 h-20 rounded-full bg-primary-500/10 flex items-center justify-center">
+          <Calendar className="w-8 h-8 text-primary-500" />
         </div>
+        {displayDate && isValidDate(displayDate) && (
+          <div className="text-center">
+            <p className="text-xl font-semibold">
+              {dayjs(displayDate, 'DD/MM/YYYY').format('DD MMMM YYYY')}
+            </p>
+            <p className="text-sm text-foreground/60">
+              Age: {getAge(displayDate)} years
+            </p>
+          </div>
+        )}
       </div>
 
-      <Button
+      {/* Date Input */}
+      <Input
+        type="text"
+        label="Date of Birth"
+        value={displayDate}
+        onValueChange={handleDateChange}
+        maxLength={10}
+        errorMessage={error}
+        isInvalid={!!error}
+        variant="bordered"
         color="primary"
-        size="lg"
-        className="w-full bg-gradient-to-r from-primary-500 to-secondary-500"
-        onPress={handleSubmit}
-        isLoading={isLoading}
-      >
-        Continue
-      </Button>
+        radius="lg"
+        classNames={{
+          input: "text-base",
+          inputWrapper: "border-2",
+        }}
+        description="Enter your date of birth (e.g., 31/12/1990)"
+        autoFocus
+      />
+
+      {/* Info Cards */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="bg-content2">
+          <CardBody className="p-4 space-y-2">
+            <h4 className="text-sm font-semibold">Why I need this</h4>
+            <p className="text-sm text-foreground/70">
+              Your age helps me create a safe and effective fitness program tailored to your life stage and capabilities.
+            </p>
+          </CardBody>
+        </Card>
+
+        <Card className="bg-content2">
+          <CardBody className="p-4 space-y-2">
+            <h4 className="text-sm font-semibold">Requirements</h4>
+            <ul className="text-sm text-foreground/70 space-y-1">
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
+                Must be at least 18 years old
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
+                Format: DD/MM/YYYY
+              </li>
+            </ul>
+          </CardBody>
+        </Card>
+      </div>
     </div>
   );
 };

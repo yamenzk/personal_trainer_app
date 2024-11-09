@@ -1,105 +1,188 @@
 // src/components/onboarding/steps/HeightStep.tsx
-import { useState } from 'react';
-import { Input, Button, Select, SelectItem } from "@nextui-org/react";
-import { motion } from "framer-motion";
-import { Ruler, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Input, Card, CardBody, Select, SelectItem } from "@nextui-org/react";
+import { Ruler } from 'lucide-react';
+import { useStepValidation } from '@/hooks/useStepValidation';
 
 interface HeightStepProps {
   onComplete: (value: number) => void;
-  isLoading?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
+  initialValue?: number;
 }
 
-const HeightStep = ({ onComplete, isLoading = false }: HeightStepProps) => {
+// Utility functions for height conversion
+const cmToFeetInches = (cm: number): { feet: number; inches: number } => {
+  const totalInches = cm / 2.54;
+  const feet = Math.floor(totalInches / 12);
+  const inches = Math.round(totalInches % 12);
+  // Handle case where inches rounds to 12
+  if (inches === 12) {
+    return { feet: feet + 1, inches: 0 };
+  }
+  return { feet, inches };
+};
+
+const feetInchesToCm = (feet: number, inches: number): number => {
+  return Math.round((feet * 12 + inches) * 2.54);
+};
+
+const HeightStep = ({ onComplete, onValidationChange, initialValue }: HeightStepProps) => {
   const [unit, setUnit] = useState<'cm' | 'ft'>('cm');
   const [height, setHeight] = useState('');
   const [inches, setInches] = useState('');
   const [error, setError] = useState('');
+  const { handleSelect } = useStepValidation<number>(initialValue, onComplete, onValidationChange);
 
-  const handleSubmit = () => {
+  const validateHeight = (height: string, inches: string = '0') => {
     if (!height) {
       setError('Please enter your height');
-      return;
+      return false;
     }
 
     let heightInCm: number;
     
     if (unit === 'cm') {
       heightInCm = parseFloat(height);
-      if (heightInCm < 100 || heightInCm > 250) {
+      if (isNaN(heightInCm) || heightInCm < 100 || heightInCm > 250) {
         setError('Please enter a valid height between 100cm and 250cm');
-        return;
+        return false;
       }
     } else {
       const feet = parseFloat(height);
-      const inchesValue = parseFloat(inches || '0');
-      if (feet < 3 || feet > 8 || inchesValue < 0 || inchesValue >= 12) {
-        setError('Please enter a valid height');
-        return;
+      const inchesValue = parseFloat(inches);
+      if (isNaN(feet) || isNaN(inchesValue) || 
+          feet < 3 || feet > 8 || 
+          inchesValue < 0 || inchesValue >= 12) {
+        setError('Please enter a valid height (3ft - 8ft)');
+        return false;
       }
-      heightInCm = (feet * 30.48) + (inchesValue * 2.54);
+      heightInCm = feetInchesToCm(feet, inchesValue);
     }
 
-    onComplete(heightInCm);
+    setError(''); // Clear error when height is valid
+    handleSelect(Math.round(heightInCm));
+    return true;
   };
 
-  // Height categories for reference
-  // const heightCategories = [
-  //   { label: 'Below Average', range: unit === 'cm' ? '< 165' : '< 5\'5"' },
-  //   { label: 'Average', range: unit === 'cm' ? '165-175' : '5\'5" - 5\'9"' },
-  //   { label: 'Above Average', range: unit === 'cm' ? '> 175' : '> 5\'9"' },
-  // ];
+  const handleHeightChange = (value: string, inchesValue: string = inches) => {
+    setHeight(value);
+    const isValid = validateHeight(value, inchesValue);
+    onValidationChange?.(isValid);
+  };
+
+  const handleInchesChange = (value: string) => {
+    setInches(value);
+    const isValid = validateHeight(height, value);
+    onValidationChange?.(isValid);
+  };
+
+  // Initialize with initial value if provided
+  useEffect(() => {
+    if (initialValue) {
+      if (unit === 'cm') {
+        setHeight(initialValue.toString());
+        handleHeightChange(initialValue.toString());
+      } else {
+        const { feet, inches } = cmToFeetInches(initialValue);
+        setHeight(feet.toString());
+        setInches(inches.toString());
+        handleHeightChange(feet.toString(), inches.toString());
+      }
+    }
+  }, [initialValue, unit]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Height Preview */}
+      {!error && height && (
+        <div className="flex flex-col items-center gap-2 mb-4">
+          <div className="w-16 h-16 rounded-full bg-primary-500/10 flex items-center justify-center">
+            <Ruler className="w-8 h-8 text-primary-500" />
+          </div>
+          <div className="text-center">
+            <p className="text-xl font-semibold">
+              {unit === 'cm' ? 
+                `${height}cm` : 
+                `${height}'${inches || '0'}"`}
+            </p>
+            <p className="text-sm text-foreground/60">
+              {unit === 'cm' ? 
+                (() => {
+                  const { feet, inches } = cmToFeetInches(parseFloat(height));
+                  return `${feet}ft ${inches}in`;
+                })() :
+                `${feetInchesToCm(parseFloat(height), parseFloat(inches || '0'))}cm`}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Height Input */}
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         {unit === 'cm' ? (
           <Input
             type="number"
             label="Height"
+            placeholder="Enter your height"
             value={height}
-            variant="underlined"
-            color="primary"
-            onValueChange={setHeight}
+            onValueChange={handleHeightChange}
             errorMessage={error}
             isInvalid={!!error}
-            startContent={<Ruler className="text-default-400" size={18} />}
+            variant="underlined"
+            color="primary"
+            radius="lg"
+            startContent={<Ruler className="text-default-400 flex-shrink-0" size={18} />}
+            className="flex-1"
+            classNames={{
+              input: "text-base",
+            }}
           />
         ) : (
           <div className="flex gap-2 flex-1">
             <Input
               type="number"
               label="Feet"
+              placeholder="5"
               value={height}
-              onValueChange={setHeight}
-              endContent={<span className="text-default-400">ft</span>}
+              onValueChange={handleHeightChange}
               variant="underlined"
-            color="primary"
+              color="primary"
+              radius="lg"
+              className="flex-1"
+              classNames={{
+                input: "text-base",
+              }}
             />
             <Input
               type="number"
               label="Inches"
+              placeholder="8"
               value={inches}
-              onValueChange={setInches}
-              endContent={<span className="text-default-400">in</span>}
+              onValueChange={handleInchesChange}
               variant="underlined"
-            color="primary"
+              color="primary"
+              radius="lg"
+              className="flex-1"
+              classNames={{
+                input: "text-base",
+              }}
             />
           </div>
         )}
 
         <Select
-          label="Unit"
-          value={unit}
-          variant="underlined"
-          color="primary"
-          defaultSelectedKeys={["cm"]}
+          selectedKeys={[unit]}
           onChange={(e) => {
-            setUnit(e.target.value as 'cm' | 'ft');
+            const newUnit = e.target.value as 'cm' | 'ft';
+            setUnit(newUnit);
             setHeight('');
             setInches('');
             setError('');
+            onValidationChange?.(false);
           }}
+          variant="underlined"
+          color="primary"
+          radius="lg"
           className="w-32"
         >
           <SelectItem key="cm" value="cm">cm</SelectItem>
@@ -107,47 +190,18 @@ const HeightStep = ({ onComplete, isLoading = false }: HeightStepProps) => {
         </Select>
       </div>
 
-      {/* Height Categories */}
-      {/* <div className="grid grid-cols-3 gap-4">
-        {heightCategories.map(({ label, range }) => (
-          <div key={label} className="p-4 rounded-xl bg-content/5 text-center space-y-1">
-            <p className="text-sm text-foreground/60">{label}</p>
-            <p className="font-medium">{range}</p>
+      <Card className="bg-content2">
+        <CardBody className="p-3">
+          <div className="flex items-start gap-2">
+            <Ruler className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <p className="text-xs text-foreground/70">
+                Your height helps me calculate your BMI and determine appropriate fitness goals. Enter your height in either centimeters or feet and inches.
+              </p>
+            </div>
           </div>
-        ))}
-      </div> */}
-
-      {/* BMI Info */}
-      <div className="flex items-start gap-3 p-4 rounded-xl bg-primary-500/5">
-        <AlertCircle className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-        <div className="space-y-2">
-          <p className="text-sm text-foreground/70">
-            Your height will be used to calculate your BMI (Body Mass Index) and determine healthy weight ranges for your body type.
-          </p>
-          {/* <div className="flex flex-wrap gap-2">
-            {[
-              { label: 'Underweight', value: '< 18.5' },
-              { label: 'Normal', value: '18.5-24.9' },
-              { label: 'Overweight', value: '> 25' }
-            ].map(({ label, value }) => (
-              <div key={label} className="px-2 py-1 rounded-lg bg-content/10 text-xs">
-                <span className="font-medium">{label}:</span> {value}
-              </div>
-            ))}
-          </div> */}
-        </div>
-      </div>
-
-      {/* Submit Button */}
-      <Button
-        color="primary"
-        size="lg"
-        className="w-full bg-gradient-to-r from-primary-500 to-secondary-500"
-        onPress={handleSubmit}
-        isLoading={isLoading}
-      >
-        Continue
-      </Button>
+        </CardBody>
+      </Card>
     </div>
   );
 };

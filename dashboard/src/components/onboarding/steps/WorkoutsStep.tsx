@@ -1,75 +1,93 @@
-import { useState } from 'react';
-import { Button, Chip } from "@nextui-org/react";
-import { Calendar, Clock, Dumbbell, Trophy, ChartBar, Check } from 'lucide-react';
+// src/components/onboarding/steps/WorkoutsStep.tsx
+import { useState, useEffect } from 'react';
+import { Card, CardBody, Chip } from "@nextui-org/react";
+import { Calendar, Clock, Dumbbell, Trophy, ChartBar, Timer, Info, Activity } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { useStepValidation } from '@/hooks/useStepValidation';
 
 interface WorkoutsStepProps {
   onComplete: (value: number) => void;
-  isLoading?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
+  initialValue?: number;
 }
 
-// Define day type for type safety
 type WeekDay = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
 const WEEK_DAYS: WeekDay[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const WorkoutsStep = ({ onComplete, isLoading = false }: WorkoutsStepProps) => {
-  const [selected, setSelected] = useState<number | null>(null);
-  const [error, setError] = useState('');
-
-  const workoutOptions = [
-    {
-      value: 3,
-      title: '3 Workouts',
-      description: 'Beginner Friendly',
-      schedule: ['Mon', 'Wed', 'Fri'] as WeekDay[],
-      duration: '45-60 min',
-      intensity: 1,
-      color: 'primary',
-      features: ['Perfect for beginners', 'Good recovery time', 'Balanced lifestyle']
-    },
-    {
-      value: 4,
-      title: '4 Workouts',
-      description: 'Balanced Approach',
-      schedule: ['Mon', 'Tue', 'Thu', 'Fri'] as WeekDay[],
-      duration: '45-60 min',
-      intensity: 2,
-      color: 'secondary',
-      features: ['Consistent progress', 'Flexible schedule', 'Good results']
-    },
-    {
-      value: 5,
-      title: '5 Workouts',
-      description: 'Intermediate Level',
-      schedule: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as WeekDay[],
-      duration: '60-75 min',
-      intensity: 3,
-      color: 'success',
-      features: ['Faster results', 'Better conditioning', 'Strength gains']
-    },
-    {
-      value: 6,
-      title: '6 Workouts',
-      description: 'Advanced Training',
-      schedule: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as WeekDay[],
-      duration: '60-90 min',
-      intensity: 4,
-      color: 'warning',
-      features: ['Maximum results', 'Athletic performance', 'Body recomposition']
+const workoutOptions = [
+  {
+    value: 3,
+    title: '3 Times a Week',
+    description: 'Beginner Friendly',
+    schedule: ['Mon', 'Wed', 'Fri'] as WeekDay[],
+    duration: '45-60 min',
+    intensity: 1,
+    color: 'primary',
+    features: ['Full body workouts', 'Good recovery time', 'PPL split'],
+    details: {
+      splits: ['Rest', 'Push', 'Rest', 'Pull', 'Rest', 'Legs', 'Rest'],
+      recovery: 'Excellent recovery between sessions',
+      ideal: 'Perfect for beginners or those with busy schedules',
+      results: 'Steady progress with focus on form and fundamentals'
     }
-  ] as const;
-
-  const handleSubmit = () => {
-    if (!selected) {
-      setError('Please select your preferred workout frequency');
-      return;
+  },
+  {
+    value: 4,
+    title: '4 Times a Week',
+    description: 'Balanced Approach',
+    schedule: ['Mon', 'Tue', 'Thu', 'Fri'] as WeekDay[],
+    duration: '45-60 min',
+    intensity: 2,
+    color: 'secondary',
+    features: ['Upper/Lower split', 'Balanced recovery', 'Consistent progress'],
+    details: {
+      splits: ['Rest', 'Upper', 'Lower', 'Rest', 'Upper', 'Lower', 'Rest'],
+      recovery: 'Good balance of work and recovery',
+      ideal: 'Great for consistent progress while maintaining work-life balance',
+      results: 'Effective muscle targeting with adequate recovery'
     }
-    onComplete(selected);
-  };
+  },
+  {
+    value: 5,
+    title: '5 Times a Week',
+    description: 'Intermediate Level',
+    schedule: ['Sun', 'Mon', 'Tue', 'Thu', 'Fri'] as WeekDay[],
+    duration: '60-75 min',
+    intensity: 3,
+    color: 'success',
+    features: ['Body part splits', 'Enhanced focus', 'Faster progress'],
+    details: {
+      splits: ['Push', 'Pull', 'Legs', 'Rest', 'Upper', 'Lower', 'Rest'],
+      recovery: 'Strategic split for optimal muscle recovery',
+      ideal: 'Perfect for those focused on muscle growth and strength',
+      results: 'Significant strength gains and muscle development'
+    }
+  },
+  {
+    value: 6,
+    title: '6 Times a Week',
+    description: 'Advanced Training',
+    schedule: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as WeekDay[],
+    duration: '60-90 min',
+    intensity: 4,
+    color: 'warning',
+    features: ['PPL split 2x', 'Maximum volume', 'Elite results'],
+    details: {
+      splits: ['Rest', 'Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs'],
+      recovery: 'Advanced recovery management required',
+      ideal: 'For experienced trainers and athletes',
+      results: 'Maximum muscle growth and strength development'
+    }
+  }
+] as const;
+
+const WorkoutsStep = ({ onComplete, onValidationChange, initialValue }: WorkoutsStepProps) => {
+  const { selected, handleSelect } = useStepValidation(initialValue, onComplete, onValidationChange);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-3">
+      {/* Workout Options */}
+      <div className="grid gap-4">
         {workoutOptions.map(({
           value,
           title,
@@ -78,45 +96,46 @@ const WorkoutsStep = ({ onComplete, isLoading = false }: WorkoutsStepProps) => {
           duration,
           intensity,
           color,
-          features
+          features,
+          details
         }) => (
-          <button
+          <Card
             key={value}
-            onClick={() => {
-              setSelected(value);
-              setError('');
-            }}
+            isPressable
+            isHoverable
+            onPress={() => handleSelect(value)}
             className={cn(
-              "w-full text-left",
-              "p-4 rounded-xl",
-              "transition-all duration-150",
-              "active:scale-[0.98]",
-              "outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+              "w-full border-2 transition-all duration-200",
               selected === value 
-                ? `bg-${color}-500/20 ring-2 ring-${color}-500` 
-                : 'bg-content/5 hover:bg-content/10'
+                ? `border-${color}-500 bg-${color}-500/5`
+                : "border-transparent hover:bg-content1"
             )}
           >
-            <div className="space-y-3">
+            <CardBody className="p-4">
               {/* Header */}
-              <div className="flex items-start justify-between gap-3">
-                <div>
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex-1">
                   <h3 className="font-medium flex items-center gap-2">
                     {title}
-                    {selected === value && (
-                      <Check size={16} className={`text-${color}-500`} />
-                    )}
+                    {/* <Chip
+                      size="sm"
+                      color={color}
+                      variant="flat"
+                      startContent={<Timer className="w-3 h-3" />}
+                    >
+                      {duration}
+                    </Chip> */}
                   </h3>
                   <p className="text-sm text-foreground/60">{description}</p>
                 </div>
 
                 {/* Intensity Indicator */}
-                <div className="flex gap-1">
+                <div className="flex gap-1 absolute top-3 right-3">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div
                       key={i}
                       className={cn(
-                        "w-1 h-4 rounded-full transition-colors duration-150",
+                        "w-1 h-6 rounded-full transition-colors duration-200",
                         i < intensity
                           ? selected === value
                             ? `bg-${color}-500`
@@ -128,73 +147,91 @@ const WorkoutsStep = ({ onComplete, isLoading = false }: WorkoutsStepProps) => {
                 </div>
               </div>
 
-              {/* Schedule Days */}
-              <div className="flex gap-1.5">
-                {WEEK_DAYS.map((day) => (
-                  <div
-                    key={day}
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center text-xs",
-                      "transition-colors duration-150",
-                      schedule.includes(day)
-                        ? selected === value
-                          ? `bg-${color}-500 text-white`
-                          : `bg-${color}-500/20 text-${color}-500`
-                        : 'bg-content/5 text-foreground/40'
-                    )}
-                  >
-                    {day[0]}
-                  </div>
-                ))}
+              {/* Weekly Schedule */}
+              <div className="mb-4">
+                <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <Calendar className={`w-4 h-4 text-${color}-500`} />
+                  Weekly Schedule
+                </p>
+                <div className="grid grid-cols-7 gap-1">
+                  {WEEK_DAYS.map((day, index) => (
+                    <div
+                      key={day}
+                      className="text-center"
+                    >
+                      <div className={cn(
+                        "mx-auto w-8 h-8 rounded-lg flex items-center justify-center text-xs mb-1",
+                        "transition-colors duration-200",
+                        schedule.includes(day)
+                          ? selected === value
+                            ? `bg-${color}-500 text-white`
+                            : `bg-${color}-500/20 text-${color}-500`
+                          : 'bg-content2/20 text-foreground/20'
+                      )}>
+                        {day}
+                      </div>
+                      <div className={cn(
+                        "text-[10px] px-1 py-0.5 rounded",
+                        schedule.includes(day)
+                          ? selected === value
+                            ? `bg-${color}-500/10 text-${color}-600`
+                            : "bg-content2/60"
+                          : "bg-content2/20 text-foreground/20",
+                      )}>
+                        {details.splits[index]}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Features */}
-              <div className="flex flex-wrap items-center gap-2">
-                <Chip
-                  size="sm"
-                  startContent={<Clock size={14} />}
-                  className={cn(
-                    "transition-colors duration-150",
-                    selected === value
-                      ? `bg-${color}-500/20 text-${color}-500`
-                      : 'bg-content/10'
-                  )}
-                >
-                  {duration}
-                </Chip>
-                {features.map((feature, index) => (
-                  <Chip
-                    key={index}
-                    size="sm"
-                    className={cn(
-                      "transition-colors duration-150",
-                      selected === value
-                        ? `bg-${color}-500/20 text-${color}-500`
-                        : 'bg-content/10'
-                    )}
-                  >
-                    {feature}
-                  </Chip>
-                ))}
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {features.map((feature) => (
+                    <Chip
+                      key={feature}
+                      size="sm"
+                      variant="solid"
+                      color={color}
+                      startContent={<Activity className="w-3 h-3" />}
+                      className={selected === value ? 'opacity-70' : 'opacity-30'}
+                    >
+                      {feature}
+                    </Chip>
+                  ))}
+                </div>
+
+                {selected === value && (
+                  <div className={cn(
+                    "flex items-start gap-2 p-2 rounded-lg text-sm",
+                    `bg-${color}-500/10`
+                  )}>
+                    <Info className={`w-4 h-4 text-${color}-500 flex-shrink-0 mt-0.5`} />
+                    <div className="space-y-1">
+                      <p>{details.ideal}</p>
+                      <p className="text-foreground/60">{details.recovery}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          </button>
+            </CardBody>
+          </Card>
         ))}
       </div>
 
-      {error && (
-        <p className="text-danger text-sm text-center">{error}</p>
-      )}
-
-      <Button
-        color="primary"
-        size="lg"
-        className="w-full bg-gradient-to-r from-primary-500 to-secondary-500"
-        onPress={handleSubmit}
-        isLoading={isLoading}
-      >
-        Continue
-      </Button>
+      {/* Help Text */}
+      <Card className="bg-content2">
+        <CardBody className="p-3">
+          <div className="flex gap-2">
+            <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-foreground/70">
+              Choose a workout frequency that matches your experience level and availability. 
+              I'll design your program to maximize results while ensuring proper recovery between sessions.
+            </p>
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 };

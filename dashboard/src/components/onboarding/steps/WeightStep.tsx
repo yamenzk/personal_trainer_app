@@ -1,71 +1,124 @@
 // src/components/onboarding/steps/WeightStep.tsx
-import { useState } from 'react';
-import { Input, Button, Select, SelectItem } from "@nextui-org/react";
-import { motion } from "framer-motion";
-import { Scale } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Input, Select, SelectItem, Card, CardBody } from "@nextui-org/react";
+import { Scale, AlertCircle } from 'lucide-react';
 
 interface WeightStepProps {
   onComplete: (value: number) => void;
-  isLoading?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
+  initialValue?: number;
 }
 
-const WeightStep = ({ onComplete, isLoading = false }: WeightStepProps) => {
+const WeightStep = ({ onComplete, onValidationChange, initialValue }: WeightStepProps) => {
   const [unit, setUnit] = useState<'kg' | 'lb'>('kg');
   const [weight, setWeight] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = () => {
-    if (!weight) {
+  const validateWeight = (value: string) => {
+    if (!value) {
       setError('Please enter your current weight');
-      return;
+      return false;
     }
 
-    const weightValue = parseFloat(weight);
+    const weightValue = parseFloat(value);
     if (isNaN(weightValue) || weightValue <= 0) {
       setError('Please enter a valid weight');
-      return;
+      return false;
     }
 
-    // Convert to kg if needed
     const weightInKg = unit === 'lb' ? weightValue * 0.453592 : weightValue;
 
-    // Validate reasonable range (30kg - 300kg)
     if (weightInKg < 30 || weightInKg > 300) {
-      setError('Please enter a reasonable weight');
-      return;
+      setError('Please enter a reasonable weight (30kg - 300kg)');
+      return false;
     }
 
-    onComplete(Math.round(weightInKg * 10) / 10); // Round to 1 decimal place
+    setError('');
+    onComplete(Math.round(weightInKg * 10) / 10);
+    return true;
   };
 
+  const handleWeightChange = (value: string) => {
+    setWeight(value);
+    const isValid = validateWeight(value);
+    onValidationChange?.(isValid);
+  };
+
+  // Initialize with initial value if provided
+  useEffect(() => {
+    if (initialValue) {
+      const displayWeight = unit === 'lb' ? 
+        (initialValue * 2.20462).toFixed(1) : 
+        initialValue.toString();
+      setWeight(displayWeight);
+      handleWeightChange(displayWeight);
+    }
+  }, [initialValue, unit]);
+
+  const getWeightCategory = (weightKg: number) => {
+    if (weightKg < 50) return { label: 'Light', color: 'primary' };
+    if (weightKg < 80) return { label: 'Medium', color: 'success' };
+    return { label: 'Heavy', color: 'secondary' };
+  };
+
+  const currentWeightKg = parseFloat(weight) * (unit === 'lb' ? 0.453592 : 1);
+  const weightCategory = !isNaN(currentWeightKg) ? getWeightCategory(currentWeightKg) : null;
+
   return (
-    <div className="space-y-8">
-      <div className="flex gap-4">
+    <div className="space-y-6">
+      {/* Weight Preview */}
+      {!error && weight && !isNaN(parseFloat(weight)) && (
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-16 h-16 rounded-full bg-primary-500/10 flex items-center justify-center">
+            <Scale className="w-8 h-8 text-primary-500" />
+          </div>
+          <div className="text-center">
+            <p className="text-xl font-semibold">
+              {weight} {unit}
+            </p>
+            <p className="text-sm text-foreground/60">
+              {unit === 'kg' ? 
+                `${(parseFloat(weight) * 2.20462).toFixed(1)} lb` : 
+                `${(parseFloat(weight) * 0.453592).toFixed(1)} kg`}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Weight Input */}
+      <div className="flex gap-3">
         <Input
           type="number"
           label="Weight"
           value={weight}
-          variant="underlined"
-            color="primary"
-          onValueChange={(value) => {
-            setWeight(value);
-            setError('');
-          }}
+          onValueChange={handleWeightChange}
           errorMessage={error}
           isInvalid={!!error}
-        />
-        
-        <Select
-          label="Unit"
-          value={unit}
-          defaultSelectedKeys={["kg"]}
           variant="underlined"
           color="primary"
+          radius="lg"
+        />
+
+        <Select
+          label="Unit"
+          selectedKeys={[unit]}
           onChange={(e) => {
-            setUnit(e.target.value as 'kg' | 'lb');
-            setWeight('');
-            setError('');
+            const newUnit = e.target.value as 'kg' | 'lb';
+            setUnit(newUnit);
+            if (weight && !isNaN(parseFloat(weight))) {
+              const newWeight = newUnit === 'lb' ? 
+                (parseFloat(weight) * 2.20462).toFixed(1) : 
+                (parseFloat(weight) * 0.453592).toFixed(1);
+              handleWeightChange(newWeight);
+            } else {
+              setWeight('');
+              setError('');
+              onValidationChange?.(false);
+            }
           }}
+          variant="underlined"
+          color="primary"
+          radius="lg"
           className="w-32"
         >
           <SelectItem key="kg" value="kg">kg</SelectItem>
@@ -73,33 +126,19 @@ const WeightStep = ({ onComplete, isLoading = false }: WeightStepProps) => {
         </Select>
       </div>
 
-      {/* Weight ranges info */}
-      {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-primary-500/5 space-y-1 text-center">
-          <p className="text-sm text-foreground/60">Underweight</p>
-          <p className="font-medium">Below {unit === 'kg' ? '50' : '110'} {unit}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-success-500/5 space-y-1 text-center">
-          <p className="text-sm text-foreground/60">Healthy</p>
-          <p className="font-medium">
-            {unit === 'kg' ? '50 - 100' : '110 - 220'} {unit}
-          </p>
-        </div>
-        <div className="p-4 rounded-xl bg-warning-500/5 space-y-1 text-center">
-          <p className="text-sm text-foreground/60">Overweight</p>
-          <p className="font-medium">Above {unit === 'kg' ? '100' : '220'} {unit}</p>
-        </div>
-      </div> */}
-
-      <Button
-        color="primary"
-        size="lg"
-        className="w-full bg-gradient-to-r from-primary-500 to-secondary-500"
-        onPress={handleSubmit}
-        isLoading={isLoading}
-      >
-        Continue
-      </Button>
+      {/* Info Card */}
+      <Card className="bg-content2">
+        <CardBody className="p-3">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <p className="text-xs text-foreground/70">
+                Your current weight helps me understand your starting point and calculate appropriate fitness goals.
+              </p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 };

@@ -1,159 +1,156 @@
-import { useState } from 'react';
-import { Button, Chip } from "@nextui-org/react";
-import { Scale, Dumbbell, Target, Shield, ArrowRight, Check } from 'lucide-react';
+// src/components/onboarding/steps/GoalStep.tsx
+import { useState, useEffect } from 'react';
+import { Card, CardBody } from "@nextui-org/react";
+import { Scale, Dumbbell, Target, Shield, BadgeCheck } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { useStepValidation } from '@/hooks/useStepValidation';
 
 interface GoalStepProps {
   onComplete: (goal: string) => void;
-  isLoading?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
+  initialValue?: string;
 }
 
-const GoalStep = ({ onComplete, isLoading = false }: GoalStepProps) => {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [error, setError] = useState('');
+export type FitnessGoal = 'Weight Loss' | 'Weight Gain' | 'Muscle Building' | 'Maintenance';
 
-  const goals = [
-    {
-      id: 'Weight Loss',
-      title: 'Weight Loss',
-      description: 'Reduce body fat and improve overall fitness',
-      icon: Scale,
-      color: 'primary',
-      features: ['Fat loss', 'Cardio focus', 'Caloric deficit']
-    },
-    {
-      id: 'Weight Gain',
-      title: 'Weight Gain',
-      description: 'Build mass and increase body weight',
-      icon: Target,
-      color: 'secondary',
-      features: ['Mass gain', 'Strength focus', 'Caloric surplus']
-    },
-    {
-      id: 'Muscle Building',
-      title: 'Muscle Building',
-      description: 'Focus on strength and muscle development',
-      icon: Dumbbell,
-      color: 'success',
-      features: ['Hypertrophy', 'Progressive overload', 'Body recomposition']
-    },
-    {
-      id: 'Maintenance',
-      title: 'Maintenance',
-      description: 'Maintain current weight and improve fitness',
-      icon: Shield,
-      color: 'warning',
-      features: ['Balance', 'Overall fitness', 'Body maintenance']
-    },
-  ] as const;
+const goals = [
+  {
+    id: 'Weight Loss' as const,
+    title: 'Weight Loss',
+    description: 'Reduce body fat and improve overall fitness',
+    icon: Scale,
+    color: 'primary',
+    features: [
+      { text: 'Fat loss through caloric deficit', icon: '🔥' },
+      { text: 'Cardio-focused training', icon: '🏃' },
+      { text: 'Nutrition planning', icon: '🥗' }
+    ]
+  },
+  {
+    id: 'Weight Gain' as const,
+    title: 'Weight Gain',
+    description: 'Build mass and increase body weight',
+    icon: Target,
+    color: 'secondary',
+    features: [
+      { text: 'Mass gain through surplus', icon: '📈' },
+      { text: 'Strength-focused training', icon: '💪' },
+      { text: 'High-protein diet', icon: '🥩' }
+    ]
+  },
+  {
+    id: 'Muscle Building' as const,
+    title: 'Muscle Building',
+    description: 'Focus on strength and muscle development',
+    icon: Dumbbell,
+    color: 'success',
+    features: [
+      { text: 'Muscle hypertrophy', icon: '🏋️' },
+      { text: 'Progressive overload', icon: '📊' },
+      { text: 'Body recomposition', icon: '⚖️' }
+    ]
+  },
+  {
+    id: 'Maintenance' as const,
+    title: 'Maintenance',
+    description: 'Maintain current weight and improve fitness',
+    icon: Shield,
+    color: 'warning',
+    features: [
+      { text: 'Overall fitness balance', icon: '⚡' },
+      { text: 'Performance focus', icon: '🎯' },
+      { text: 'Healthy lifestyle', icon: '🌟' }
+    ]
+  },
+] as const;
 
-  const handleSubmit = () => {
-    if (!selected) {
-      setError('Please select your goal');
-      return;
-    }
-    onComplete(selected);
-  };
+const GoalStep = ({ onComplete, onValidationChange, initialValue }: GoalStepProps) => {
+  const { selected, handleSelect } = useStepValidation<FitnessGoal>(
+    initialValue as FitnessGoal,
+    onComplete,
+    onValidationChange
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-3">
-        {goals.map(({ id, title, description, icon: Icon, color, features }) => (
-          <button
-            key={id}
-            onClick={() => {
-              setSelected(id);
-              setError('');
-            }}
-            className={cn(
-              "w-full text-left",
-              "p-4 rounded-xl",
-              "transition-all duration-150",
-              "active:scale-[0.98]",
-              "outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
-              selected === id 
-                ? `bg-${color}-500/20 ring-2 ring-${color}-500` 
-                : 'bg-content/5 hover:bg-content/10'
-            )}
-          >
-            <div className="flex gap-3">
-              {/* Icon */}
+    <div className="space-y-3">
+      {goals.map(({ id, title, description, icon: Icon, color, features }) => (
+        <Card
+          key={id}
+          isPressable
+          isHoverable
+          onPress={() => handleSelect(id)}
+          className={cn(
+            "w-full border-2 transition-all duration-200",
+            selected === id 
+              ? `border-${color}-500 bg-${color}-500/5`
+              : "border-transparent hover:bg-content1"
+          )}
+        >
+          <CardBody className="p-4">
+            <div className="flex gap-4">
+              {/* Icon Column */}
               <div className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
-                "transition-colors duration-150",
+                "w-12 h-12 rounded-lg flex items-center justify-center shrink-0",
+                "transition-colors duration-200",
                 selected === id
                   ? `bg-${color}-500`
-                  : `bg-${color}-500/10 group-hover:bg-${color}-500/20`
+                  : `bg-${color}-500/10`
               )}>
                 <Icon 
-                  className={cn(
-                    "transition-colors duration-150",
-                    selected === id
-                      ? "text-white"
-                      : `text-${color}-500`
-                  )}
-                  size={20} 
+                  className={selected === id ? "text-white" : `text-${color}-500`}
+                  size={24}
                 />
               </div>
 
-              {/* Content */}
+              {/* Content Column */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="font-medium flex items-center gap-2">
-                      {title}
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-medium">{title}</h3>
                       {selected === id && (
-                        <Check size={16} className={`text-${color}-500`} />
+                        <BadgeCheck className={`w-4 h-4 text-${color}-500`} />
                       )}
-                    </h3>
-                    <p className="text-sm text-foreground/60">{description}</p>
+                    </div>
+                    <p className="text-sm text-foreground/60 mb-3">{description}</p>
                   </div>
-                  <ArrowRight 
-                    size={16} 
-                    className={cn(
-                      "opacity-0 transition-opacity duration-200",
-                      selected === id && "opacity-100",
-                      `text-${color}-500`
-                    )}
-                  />
                 </div>
 
                 {/* Features */}
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {features.map((feature) => (
-                    <Chip
-                      key={feature}
-                      size="sm"
+                <div className="space-y-1.5">
+                  {features.map(({ text, icon }) => (
+                    <div 
+                      key={text}
                       className={cn(
-                        "transition-colors duration-150",
+                        "flex items-center gap-2 text-sm px-2 py-1 rounded",
                         selected === id
-                          ? `bg-${color}-500/20 text-${color}-500`
-                          : 'bg-content/10'
+                          ? `bg-${color}-500/10`
+                          : "bg-content2/20"
                       )}
                     >
-                      {feature}
-                    </Chip>
+                      <span className="text-base">{icon}</span>
+                      <span className="text-foreground/80">{text}</span>
+                    </div>
                   ))}
                 </div>
               </div>
             </div>
-          </button>
-        ))}
-      </div>
+          </CardBody>
+        </Card>
+      ))}
 
-      {error && (
-        <p className="text-danger text-sm text-center">{error}</p>
-      )}
-
-      <Button
-        color="primary"
-        size="lg"
-        className="w-full bg-gradient-to-r from-primary-500 to-secondary-500"
-        onPress={handleSubmit}
-        isLoading={isLoading}
-      >
-        Continue
-      </Button>
+      {/* Help Text */}
+      <Card className="bg-content2">
+        <CardBody className="p-3">
+          <div className="flex gap-2">
+            <Target className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-foreground/70">
+              Your goal helps me create a personalized program that focuses on the right balance 
+              of exercise types and nutrition recommendations for optimal results.
+            </p>
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 };

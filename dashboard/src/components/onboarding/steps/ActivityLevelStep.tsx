@@ -1,148 +1,187 @@
-import { useState } from 'react';
-import { Button } from "@nextui-org/react";
-import { Armchair, Footprints, Rabbit, Dumbbell, Zap } from 'lucide-react';
+// src/components/onboarding/steps/ActivityLevelStep.tsx
+import { useState, useEffect } from 'react';
+import { Card, CardBody } from "@nextui-org/react";
+import { Armchair, Footprints, Rabbit, Dumbbell, Zap, Activity } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { useStepValidation } from '@/hooks/useStepValidation';
 
 interface ActivityLevelStepProps {
   onComplete: (value: string) => void;
-  isLoading?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
+  initialValue?: string;
 }
 
-const ActivityLevelStep = ({ onComplete, isLoading = false }: ActivityLevelStepProps) => {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [error, setError] = useState('');
+type ActivityLevel = 'Sedentary' | 'Light' | 'Moderate' | 'Very Active' | 'Extra Active';
 
-  const activityLevels = [
-    {
-      value: 'Sedentary',
-      title: 'Sedentary',
-      description: 'Little to no exercise, desk job',
-      icon: Armchair,
-      color: 'default',
-      intensity: 1,
-    },
-    {
-      value: 'Light',
-      title: 'Lightly Active',
-      description: 'Light exercise 1-3 days/week',
-      icon: Footprints,
-      color: 'primary',
-      intensity: 2,
-    },
-    {
-      value: 'Moderate',
-      title: 'Moderately Active',
-      description: 'Moderate exercise 3-5 days/week',
-      icon: Rabbit,
-      color: 'secondary',
-      intensity: 3,
-    },
-    {
-      value: 'Very Active',
-      title: 'Very Active',
-      description: 'Hard exercise 6-7 days/week',
-      icon: Dumbbell,
-      color: 'success',
-      intensity: 4,
-    },
-    {
-      value: 'Extra Active',
-      title: 'Extra Active',
-      description: 'Very hard exercise & physical job',
-      icon: Zap,
-      color: 'warning',
-      intensity: 5,
-    },
-  ] as const;
+const activityLevels = [
+  {
+    value: 'Sedentary' as ActivityLevel,
+    title: 'Sedentary',
+    description: 'Little to no exercise, desk job',
+    details: 'Daily activities only, mostly sitting',
+    icon: Armchair,
+    color: 'neutral', // changed from 'default'
+    intensity: 1,
+    calories: '× 1.2 BMR'
+  },
+  {
+    value: 'Light' as ActivityLevel,
+    title: 'Lightly Active',
+    description: 'Light exercise 1-3 days/week',
+    details: 'Walking, light stretching, casual sports',
+    icon: Footprints,
+    color: 'primary',
+    intensity: 2,
+    calories: '× 1.375 BMR'
+  },
+  {
+    value: 'Moderate' as ActivityLevel,
+    title: 'Moderately Active',
+    description: 'Moderate exercise 3-5 days/week',
+    details: 'Jogging, recreational sports, regular workouts',
+    icon: Rabbit,
+    color: 'secondary',
+    intensity: 3,
+    calories: '× 1.55 BMR'
+  },
+  {
+    value: 'Very Active' as ActivityLevel,
+    title: 'Very Active',
+    description: 'Hard exercise 6-7 days/week',
+    details: 'Intense training, competitive sports',
+    icon: Dumbbell,
+    color: 'success',
+    intensity: 4,
+    calories: '× 1.725 BMR'
+  },
+  {
+    value: 'Extra Active' as ActivityLevel,
+    title: 'Extra Active',
+    description: 'Very hard exercise & physical job',
+    details: 'Professional athlete or extremely active lifestyle',
+    icon: Zap,
+    color: 'warning',
+    intensity: 5,
+    calories: '× 1.9 BMR'
+  },
+] as const;
 
-  const handleSubmit = () => {
-    if (!selected) {
-      setError('Please select your activity level');
-      return;
-    }
-    onComplete(selected);
-  };
+const ActivityLevelStep = ({ onComplete, onValidationChange, initialValue }: ActivityLevelStepProps) => {
+  const { selected, handleSelect } = useStepValidation<ActivityLevel>(initialValue as ActivityLevel, onComplete, onValidationChange);
 
   return (
     <div className="space-y-6">
+      {/* Activity Levels */}
       <div className="space-y-3">
-        {activityLevels.map(({ value, title, description, icon: Icon, color, intensity }) => (
-          <button
+        {activityLevels.map(({ value, title, description, details, icon: Icon, color, intensity, calories }) => (
+          <Card
             key={value}
-            onClick={() => {
-              setSelected(value);
-              setError('');
-            }}
+            isPressable
+            isHoverable
+            onPress={() => handleSelect(value)}
             className={cn(
-              "w-full group",
-              "relative p-4 rounded-xl text-left",
-              "transition-all duration-150",
-              "active:scale-[0.98]",
+              "w-full border-2 transition-all duration-200",
               selected === value 
-                ? `bg-${color}-500/20 ring-2 ring-${color}-500` 
-                : 'bg-content/5 hover:bg-content/10',
-              "outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                ? color === 'neutral'
+                  ? "border-foreground/50 bg-foreground/5"
+                  : `border-${color}-500 bg-${color}-500/5`
+                : "border-transparent hover:bg-content1"
             )}
           >
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
-                "transition-colors duration-150",
-                selected === value
-                  ? `bg-${color}-500`
-                  : `bg-${color}-500/10 group-hover:bg-${color}-500/20`
-              )}>
-                <Icon 
-                  className={cn(
-                    "transition-colors duration-150",
-                    selected === value
-                      ? "text-white"
-                      : `text-${color}-500`
-                  )}
-                  size={20} 
-                />
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-medium truncate">{title}</h3>
-                  <div className="flex gap-1 shrink-0">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          "w-3 h-1 rounded-full",
-                          "transition-colors duration-150",
-                          i < intensity
-                            ? selected === value 
-                              ? `bg-${color}-500`
-                              : `bg-${color}-500/40 group-hover:bg-${color}-500/60`
-                            : 'bg-content/10'
-                        )}
-                      />
-                    ))}
+            <CardBody className="p-4">
+              <div className="flex gap-4">
+                {/* Icon */}
+                <div className={cn(
+                  "w-12 h-12 rounded-lg flex items-center justify-center shrink-0",
+                  "transition-colors duration-200",
+                  selected === value
+                    ? color === 'neutral'
+                      ? "bg-foreground/50"
+                      : `bg-${color}-500`
+                    : color === 'neutral'
+                      ? "bg-foreground/10"
+                      : `bg-${color}-500/10`
+                )}>
+                  <Icon 
+                    className={cn(
+                      selected === value 
+                        ? "text-white" 
+                        : color === 'neutral'
+                          ? "text-foreground/90"
+                          : `text-${color}-500`
+                    )}
+                    size={24}
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="text-base font-medium">{title}</h3>
+                      <p className="text-sm text-foreground/60">{description}</p>
+                    </div>
+                    
+                    {/* Intensity Indicators */}
+                    <div className="flex gap-1 pt-1.5 absolute top-2 right-2">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "w-4 h-1.5 rounded-full transition-colors duration-200",
+                            i < intensity
+                              ? selected === value 
+                                ? color === 'neutral'
+                                  ? "bg-foreground/90"
+                                  : `bg-${color}-500`
+                                : color === 'neutral'
+                                  ? "bg-transparent"
+                                  : `bg-${color}-500/40`
+                              : 'bg-transparent'
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Additional Details */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <div className={cn(
+                      "text-xs py-1 rounded"
+                    )}>
+                      {details}
+                    </div>
+                    {/* <div className={cn(
+                      "text-xs px-2 py-1 rounded flex items-center gap-1",
+                      selected === value
+                        ? color === 'neutral'
+                          ? "bg-foreground/10 text-foreground/90"
+                          : `bg-${color}-500/10 text-${color}-600`
+                        : "bg-content2/40"
+                    )}>
+                      <Activity className="w-3 h-3" />
+                      {calories}
+                    </div> */}
                   </div>
                 </div>
-                <p className="text-sm text-foreground/60 truncate">{description}</p>
               </div>
-            </div>
-          </button>
+            </CardBody>
+          </Card>
         ))}
       </div>
 
-      {error && (
-        <p className="text-danger text-sm text-center">{error}</p>
-      )}
-
-      <Button
-        color="primary"
-        size="lg"
-        className="w-full bg-gradient-to-r from-primary-500 to-secondary-500"
-        onPress={handleSubmit}
-        isLoading={isLoading}
-      >
-        Continue
-      </Button>
+      {/* Help Text */}
+      <Card className="bg-content2">
+        <CardBody className="p-3">
+          <div className="flex gap-2">
+            <Activity className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-foreground/70">
+              Your activity level helps me calculate your daily calorie needs and adjust your 
+              fitness program intensity. Choose the option that best matches your typical week.
+            </p>
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 };

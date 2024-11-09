@@ -60,18 +60,18 @@ const needsOnboarding = (client: Client | null) => {
   
   const requiredFields: (keyof Client)[] = [
     'client_name',
+    'email',
     'date_of_birth',
     'gender',
-    'email',
     'nationality',
     'height',
     'weight',
+    'goal',
     'target_weight',
     'activity_level',
     'equipment',
-    'goal',
+    'workouts',
     'meals',
-    'workouts'
   ];
 
   return requiredFields.some(field => {
