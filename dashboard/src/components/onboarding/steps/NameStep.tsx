@@ -1,7 +1,8 @@
 // src/components/onboarding/steps/NameStep.tsx
 import { useState, useEffect } from 'react';
-import { Input, Avatar } from "@nextui-org/react";
-import { User } from 'lucide-react';
+import { Input, Card } from "@nextui-org/react";
+import { User, Mail, Bell, Shield, ChartBarIcon, Info, Check } from 'lucide-react';
+import { cn } from '@/utils/cn';
 
 interface NameStepProps {
   onComplete: (value: string) => void;
@@ -17,29 +18,23 @@ const NameStep = ({ onComplete, onValidationChange, initialValue = '' }: NameSte
 
   const validateName = (value: string) => {
     const trimmedValue = value.trim();
-    
     if (!trimmedValue) {
       setError('Please enter your name');
       return false;
     }
-
     const words = trimmedValue.split(/\s+/);
-    
     if (words.length < 2) {
       setError('Please enter both your first and last name');
       return false;
     }
-
     if (words.some(word => word.length < 2)) {
       setError('Each name should be at least 2 characters long');
       return false;
     }
-
     if (words.some(word => !/^[a-zA-Z\-\']+$/.test(word))) {
       setError('Names should only contain letters, hyphens, and apostrophes');
       return false;
     }
-
     setError('');
     return true;
   };
@@ -55,21 +50,14 @@ const NameStep = ({ onComplete, onValidationChange, initialValue = '' }: NameSte
   const handleChange = (value: string) => {
     const formattedName = formatName(value);
     setName(formattedName);
-    
-    // Validate and update state
     const valid = validateName(formattedName);
     setIsValid(valid);
-    
-    // Notify parent of validation state
     onValidationChange?.(valid);
-    
-    // If valid, update the parent's form data
     if (valid) {
       onComplete(formattedName.trim());
     }
   };
 
-  // Initial validation on mount if there's an initial value
   useEffect(() => {
     if (initialValue) {
       handleChange(initialValue);
@@ -77,15 +65,29 @@ const NameStep = ({ onComplete, onValidationChange, initialValue = '' }: NameSte
   }, [initialValue]);
 
   return (
-    <div className="space-y-6">
-      {/* Name Preview Avatar */}
-      <div className="flex flex-col items-center gap-4 mb-8">
-      <div className="w-20 h-20 rounded-full bg-primary-500/10 flex items-center justify-center">
-          <User className="w-8 h-8 text-primary-500" />
+    <div className="space-y-4">
+
+      {/* Name Preview */}
+      <div className="flex flex-col items-center py-4">
+        <div className="relative">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-b from-primary-500/20 to-background flex items-center justify-center">
+            {isValid ? (
+              <span className="text-xl font-semibold text-primary-500">
+                {name.split(' ').map(n => n[0]).join('')}
+              </span>
+            ) : (
+              <User className="w-6 h-6 text-primary-500" />
+            )}
+          </div>
+          {isValid && (
+            <div className="absolute -right-1 -bottom-1 w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center">
+              <Check className="w-4 h-4 text-white" />
+            </div>
+          )}
         </div>
         {name && !error && (
-          <p className="text-sm text-foreground/60">
-            This is how your name will appear
+          <p className="text-sm text-foreground/60 mt-3">
+            {name}
           </p>
         )}
       </div>
@@ -99,36 +101,12 @@ const NameStep = ({ onComplete, onValidationChange, initialValue = '' }: NameSte
         errorMessage={error}
         isInvalid={!!error}
         variant="bordered"
-        color="primary"
         radius="lg"
-        classNames={{
-          input: "text-base",
-          inputWrapper: "border-2",
-        }}
-        description="Please enter your first and last name"
         autoFocus
+        startContent={
+          <User className="w-4 h-4 text-foreground/50" />
+        }
       />
-
-      {/* Help Text */}
-      <div className="bg-content2 rounded-xl p-4 space-y-2">
-        <p className="text-sm text-foreground/70">
-          Your name should follow these guidelines:
-        </p>
-        <ul className="text-sm text-foreground/60 space-y-2">
-          <li className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-            Include both first and last name
-          </li>
-          <li className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-            Use only letters, hyphens, and apostrophes
-          </li>
-          <li className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-            Each name should be at least 2 characters
-          </li>
-        </ul>
-      </div>
     </div>
   );
 };

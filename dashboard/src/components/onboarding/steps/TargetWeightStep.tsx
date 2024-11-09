@@ -1,7 +1,7 @@
 // src/components/onboarding/steps/TargetWeightStep.tsx
 import { useState, useEffect, useMemo } from 'react';
 import { Input, Select, SelectItem, Card, CardBody, Chip, Switch } from "@nextui-org/react";
-import { Target, Scale, TrendingDown, TrendingUp, Calendar, Trophy, Sparkles, Check } from 'lucide-react';
+import { Target, Scale, TrendingDown, TrendingUp, Calendar, Trophy, Sparkles, Check, Info } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { FitnessGoal } from './GoalStep';
 import { cn } from '@/utils/cn';
@@ -269,137 +269,182 @@ const TargetWeightStep = ({
 
   return (
     <div className="space-y-6">
-      {/* Summary Header */}
-      <Card className="bg-primary-500/5 border-none">
+      {/* Info Card */}
+      <Card className="bg-content2">
+          <CardBody className="p-3">
+            <div className="flex gap-2">
+              <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+              <h4 className="text-sm font-medium text-foreground">Set your target weight</h4>
+              <p className="text-xs text-foreground/70">
+              {selectedGoal === 'Maintenance' 
+                ? "I'll help you maintain your weight while improving strength and fitness."
+                : "Choose from AI recommended targets or set a custom goal for your journey."}
+              </p>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+      {/* Current Weight & Duration Card */}
+      <Card className="bg-gradient-to-r from-primary-500/10 to-background border-none">
         <CardBody className="p-4">
-          <div className="flex items-center justify-between">
-            {/* Current Weight */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary-500/10 flex items-center justify-center">
-                <Scale className="w-5 h-5 text-primary-500" />
+          <div className="flex flex-col gap-4">
+            {/* Weight Section */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary-500/10 flex items-center justify-center">
+                  <Scale className="w-6 h-6 text-primary-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-foreground/60">Current Weight</p>
+                  <p className="text-xl font-semibold">{currentWeightInUnit} {unit}</p>
+                </div>
+              </div>
+
+              {/* Unit Toggle */}
+              <div className="flex items-center gap-3 bg-background/40 p-2 rounded-full">
+                <span className={cn(
+                  "text-sm font-medium transition-colors",
+                  unit === 'kg' ? "text-primary-500" : "text-foreground/40"
+                )}>KG</span>
+                <Switch
+                  size="sm"
+                  color="primary"
+                  isSelected={unit === 'lb'}
+                  onValueChange={handleUnitToggle}
+                />
+                <span className={cn(
+                  "text-sm font-medium transition-colors",
+                  unit === 'lb' ? "text-primary-500" : "text-foreground/40"
+                )}>LB</span>
+              </div>
+            </div>
+
+            {/* Duration Section */}
+            <div className="flex items-center gap-3 pt-3 border-t border-divider/30">
+              <div className="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-primary-500" />
               </div>
               <div>
-                <p className="text-xs text-foreground/60">Current Weight</p>
-                <p className="text-lg font-semibold">{currentWeightInUnit} {unit}</p>
+                <p className="text-sm text-foreground/60">Program Duration</p>
+                <p className="text-base font-medium">{programDuration} weeks</p>
               </div>
             </div>
-
-            {/* Unit Toggle */}
-            <div className="flex items-center gap-2">
-              <span className={cn(
-                "text-sm transition-colors",
-                unit === 'kg' ? "text-primary-500" : "text-foreground/40"
-              )}>kg</span>
-              <Switch
-                size="sm"
-                color="primary"
-                isSelected={unit === 'lb'}
-                onValueChange={handleUnitToggle}
-              />
-              <span className={cn(
-                "text-sm transition-colors",
-                unit === 'lb' ? "text-primary-500" : "text-foreground/40"
-              )}>lb</span>
-            </div>
-          </div>
-
-          {/* Duration Info */}
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-divider/30">
-            <Calendar className="w-4 h-4 text-primary-500" />
-            <p className="text-sm">
-              <span className="text-foreground/60">Program Duration:</span>
-              <span className="font-medium ml-1">{programDuration} weeks</span>
-            </p>
           </div>
         </CardBody>
       </Card>
 
-      {/* Recommendations */}
-      <div className="space-y-3">
+      {/* Recommendations Section */}
+      <div className="space-y-4">
         <div className="flex items-center gap-2 px-1">
           <Sparkles className="w-4 h-4 text-primary-500" />
-          <p className="text-sm font-medium">Recommended Targets</p>
+          <h3 className="text-base font-medium">Recommended for you</h3>
         </div>
 
-        {recommendations.map(({
-          id,
-          label,
-          weeklyRate,
-          targetWeight,
-          totalChange,
-          description,
-          color
-        }: CalculatedTarget) => (
-          <button
-            key={id}
-            onClick={() => {
-              setSelectedTarget(id);
-              handleWeightChange(targetWeight.toString());
-            }}
-            className={cn(
-              "w-full p-3 rounded-lg transition-all duration-200",
-              "relative overflow-hidden",
-              selectedTarget === id 
-                ? `bg-${color}-500/10 border-2 border-${color}-500` 
-                : `bg-${color}-500/5 hover:bg-${color}-500/10 border border-${color}-500/20`
-            )}
-          >
-            {/* Selected Indicator */}
-            {selectedTarget === id && (
-              <div 
+        <div className="grid gap-3">
+          {recommendations.map(({
+            id,
+            label,
+            weeklyRate,
+            targetWeight,
+            totalChange,
+            description,
+            color
+          }: CalculatedTarget) => (
+            <button
+              key={id}
+              onClick={() => {
+                setSelectedTarget(id);
+                handleWeightChange(targetWeight.toString());
+              }}
+              className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-xl"
+            >
+              <Card
                 className={cn(
-                  "absolute right-2 bottom-2 w-5 h-5 rounded-full",
-                  `bg-${color}-500 text-white`,
-                  "flex items-center justify-center"
+                  "w-full transition-all",
+                  selectedTarget === id 
+                    ? `border-2 border-${color}-500 bg-gradient-to-r from-${color}-500/10 to-background`
+                    : "border border-divider hover:border-foreground/20"
                 )}
               >
-                <Check size={12} />
-              </div>
-            )}
+                <CardBody className="p-4">
+                  <div className="space-y-3">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h4 className={cn(
+                          "font-semibold",
+                          selectedTarget === id && `text-${color}-500`
+                        )}>{label}</h4>
+                        {selectedTarget === id && (
+                          <Check className={`w-4 h-4 text-${color}-500`} />
+                        )}
+                      </div>
+                      <Chip
+                        size="sm"
+                        color={color}
+                        variant={selectedTarget === id ? "solid" : "flat"}
+                        className="capitalize"
+                      >
+                        {weeklyRate === 0 ? 'Maintain' : 
+                          `${Math.abs(weeklyRate)} ${unit}/week`}
+                      </Chip>
+                    </div>
 
-            {/* Rate Badge */}
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium">{label}</span>
-              <Chip 
-                size="sm" 
-                color={color} 
-                variant={selectedTarget === id ? "solid" : "flat"}
-                className="capitalize transition-colors duration-200"
-              >
-                {weeklyRate === 0 ? 'Maintain' : 
-                  `${Math.abs(weeklyRate)} ${unit}/week`}
-              </Chip>
-            </div>
+                    {/* Description */}
+                    <p className="text-sm text-foreground/60">{description}</p>
 
-            {/* Target Info */}
-            <div className="text-sm space-y-1">
-              <p className={cn(
-                "text-foreground/60 text-left transition-colors duration-200",
-                selectedTarget === id && `text-${color}-600`
-              )}>{description}</p>
-              <div className="flex items-center gap-2 font-medium">
-                <span>Target: {targetWeight} {unit}</span>
-                {totalChange > 0 && (
-                  <>
-                    <span className="text-foreground/30">•</span>
-                    <span className={`text-${color}-500`}>
-                      {weeklyRate > 0 ? 'Gain' : 'Lose'} {totalChange} {unit}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-          </button>
-        ))}
+                    {/* Target Details */}
+                    <div className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg",
+                      selectedTarget === id
+                        ? `bg-${color}-500/10`
+                        : "bg-content1"
+                    )}>
+                      <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center",
+                        `bg-${color}-500/20`
+                      )}>
+                        {weeklyRate > 0 ? (
+                          <TrendingUp className={`w-4 h-4 text-${color}-500`} />
+                        ) : weeklyRate < 0 ? (
+                          <TrendingDown className={`w-4 h-4 text-${color}-500`} />
+                        ) : (
+                          <Target className={`w-4 h-4 text-${color}-500`} />
+                        )}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">
+                          Target: {targetWeight} {unit}
+                        </div>
+                        {totalChange > 0 && (
+                          <div className={`text-sm text-${color}-500`}>
+                            {weeklyRate > 0 ? 'Gain' : 'Lose'} {totalChange} {unit}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Custom Input */}
+      {/* Custom Input Section */}
       {recommendations.length > 1 && (
-        <>
-          <div className="flex items-center gap-3">
-            <div className="h-px bg-default-200 flex-1" />
-            <span className="text-xs text-default-400">or set custom target</span>
-            <div className="h-px bg-default-200 flex-1" />
+        <div className="space-y-4">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-divider/30" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-background px-4 text-sm text-foreground/40">
+                or set custom target
+              </span>
+            </div>
           </div>
 
           <Input
@@ -415,26 +460,20 @@ const TargetWeightStep = ({
             isInvalid={!!error}
             variant="bordered"
             radius="lg"
-            startContent={<Target className="text-default-400 flex-shrink-0" size={18} />}
+            startContent={
+              <div className="pointer-events-none">
+                <Target className="w-4 h-4 text-foreground/50" />
+              </div>
+            }
+            endContent={
+              <div className="pointer-events-none text-foreground/50">
+                {unit}
+              </div>
+            }
             className="max-w-xs mx-auto"
           />
-        </>
+        </div>
       )}
-
-      {/* Help Text */}
-      <Card className="bg-content2">
-        <CardBody className="p-3">
-          <div className="flex gap-2">
-            <Target className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-foreground/70">
-              {selectedGoal === 'Maintenance' ?
-                "We'll help you maintain your weight while improving strength, endurance, and overall fitness." :
-                "These targets are calculated based on your goal and program duration for optimal, sustainable results."
-              }
-            </p>
-          </div>
-        </CardBody>
-      </Card>
     </div>
   );
 };

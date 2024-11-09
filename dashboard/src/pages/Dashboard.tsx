@@ -23,7 +23,7 @@ import { Plan } from '@/types/plan';
 // Skeleton Component
 const DashboardSkeleton = () => {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-background via-background/90 to-background">
+    <div className="min-h-screen w-full bg-gradient-to-br from-primary-500/10 via-background to-secondary-500/10">
       <div className="container mx-auto space-y-8">
         {/* Hero Section Skeleton */}
         <Skeleton className="w-full h-[180px] rounded-xl" />
@@ -98,7 +98,7 @@ const DashboardContent = ({
   const planProgress = activePlan ? calculatePlanProgress(activePlan) : 0;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-background via-background/90 to-background">
+    <div className="min-h-screen w-full bg-gradient-to-br">
       <div className="container mx-auto space-y-8">
         {/* Hero Section */}
         <div className="fade-in">

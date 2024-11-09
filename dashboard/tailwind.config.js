@@ -33,6 +33,10 @@ module.exports = {
         '4xl': '2rem',
         '5xl': '2.5rem',
       },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
       animation: {
         'gradient-x': 'gradient-x 15s ease infinite',
         'gradient-y': 'gradient-y 15s ease infinite',
@@ -561,5 +565,18 @@ module.exports = {
         }
       }
     }),
+    function({ addUtilities }) {
+      addUtilities({
+        '.bg-gradient-fade-t': {
+          'background-image': 'linear-gradient(to top, var(--tw-gradient-stops))',
+        },
+        '.bg-gradient-fade-b': {
+          'background-image': 'linear-gradient(to bottom, var(--tw-gradient-stops))',
+        },
+        '.bg-gradient-radial-center': {
+          'background-image': 'radial-gradient(circle at center, var(--tw-gradient-stops))',
+        },
+      });
+    },
   ],
 };

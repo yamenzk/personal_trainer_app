@@ -1,7 +1,6 @@
-// src/components/onboarding/steps/GenderStep.tsx
 import { useState, useEffect } from 'react';
 import { Card, CardBody } from "@nextui-org/react";
-import { Info, PersonStanding, Triangle } from 'lucide-react';
+import { Info, PersonStanding, Users } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useStepValidation } from '@/hooks/useStepValidation';
 
@@ -23,84 +22,109 @@ const GenderStep = ({ onComplete, onValidationChange, initialValue }: GenderStep
       value: 'Male' as const,
       icon: PersonStanding,
       color: 'primary',
-      traits: ['Higher muscle mass', 'Faster metabolism']
+      traits: [
+        { label: 'Muscle Mass', value: 'Higher' },
+        { label: 'Metabolism', value: 'Faster' },
+        { label: 'Recovery', value: 'Moderate' }
+      ]
     },
     {
       value: 'Female' as const,
-      icon: Triangle,
+      icon: PersonStanding,
       color: 'secondary',
-      traits: ['Higher flexibility', 'Better endurance']
+      traits: [
+        { label: 'Flexibility', value: 'Higher' },
+        { label: 'Endurance', value: 'Better' },
+        { label: 'Recovery', value: 'Faster' }
+      ]
     }
   ] as const;
 
   return (
-    <div className="space-y-4">
-      {/* Gender Selection Cards - Side by side */}
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-6">
+      {/* Gender Selection Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {genderOptions.map(({ value, icon: Icon, color, traits }) => (
-          <Card
+          <button
             key={value}
-            isPressable
-            isHoverable
-            onPress={() => handleSelect(value)}
-            className={cn(
-              "border-2 transition-all duration-200",
-              selected === value
-                ? `border-${color}-500 bg-${color}-500/5`
-                : "border-transparent"
-            )}
+            onClick={() => handleSelect(value)}
+            className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-xl"
           >
-            <CardBody className="p-4">
-              <div className="flex flex-col items-center">
-                {/* Icon and Label */}
-                <div className={cn(
-                  "w-12 h-12 rounded-full mb-2",
-                  "transition-colors duration-200",
-                  "flex items-center justify-center",
-                  selected === value
-                    ? `bg-${color}-500`
-                    : `bg-${color}-500/10`
-                )}>
-                  <Icon 
-                    className={selected === value ? 'text-white' : `text-${color}-500`} 
-                    size={24} 
-                  />
-                </div>
-                <h3 className="text-base font-medium mb-2">{value}</h3>
-
-                {/* Traits - More compact */}
-                <div className="w-full space-y-1">
-                  {traits.map((trait, index) => (
-                    <div 
-                      key={index}
-                      className={cn(
-                        "text-xs text-center py-1 px-2 rounded",
-                        selected === value
-                          ? `bg-${color}-500/10 text-${color}-500`
-                          : "bg-content1"
-                      )}
-                    >
-                      {trait}
+            <Card
+              className={cn(
+                "w-full transition-colors",
+                selected === value 
+                  ? `border-2 border-${color}-500 bg-gradient-to-b from-${color}-500/10 to-background` 
+                  : "border border-divider hover:border-foreground/20"
+              )}
+            >
+              <CardBody className="p-6">
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center",
+                      selected === value 
+                        ? `bg-${color}-500` 
+                        : `bg-${color}-500/10`
+                    )}>
+                      <Icon 
+                        className={cn(
+                          "w-6 h-6",
+                          selected === value 
+                            ? "text-white" 
+                            : `text-${color}-500`
+                        )} 
+                      />
                     </div>
-                  ))}
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        ))}
-      </div>
+                    <div>
+                      <h3 className={cn(
+                        "text-lg font-semibold",
+                        selected === value && `text-${color}-500`
+                      )}>
+                        {value}
+                      </h3>
+                    </div>
+                  </div>
 
-      {/* Help Text */}
-      <Card className="bg-content2">
+                  {/* Traits */}
+                  <div className="space-y-2">
+                    {traits.map(({ label, value: traitValue }, index) => (
+                      <div 
+                        key={index}
+                        className={cn(
+                          "flex justify-between items-center p-2 rounded-lg",
+                          selected === value 
+                            ? `bg-${color}-500/10` 
+                            : "bg-content1"
+                        )}
+                      >
+                        <span className="text-sm text-foreground/60">{label}</span>
+                        <span className={cn(
+                          "text-sm font-medium",
+                          selected === value && `text-${color}-500`
+                        )}>
+                          {traitValue}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          </button>
+        ))}
+        <Card className="bg-content2">
         <CardBody className="p-3">
           <div className="flex gap-2">
             <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-foreground/70">
-              Your sex assists me in calculating your BMR for accurate meal planning.
+            Your sex helps me calculate your Basal Metabolic Rate (BMR) accurately, enabling me to create a personalized meal plan that matches your body's needs.
             </p>
           </div>
         </CardBody>
       </Card>
+      </div>
     </div>
   );
 };

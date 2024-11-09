@@ -35,7 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
           bg-secondary-500/20 blur-3xl"
         />
         
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+        {/* <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" /> */}
       </div>
 
       {/* Content Container */}

@@ -1,7 +1,7 @@
-// src/components/onboarding/steps/WeightStep.tsx
-import { useState, useEffect } from 'react';
-import { Input, Select, SelectItem, Card, CardBody } from "@nextui-org/react";
-import { Scale, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Input, Switch, Card, CardBody } from "@nextui-org/react";
+import { Scale, Info } from "lucide-react";
+import { cn } from "@/utils/cn";
 
 interface WeightStepProps {
   onComplete: (value: number) => void;
@@ -9,136 +9,164 @@ interface WeightStepProps {
   initialValue?: number;
 }
 
-const WeightStep = ({ onComplete, onValidationChange, initialValue }: WeightStepProps) => {
-  const [unit, setUnit] = useState<'kg' | 'lb'>('kg');
-  const [weight, setWeight] = useState('');
-  const [error, setError] = useState('');
+const WeightStep = ({
+  onComplete,
+  onValidationChange,
+  initialValue,
+}: WeightStepProps) => {
+  const [unit, setUnit] = useState<"kg" | "lb">("kg");
+  const [weight, setWeight] = useState("");
+  const [error, setError] = useState("");
+  const [baseWeightKg, setBaseWeightKg] = useState<number | null>(null);
+  const [isLbs, setIsLbs] = useState(false); // Explicit state for the switch
 
-  const validateWeight = (value: string) => {
+  const validateWeight = (value: string, currentUnit: "kg" | "lb") => {
     if (!value) {
-      setError('Please enter your current weight');
+      setError("Please enter your current weight");
       return false;
     }
 
     const weightValue = parseFloat(value);
     if (isNaN(weightValue) || weightValue <= 0) {
-      setError('Please enter a valid weight');
+      setError("Please enter a valid weight");
       return false;
     }
 
-    const weightInKg = unit === 'lb' ? weightValue * 0.453592 : weightValue;
+    const weightInKg =
+      currentUnit === "lb" ? weightValue * 0.453592 : weightValue;
 
     if (weightInKg < 30 || weightInKg > 300) {
-      setError('Please enter a reasonable weight (30kg - 300kg)');
+      setError("Please enter a reasonable weight (30kg - 300kg)");
       return false;
     }
 
-    setError('');
+    setError("");
+    setBaseWeightKg(weightInKg);
     onComplete(Math.round(weightInKg * 10) / 10);
     return true;
   };
 
   const handleWeightChange = (value: string) => {
     setWeight(value);
-    const isValid = validateWeight(value);
+    const isValid = validateWeight(value, unit);
     onValidationChange?.(isValid);
   };
 
-  // Initialize with initial value if provided
-  useEffect(() => {
-    if (initialValue) {
-      const displayWeight = unit === 'lb' ? 
-        (initialValue * 2.20462).toFixed(1) : 
-        initialValue.toString();
-      setWeight(displayWeight);
-      handleWeightChange(displayWeight);
-    }
-  }, [initialValue, unit]);
+  const updateDisplayWeight = (newUnit: "kg" | "lb", baseKg: number | null) => {
+    if (baseKg === null) return;
 
-  const getWeightCategory = (weightKg: number) => {
-    if (weightKg < 50) return { label: 'Light', color: 'primary' };
-    if (weightKg < 80) return { label: 'Medium', color: 'success' };
-    return { label: 'Heavy', color: 'secondary' };
+    const newWeight =
+      newUnit === "lb" ? (baseKg * 2.20462).toFixed(1) : baseKg.toFixed(1);
+    setWeight(newWeight);
   };
 
-  const currentWeightKg = parseFloat(weight) * (unit === 'lb' ? 0.453592 : 1);
-  const weightCategory = !isNaN(currentWeightKg) ? getWeightCategory(currentWeightKg) : null;
+  // Handle initial value
+  useEffect(() => {
+    if (initialValue) {
+      setBaseWeightKg(initialValue);
+      updateDisplayWeight(unit, initialValue);
+      validateWeight(initialValue.toFixed(1), unit);
+    }
+  }, [initialValue]);
+
+  // Handle unit toggle
+  const handleUnitToggle = (isSelected: boolean) => {
+    setIsLbs(isSelected);
+    const newUnit = isSelected ? "lb" : "kg";
+    setUnit(newUnit);
+    updateDisplayWeight(newUnit, baseWeightKg);
+  };
+
+  // Calculate conversion display
+  const getConversionDisplay = () => {
+    if (!baseWeightKg) return null;
+
+    if (unit === "kg") {
+      return `${(baseWeightKg * 2.20462).toFixed(1)} lb`;
+    } else {
+      return `${baseWeightKg.toFixed(1)} kg`;
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Weight Preview */}
+
+      {/* Weight Display */}
       {!error && weight && !isNaN(parseFloat(weight)) && (
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 rounded-full bg-primary-500/10 flex items-center justify-center">
-            <Scale className="w-8 h-8 text-primary-500" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-b from-primary-500/20 to-background flex items-center justify-center">
+            <Scale className="w-10 h-10 text-primary-500" />
           </div>
-          <div className="text-center">
-            <p className="text-xl font-semibold">
-              {weight} {unit}
+          <div className="text-center space-y-1">
+            <p className="text-2xl font-semibold text-foreground">
+              {parseFloat(weight).toFixed(1)} {unit}
             </p>
             <p className="text-sm text-foreground/60">
-              {unit === 'kg' ? 
-                `${(parseFloat(weight) * 2.20462).toFixed(1)} lb` : 
-                `${(parseFloat(weight) * 0.453592).toFixed(1)} kg`}
+              {getConversionDisplay()}
             </p>
           </div>
         </div>
       )}
 
-      {/* Weight Input */}
-      <div className="flex gap-3">
+      {/* Input Section */}
+      <div className="space-y-4">
+        {/* Unit Switch */}
+        <div className="flex justify-center items-center gap-3">
+          <span
+            className={cn(
+              "text-sm font-medium",
+              !isLbs ? "text-primary-500" : "text-foreground/60"
+            )}
+          >
+            KG
+          </span>
+          <Switch
+            isSelected={isLbs}
+            size="lg"
+            color="primary"
+            onValueChange={handleUnitToggle}
+          />
+          <span
+            className={cn(
+              "text-sm font-medium",
+              isLbs ? "text-primary-500" : "text-foreground/60"
+            )}
+          >
+            LB
+          </span>
+        </div>
+
+        {/* Weight Input */}
         <Input
           type="number"
-          label="Weight"
+          label="Enter your weight"
+          placeholder={`Weight in ${unit}`}
           value={weight}
           onValueChange={handleWeightChange}
           errorMessage={error}
           isInvalid={!!error}
-          variant="underlined"
+          variant="bordered"
           color="primary"
           radius="lg"
+          className="max-w-xs mx-auto"
+          startContent={<Scale className="w-4 h-4 text-foreground/50" />}
+          endContent={
+            <div className="pointer-events-none text-foreground/50">{unit}</div>
+          }
         />
 
-        <Select
-          label="Unit"
-          selectedKeys={[unit]}
-          onChange={(e) => {
-            const newUnit = e.target.value as 'kg' | 'lb';
-            setUnit(newUnit);
-            if (weight && !isNaN(parseFloat(weight))) {
-              const newWeight = newUnit === 'lb' ? 
-                (parseFloat(weight) * 2.20462).toFixed(1) : 
-                (parseFloat(weight) * 0.453592).toFixed(1);
-              handleWeightChange(newWeight);
-            } else {
-              setWeight('');
-              setError('');
-              onValidationChange?.(false);
-            }
-          }}
-          variant="underlined"
-          color="primary"
-          radius="lg"
-          className="w-32"
-        >
-          <SelectItem key="kg" value="kg">kg</SelectItem>
-          <SelectItem key="lb" value="lb">lb</SelectItem>
-        </Select>
-      </div>
-
-      {/* Info Card */}
-      <Card className="bg-content2">
-        <CardBody className="p-3">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
-            <div className="space-y-2">
+        <Card className="bg-content2">
+          <CardBody className="p-3">
+            <div className="flex gap-2">
+              <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-foreground/70">
-                Your current weight helps me understand your starting point and calculate appropriate fitness goals.
+              Your current weight helps me understand your starting point and
+              calculate appropriate fitness goals for your journey.
               </p>
             </div>
-          </div>
-        </CardBody>
-      </Card>
+          </CardBody>
+        </Card>
+      </div>
     </div>
   );
 };

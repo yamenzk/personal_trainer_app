@@ -51,7 +51,7 @@ const workoutOptions = [
     value: 5,
     title: '5 Times a Week',
     description: 'Intermediate Level',
-    schedule: ['Sun', 'Mon', 'Tue', 'Thu', 'Fri'] as WeekDay[],
+    schedule: ['Mon', 'Tue', 'Tue', 'Thu', 'Fri', 'Sat'] as WeekDay[],
     duration: '60-75 min',
     intensity: 3,
     color: 'success',
@@ -83,11 +83,13 @@ const workoutOptions = [
 
 const WorkoutsStep = ({ onComplete, onValidationChange, initialValue }: WorkoutsStepProps) => {
   const { selected, handleSelect } = useStepValidation(initialValue, onComplete, onValidationChange);
+  const [expandedDetails, setExpandedDetails] = useState<number | null>(null);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+
       {/* Workout Options */}
-      <div className="grid gap-4">
+      <div className="grid gap-3">
         {workoutOptions.map(({
           value,
           title,
@@ -99,139 +101,125 @@ const WorkoutsStep = ({ onComplete, onValidationChange, initialValue }: Workouts
           features,
           details
         }) => (
-          <Card
+          <button
             key={value}
-            isPressable
-            isHoverable
-            onPress={() => handleSelect(value)}
-            className={cn(
-              "w-full border-2 transition-all duration-200",
-              selected === value 
-                ? `border-${color}-500 bg-${color}-500/5`
-                : "border-transparent hover:bg-content1"
-            )}
+            onClick={() => {
+              handleSelect(value);
+              setExpandedDetails(expandedDetails === value ? null : value);
+            }}
+            className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg"
           >
-            <CardBody className="p-4">
-              {/* Header */}
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex-1">
-                  <h3 className="font-medium flex items-center gap-2">
-                    {title}
-                    {/* <Chip
-                      size="sm"
-                      color={color}
-                      variant="flat"
-                      startContent={<Timer className="w-3 h-3" />}
-                    >
-                      {duration}
-                    </Chip> */}
-                  </h3>
-                  <p className="text-sm text-foreground/60">{description}</p>
-                </div>
-
-                {/* Intensity Indicator */}
-                <div className="flex gap-1 absolute top-3 right-3">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        "w-1 h-6 rounded-full transition-colors duration-200",
-                        i < intensity
-                          ? selected === value
-                            ? `bg-${color}-500`
-                            : `bg-${color}-500/40`
-                          : 'bg-content/10'
-                      )}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Weekly Schedule */}
-              <div className="mb-4">
-                <p className="text-sm font-medium mb-2 flex items-center gap-2">
-                  <Calendar className={`w-4 h-4 text-${color}-500`} />
-                  Weekly Schedule
-                </p>
-                <div className="grid grid-cols-7 gap-1">
-                  {WEEK_DAYS.map((day, index) => (
-                    <div
-                      key={day}
-                      className="text-center"
-                    >
+            <Card className={cn(
+              "w-full transition-all",
+              selected === value 
+                ? `border-2 border-${color}-500 bg-gradient-to-r from-${color}-500/10 to-background`
+                : "border border-divider hover:border-foreground/20"
+            )}>
+              <CardBody className="p-4">
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="relative flex items-start gap-3">
+                    {/* Left Column - Icon & Intensity */}
+                    <div className="flex flex-col items-center gap-2">
                       <div className={cn(
-                        "mx-auto w-8 h-8 rounded-lg flex items-center justify-center text-xs mb-1",
-                        "transition-colors duration-200",
-                        schedule.includes(day)
-                          ? selected === value
-                            ? `bg-${color}-500 text-white`
-                            : `bg-${color}-500/20 text-${color}-500`
-                          : 'bg-content2/20 text-foreground/20'
+                        "w-12 h-12 rounded-xl flex items-center justify-center",
+                        selected === value ? `bg-${color}-500` : `bg-${color}-500/10`
                       )}>
-                        {day}
+                        <Dumbbell className={selected === value ? "text-white" : `text-${color}-500`} size={24} />
                       </div>
-                      <div className={cn(
-                        "text-[10px] px-1 py-0.5 rounded",
-                        schedule.includes(day)
-                          ? selected === value
-                            ? `bg-${color}-500/10 text-${color}-600`
-                            : "bg-content2/60"
-                          : "bg-content2/20 text-foreground/20",
-                      )}>
-                        {details.splits[index]}
-                      </div>
+                      {/* <div className="flex flex-col gap-0.5">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={cn(
+                              "w-1.5 h-1.5 rounded-full",
+                              i < intensity
+                                ? selected === value ? `bg-${color}-500` : `bg-${color}-500/40`
+                                : "bg-foreground/10"
+                            )}
+                          />
+                        ))}
+                      </div> */}
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Features */}
-              <div className="space-y-2">
-                <div className="flex flex-wrap gap-2">
-                  {features.map((feature) => (
-                    <Chip
-                      key={feature}
-                      size="sm"
-                      variant="solid"
-                      color={color}
-                      startContent={<Activity className="w-3 h-3" />}
-                      className={selected === value ? 'opacity-70' : 'opacity-30'}
-                    >
-                      {feature}
-                    </Chip>
-                  ))}
-                </div>
-
-                {selected === value && (
-                  <div className={cn(
-                    "flex items-start gap-2 p-2 rounded-lg text-sm",
-                    `bg-${color}-500/10`
-                  )}>
-                    <Info className={`w-4 h-4 text-${color}-500 flex-shrink-0 mt-0.5`} />
-                    <div className="space-y-1">
-                      <p>{details.ideal}</p>
-                      <p className="text-foreground/60">{details.recovery}</p>
+                    {/* Main Content */}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className={cn(
+                          "text-base font-semibold",
+                          selected === value && `text-${color}-500`
+                        )}>{title}</h3>
+                        <Chip size="sm" variant="flat" color={color} startContent={<Timer className="w-3 h-3" />}>
+                          {duration}
+                        </Chip>
+                      </div>
+                      <p className="text-sm text-foreground/60 mt-1">{description}</p>
                     </div>
                   </div>
-                )}
-              </div>
-            </CardBody>
-          </Card>
-        ))}
-      </div>
 
-      {/* Help Text */}
-      <Card className="bg-content2">
-        <CardBody className="p-3">
-          <div className="flex gap-2">
-            <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-foreground/70">
-              Choose a workout frequency that matches your experience level and availability. 
-              I'll design your program to maximize results while ensuring proper recovery between sessions.
-            </p>
-          </div>
-        </CardBody>
-      </Card>
+                  {/* Weekly Calendar */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {WEEK_DAYS.map((day, index) => (
+                      <div key={day} className="text-center">
+                        <div className={cn(
+                          "mx-auto w-7 h-7 rounded-lg flex items-center justify-center text-xs font-medium",
+                          schedule.includes(day)
+                            ? selected === value
+                              ? `bg-${color}-500 text-white`
+                              : `bg-${color}-500/20 text-${color}-500`
+                            : "bg-content2/20 text-foreground/20"
+                        )}>
+                          {day}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Features */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {features.map(feature => (
+                      <div
+                        key={feature}
+                        className={cn(
+                          "text-xs px-2 py-1 rounded-md",
+                          selected === value
+                            ? `bg-${color}-500/10 text-${color}-500`
+                            : "bg-content1 text-foreground/70"
+                        )}
+                      >
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Expanded Details */}
+                  {expandedDetails === value && (
+                    <div className={`mt-3 pt-3 border-t border-${color}-500/20 space-y-2`}>
+                      <div className={cn(
+                        "text-sm rounded-lg p-3",
+                        `bg-${color}-500/10`
+                      )}>
+                        <p className={`font-medium text-${color}-500`}>{details.ideal}</p>
+                        <p className="text-foreground/60 mt-1 text-xs">{details.recovery}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardBody>
+            </Card>
+          </button>
+        ))}
+        <Card className="bg-content2">
+          <CardBody className="p-3">
+            <div className="flex gap-2">
+              <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-foreground/70">
+              Choose a frequency that fits your lifestyle. I'll design your program to maximize results while ensuring proper recovery.
+              </p>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
     </div>
   );
 };

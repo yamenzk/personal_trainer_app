@@ -53,14 +53,14 @@ interface StepConfig {
 const StepComponents: Record<string, StepConfig> = {
   'Name': {
     component: NameStep,
-    title: 'What is your name?',
+    title: '',
     subtitle: '',
     field: 'client_name'
   },
   'Email': {
     component: EmailStep,
     title: 'What is your email?',
-    subtitle: 'To keep you updated on your progress',
+    subtitle: '',
     field: 'email'
   },
   'DateOfBirth': {
@@ -72,61 +72,61 @@ const StepComponents: Record<string, StepConfig> = {
   'Gender': {
     component: GenderStep,
     title: 'What is your gender?',
-    subtitle: 'This helps me calculate your nutritional needs',
+    subtitle: '',
     field: 'gender'
   },
   'Nationality': {
     component: NationalityStep,
     title: 'Where do you come from?',
-    subtitle: 'For demographics and reach purposes',
+    subtitle: '',
     field: 'nationality'
   },
   'Height': {
     component: HeightStep,
     title: 'What\'s your height?',
-    subtitle: 'Used to calculate your BMI and fitness recommendations',
+    subtitle: '',
     field: 'height'
   },
   'Weight': {
     component: WeightStep,
     title: 'What\'s your current weight?',
-    subtitle: 'Helps determine your starting point',
+    subtitle: '',
     field: 'weight'
   },
   'Goal': {
     component: GoalStep,
     title: 'What is your goal?',
-    subtitle: 'This helps me tailor your program to your needs',
+    subtitle: '',
     field: 'goal'
   },
   'TargetWeight': {
     component: TargetWeightStep,
     title: 'What\'s your target weight?',
-    subtitle: 'Let\'s set a goal to work towards',
+    subtitle: '',
     field: 'target_weight'
   },
   'ActivityLevel': {
     component: ActivityLevelStep,
     title: 'How active are you?',
-    subtitle: 'This helps me adjust your program intensity',
+    subtitle: '',
     field: 'activity_level'
   },
   'Equipment': {
     component: EquipmentStep,
     title: 'Where will you work out?',
-    subtitle: 'Will customize exercises based on available equipment',
+    subtitle: '',
     field: 'equipment'
   },
   'Workouts': {
     component: WorkoutsStep,
     title: 'How often will you train?',
-    subtitle: 'Let\'s design your workout frequency',
+    subtitle: '',
     field: 'workouts'
   },
   'Meals': {
     component: MealsStep,
     title: 'How many meals per day?',
-    subtitle: 'Let\'s plan your nutrition schedule',
+    subtitle: '',
     field: 'meals'
   }
 } as const;
@@ -259,28 +259,40 @@ export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWi
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
-      {/* Background Pattern */}
+      {/* Simplified Background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-content2" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:44px_44px]" />
+        {/* Static gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-fade-b from-background via-background to-content2" />
+        
+        {/* Static dot pattern */}
+        <div className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(circle_at_1px_1px,#808080_1px,transparent_0)] bg-[size:40px_40px]" />
+        
+        {/* Static decorative elements */}
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary-500/10 rounded-full blur-3xl" />
       </div>
 
-      {/* Fixed Header */}
+      {/* Header */}
       <header className="fixed top-0 inset-x-0 z-50">
-        <div className="bg-background/80 backdrop-blur-md border-b border-divider/50">
-          <div className="max-w-2xl mx-auto px-4 py-3 space-y-2">
+        <div className="bg-background/60 backdrop-blur-sm border-b border-divider/50">
+          <div className="max-w-2xl mx-auto px-6 py-4 space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-foreground/60">
-                Step {currentStep + 1} of {activeSteps.length}
-              </span>
-              <span className="text-sm font-medium">
-                {Math.round(progress)}%
+              <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-500/10 text-primary-500">
+                  <span className="text-sm font-semibold">{currentStep + 1}</span>
+                </div>
+                <span className="text-sm font-medium text-foreground/60">
+                  of {activeSteps.length} steps
+                </span>
+              </div>
+              <span className="text-sm font-medium bg-gradient-to-r from-primary-500 to-secondary-500 text-transparent bg-clip-text">
+                {Math.round(progress)}% Complete
               </span>
             </div>
             <Progress 
               aria-label="Onboarding progress" 
               value={progress} 
-              className="h-1"
+              className="h-1.5 rounded-full overflow-hidden"
               color="primary"
               classNames={{
                 indicator: "bg-gradient-to-r from-primary-500 to-secondary-500"
@@ -290,30 +302,30 @@ export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWi
         </div>
       </header>
 
-      {/* Scrollable Content Area */}
+      {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto">
         <div className="min-h-full flex items-center justify-center">
           <div 
-            className="w-full max-w-2xl py-4"
+            className="w-full max-w-2xl"
             style={{
-              marginTop: 'calc(76px + env(safe-area-inset-top))',
-              marginBottom: 'calc(76px + env(safe-area-inset-bottom))'
+              marginTop: 'calc(84px + env(safe-area-inset-top))',
+              marginBottom: 'calc(84px + env(safe-area-inset-bottom))'
             }}
           >
             <Card className="w-full border-none shadow-none bg-transparent">
-              <CardHeader className="text-center pb-0 pt-6 px-6">
-                <div className="w-full space-y-2">
-                  <h2 className="text-2xl font-bold text-foreground">
+              <CardHeader className="text-center pb-0 pt-8 px-8">
+                <div className="w-full space-y-3">
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-primary-500 to-secondary-500 text-transparent bg-clip-text">
                     {currentStepConfig.title}
                   </h2>
                   {currentStepConfig.subtitle && (
-                    <p className="text-base text-foreground/60">
+                    <p className="text-base text-foreground/60 leading-relaxed">
                       {currentStepConfig.subtitle}
                     </p>
                   )}
                 </div>
               </CardHeader>
-              <CardBody className="px-6 py-6">
+              <CardBody className="px-8 py-8">
                 {renderCurrentStep()}
               </CardBody>
             </Card>
@@ -321,12 +333,12 @@ export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWi
         </div>
       </main>
 
-      {/* Fixed Footer */}
+      {/* Footer */}
       <footer className="fixed bottom-0 inset-x-0 z-50">
-        <div className="bg-background/80 backdrop-blur-md border-t border-divider/50">
-          <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+        <div className="bg-background/60 backdrop-blur-sm border-t border-divider/50">
+          <div className="max-w-2xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
             <Button
-              variant="flat"
+              variant="ghost"
               onPress={handleBack}
               isDisabled={currentStep === 0}
               startContent={<ChevronLeft className="w-4 h-4" />}
@@ -340,7 +352,7 @@ export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWi
               onPress={handleNext}
               isLoading={loading}
               isDisabled={!isStepValid}
-              endContent={<ChevronRight className="w-4 h-4" />}
+              endContent={!loading && <ChevronRight className="w-4 h-4" />}
             >
               {currentStep === activeSteps.length - 1 ? 'Complete' : 'Continue'}
             </Button>

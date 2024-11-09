@@ -1,7 +1,6 @@
-// src/components/onboarding/steps/GoalStep.tsx
 import { useState, useEffect } from 'react';
 import { Card, CardBody } from "@nextui-org/react";
-import { Scale, Dumbbell, Target, Shield, BadgeCheck } from 'lucide-react';
+import { Scale, Dumbbell, Target, Shield, Info, Check } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useStepValidation } from '@/hooks/useStepValidation';
 
@@ -72,85 +71,96 @@ const GoalStep = ({ onComplete, onValidationChange, initialValue }: GoalStepProp
   );
 
   return (
-    <div className="space-y-3">
-      {goals.map(({ id, title, description, icon: Icon, color, features }) => (
-        <Card
-          key={id}
-          isPressable
-          isHoverable
-          onPress={() => handleSelect(id)}
-          className={cn(
-            "w-full border-2 transition-all duration-200",
-            selected === id 
-              ? `border-${color}-500 bg-${color}-500/5`
-              : "border-transparent hover:bg-content1"
-          )}
-        >
-          <CardBody className="p-4">
-            <div className="flex gap-4">
-              {/* Icon Column */}
-              <div className={cn(
-                "w-12 h-12 rounded-lg flex items-center justify-center shrink-0",
-                "transition-colors duration-200",
-                selected === id
-                  ? `bg-${color}-500`
-                  : `bg-${color}-500/10`
-              )}>
-                <Icon 
-                  className={selected === id ? "text-white" : `text-${color}-500`}
-                  size={24}
-                />
-              </div>
-
-              {/* Content Column */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-medium">{title}</h3>
-                      {selected === id && (
-                        <BadgeCheck className={`w-4 h-4 text-${color}-500`} />
-                      )}
+    <div className="space-y-6">
+      {/* Goals Grid */}
+      <div className="grid grid-cols-1 gap-4">
+        {goals.map(({ id, title, description, icon: Icon, color, features }) => (
+          <button
+            key={id}
+            onClick={() => handleSelect(id)}
+            className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-xl"
+          >
+            <Card
+              className={cn(
+                "w-full transition-all",
+                selected === id 
+                  ? `border-2 border-${color}-500 bg-gradient-to-r from-${color}-500/10 to-background`
+                  : "border border-divider hover:border-foreground/20"
+              )}
+            >
+              <CardBody className="p-6">
+                <div className="space-y-4">
+                  {/* Header Section */}
+                  <div className="flex items-start gap-4">
+                    <div className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
+                      selected === id
+                        ? `bg-${color}-500`
+                        : `bg-${color}-500/10`
+                    )}>
+                      <Icon 
+                        className={selected === id ? "text-white" : `text-${color}-500`}
+                        size={24}
+                      />
                     </div>
-                    <p className="text-sm text-foreground/60 mb-3">{description}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className={cn(
+                          "text-lg font-semibold",
+                          selected === id && `text-${color}-500`
+                        )}>
+                          {title}
+                        </h3>
+                        {selected === id && (
+                          <Check className={`w-5 h-5 text-${color}-500`} />
+                        )}
+                      </div>
+                      <p className="text-sm text-foreground/60 mt-0.5">
+                        {description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Features Grid */}
+                  <div className="grid grid-cols-1 gap-2">
+                    {features.map(({ text, icon }) => (
+                      <div 
+                        key={text}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-lg",
+                          selected === id
+                            ? `bg-${color}-500/10`
+                            : "bg-content1"
+                        )}
+                      >
+                        <span className="text-xl">{icon}</span>
+                        <span className={cn(
+                          "text-sm",
+                          selected === id
+                            ? `text-${color}-500`
+                            : "text-foreground/80"
+                        )}>
+                          {text}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-
-                {/* Features */}
-                <div className="space-y-1.5">
-                  {features.map(({ text, icon }) => (
-                    <div 
-                      key={text}
-                      className={cn(
-                        "flex items-center gap-2 text-sm px-2 py-1 rounded",
-                        selected === id
-                          ? `bg-${color}-500/10`
-                          : "bg-content2/20"
-                      )}
-                    >
-                      <span className="text-base">{icon}</span>
-                      <span className="text-foreground/80">{text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              </CardBody>
+            </Card>
+          </button>
+        ))}
+        <Card className="bg-content2">
+          <CardBody className="p-3">
+            <div className="flex gap-2">
+              <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-foreground/70">
+              Your goal helps me create a personalized program with the right balance of exercises 
+              and nutrition recommendations for optimal results.              </p>
             </div>
           </CardBody>
         </Card>
-      ))}
-
-      {/* Help Text */}
-      <Card className="bg-content2">
-        <CardBody className="p-3">
-          <div className="flex gap-2">
-            <Target className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-foreground/70">
-              Your goal helps me create a personalized program that focuses on the right balance 
-              of exercise types and nutrition recommendations for optimal results.
-            </p>
-          </div>
-        </CardBody>
-      </Card>
+      </div>
     </div>
   );
 };
