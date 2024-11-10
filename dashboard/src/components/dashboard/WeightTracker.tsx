@@ -54,9 +54,9 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
   const bmiCategory = getBmiCategory(bmi);
 
   const weightStats = [
-    { label: 'Starting', value: `${client.weight[0].weight} kg` },
-    { label: 'Current', value: `${client.current_weight} kg` },
-    { label: 'Target', value: `${client.target_weight} kg` }
+    { label: 'Starting', value: client.weight[0].weight },
+    { label: 'Current', value: client.current_weight },
+    { label: 'Target', value: client.target_weight }
   ];
 
   // Add progress evaluation logic
@@ -164,15 +164,18 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
                 </div>
                 <div>
                   <p className="text-sm text-foreground/60">Weight Goals</p>
-                  <p className="text-lg font-semibold">{client.goal}</p>
+                  <p className="text-sm font-semibold">{client.goal}</p>
                 </div>
               </div>
               <Divider className="my-3 bg-primary-500/10" />
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1">
                 {weightStats.map((stat) => (
-                  <div key={stat.label} className="space-y-1">
-                    <p className="text-xs text-foreground/60">{stat.label}</p>
-                    <p className="text-base font-semibold">{stat.value}</p>
+                  <div key={stat.label} className="flex flex-col items-center">
+                    <p className="text-2xs text-foreground/60 text-center leading-none mb-1">{stat.label}</p>
+                    <div className="flex items-baseline gap-0.5 whitespace-nowrap">
+                      <span className="text-sm font-semibold leading-none">{stat.value}</span>
+                      <span className="text-2xs text-foreground/60 leading-none">kg</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -181,36 +184,33 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
 
           {/* BMI Card */}
           <Card className="col-span-6 border-none bg-gradient-to-br from-secondary-500/5 via-secondary-500/10 to-secondary-500/20">
-            <CardBody className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-secondary-500/10">
-                    <Activity className="w-5 h-5 text-secondary-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-foreground/60">BMI Score</p>
-                    <p className="text-lg font-semibold">{bmi.toFixed(1)}</p>
-                  </div>
+            <CardBody className="p-4 relative">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-secondary-500/10">
+                  <Activity className="w-5 h-5 text-secondary-500" />
                 </div>
-                <Chip
-                  size="sm"
-                  color={bmiCategory.color as any}
-                  variant="flat"
-                  className="capitalize"
-                >
-                  {bmiCategory.label}
-                </Chip>
+                <div>
+                  <p className="text-sm text-foreground/60">Composition</p>
+                  <p className="text-sm font-semibold">{bmiCategory.label}</p>
+                </div>
               </div>
               <Divider className="my-3 bg-secondary-500/10" />
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <p className="text-xs text-foreground/60">Height</p>
-                  <p className="text-base font-semibold">{client.height} cm</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-foreground/60">Weight</p>
-                  <p className="text-base font-semibold">{client.current_weight} kg</p>
-                </div>
+              <div className="grid grid-cols-3 gap-1">
+                {[
+                  { label: 'Height', value: client.height, unit: 'cm' },
+                  { label: 'Weight', value: client.current_weight, unit: 'kg' },
+                  { label: 'BMI', value: bmi.toFixed(1), unit: '', color: bmiCategory.color }
+                ].map((stat) => (
+                  <div key={stat.label} className="flex flex-col items-center">
+                    <p className="text-2xs text-foreground/60 text-center leading-none mb-1">{stat.label}</p>
+                    <div className="flex items-baseline gap-0.5 whitespace-nowrap">
+                      <span className={`text-sm font-semibold leading-none ${stat.color ? `text-${stat.color}` : ''}`}>
+                        {stat.value}
+                      </span>
+                      {stat.unit && <span className="text-2xs text-foreground/60 leading-none">{stat.unit}</span>}
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardBody>
           </Card>
