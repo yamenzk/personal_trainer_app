@@ -21,9 +21,7 @@ export const SupersetCard: React.FC<SupersetCardProps> = ({
   exerciseNumber
 }) => {
   return (
-    <Card className="w-full bg-background/1  border-none"
-      style={{ boxShadow: 'none' }}
-    >
+    <Card className="w-full bg-background/1 border-none" style={{ boxShadow: 'none' }}>
       <div className="p-6 space-y-6">
         {/* Superset Header */}
         <div className="flex items-center gap-3">
@@ -45,64 +43,72 @@ export const SupersetCard: React.FC<SupersetCardProps> = ({
 
         {/* Exercises Grid */}
         <div className="grid grid-cols-2 gap-4">
-          {exercises.map((exercise, index) => (
-            <div key={exercise.ref} className="relative">
-              <Card
-                isPressable
-                onPress={() => onViewDetails(exercise.ref)}
-                className="w-full h-[300px] relative overflow-hidden border-none"
+          {exercises.map((exercise) => {
+            const exerciseRef = references[exercise.ref]; // Get reference directly
+            if (!exerciseRef) return null; // Add safety check
+
+            return (
+              <div 
+                key={exercise.ref} 
+                className="relative cursor-pointer"
+                onClick={() => onViewDetails(exercise.ref)}
               >
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
+                <Card
+                  className="w-full h-[300px] relative overflow-hidden border-none"
+                  isPressable={false}
+                >
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
 
-                {/* Exercise Image */}
-                <Image
-                  removeWrapper
-                  alt={`Exercise ${exercise.ref}`}
-                  className="z-0 w-full h-full object-cover"
-                  src={references[exercise.ref].thumbnail || references[exercise.ref].starting}
-                />
+                  {/* Exercise Image */}
+                  <Image
+                    removeWrapper
+                    alt={`Exercise ${exercise.ref}`}
+                    className="z-0 w-full h-full object-cover"
+                    src={exerciseRef.thumbnail || exerciseRef.starting}
+                  />
 
-                {/* Content */}
-                <div className="absolute inset-0 z-20 p-4 flex flex-col justify-between">
-                  {/* Header */}
-                  <div>
-                    <p className="text-tiny text-white/80 uppercase font-bold tracking-wide">
-                      {references[exercise.ref].primary_muscle}
-                    </p>
-                    <h4 className="text-white text-xl font-semibold">
-                      {exercise.ref}
-                    </h4>
-                  </div>
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
-                      <Chip
-                        size="sm"
-                        className="border-2 border-primary-500 bg-primary-500/30 backdrop-blur-md text-white font-medium"
-                        startContent={<Dumbbell size={14} className="text-white" />}
-                      >
-                        {exercise.sets} × {exercise.reps}
-                      </Chip>
-                      <Chip
-                        size="sm"
-                        className="border-2 border-secondary-500 bg-secondary-500/30 backdrop-blur-md text-white font-medium"
-                        startContent={<Clock size={14} className="text-white" />}
-                      >
-                        {exercise.rest}s
-                      </Chip>
+                  {/* Content */}
+                  <div className="absolute inset-0 z-20 p-4 flex flex-col justify-between">
+                    {/* Header */}
+                    <div>
+                      <p className="text-tiny text-white/80 uppercase font-bold tracking-wide">
+                        {exerciseRef.primary_muscle}
+                      </p>
+                      <h4 className="text-white text-xl font-semibold">
+                        {exercise.ref}
+                      </h4>
                     </div>
-                    {exercise.logged === 1 && (
-                      <div className="w-6 h-6 rounded-full bg-success-500/20 flex items-center justify-center">
-                        <CheckCircle2 size={14} className="text-success-500" />
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-2">
+                        <Chip
+                          size="sm"
+                          className="border-2 border-primary-500 bg-primary-500/30 backdrop-blur-md text-white font-medium"
+                          startContent={<Dumbbell size={14} className="text-white" />}
+                        >
+                          {exercise.sets} × {exercise.reps}
+                        </Chip>
+                        <Chip
+                          size="sm"
+                          className="border-2 border-secondary-500 bg-secondary-500/30 backdrop-blur-md text-white font-medium"
+                          startContent={<Clock size={14} className="text-white" />}
+                        >
+                          {exercise.rest}s
+                        </Chip>
                       </div>
-                    )}
+                      {exercise.logged === 1 && (
+                        <div className="w-6 h-6 rounded-full bg-success-500/20 flex items-center justify-center">
+                          <CheckCircle2 size={14} className="text-success-500" />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            </div>
-          ))}
+                </Card>
+              </div>
+            );
+          })}
         </div>
 
         {/* Tips Section */}

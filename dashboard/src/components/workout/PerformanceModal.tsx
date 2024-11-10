@@ -1,7 +1,60 @@
-import { Modal, ModalContent, Button, Input, Progress } from "@nextui-org/react";
+import { Modal, ModalContent, Button, Input, Progress, Switch } from "@nextui-org/react";
 import { Scale, Dumbbell, Timer, AlertTriangle, Repeat, History, ChevronUp, ChevronDown, CheckCircle, Target, Trophy } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/utils/cn";
+import { motion } from "framer-motion";
+
+const getPerformanceMessage = (
+  current: { weight: number; reps: number },
+  previous: { weight: number; reps: number } | null,
+  personalBest: { weight: number; reps: number }
+) => {
+  if (!previous) return {
+    emoji: "🎯",
+    message: "First set! Let's establish your baseline.",
+    color: "primary"
+  };
+
+  const isNewPB = current.weight > personalBest.weight || 
+    (current.weight === personalBest.weight && current.reps > personalBest.reps);
+
+  if (isNewPB) return {
+    emoji: "🏆",
+    message: "New Personal Best!",
+    color: "success",
+    tip: "Keep challenging yourself with progressive overload"
+  };
+
+  const weightDiff = current.weight - previous.weight;
+  const repsDiff = current.reps - previous.reps;
+
+  if (weightDiff > 0) return {
+    emoji: "💪",
+    message: `Added ${weightDiff}kg to your lift!`,
+    color: "success",
+    tip: "Great progress on increasing the weight"
+  };
+
+  if (repsDiff > 0) return {
+    emoji: "⚡",
+    message: `${repsDiff} more reps than last time!`,
+    color: "success",
+    tip: "Keep pushing your endurance"
+  };
+
+  if (weightDiff < 0) return {
+    emoji: "🔄",
+    message: "Focus on proper form at this weight",
+    color: "warning",
+    tip: "Quality reps are better than heavy sloppy ones"
+  };
+
+  return {
+    emoji: "✨",
+    message: "Consistency is key!",
+    color: "primary"
+  };
+};
 
 interface PerformanceModalProps {
   isOpen: boolean;
@@ -29,6 +82,8 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [showPrevious, setShowPrevious] = useState(true);
+    const [isLbs, setIsLbs] = useState(false);
+    const [baseWeightKg, setBaseWeightKg] = useState<number | null>(null);
   
     // Calculate previous bests
     const personalBest = previousPerformance.reduce(
@@ -56,6 +111,26 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
       }
     }, [isOpen, lastPerformance, targetReps]);
   
+    const handleUnitToggle = (isSelected: boolean) => {
+      setIsLbs(isSelected);
+      if (weight) {
+        const weightNum = parseFloat(weight);
+        const newWeight = isSelected 
+          ? (weightNum * 2.20462).toFixed(1)
+          : (weightNum / 2.20462).toFixed(1);
+        setWeight(newWeight);
+      }
+    };
+  
+    const handleWeightChange = (value: string) => {
+      setWeight(value);
+      const weightNum = parseFloat(value);
+      if (!isNaN(weightNum)) {
+        const weightInKg = isLbs ? weightNum / 2.20462 : weightNum;
+        setBaseWeightKg(weightInKg);
+      }
+    };
+  
     const handleSubmit = async () => {
       if (!weight || !actualReps) {
         setError("Please enter both weight and reps");
@@ -78,8 +153,10 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
       setLoading(true);
       setError("");
   
+      const weightToSubmit = isLbs ? parseFloat(weight) / 2.20462 : parseFloat(weight);
+  
       try {
-        await onSubmit(weightNum, repsNum);
+        await onSubmit(weightToSubmit, repsNum);
         onClose();
       } catch (err) {
         setError("Failed to log performance");
@@ -142,7 +219,7 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
             {previousPerformance.length > 0 && (
               <div className={cn(
                 "space-y-4 overflow-hidden transition-all duration-300",
-                showPrevious ? "max-h-80" : "max-h-0"
+                showPrevious ? "max-h-96" : "max-h-0"
               )}>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Personal Best Card */}
@@ -172,6 +249,48 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
                       {new Date(lastPerformance.date).toLocaleDateString("en-AE")}
                     </div>
                   </div>
+  
+                  {/* Motivational Message */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="col-span-2 p-4 rounded-xl bg-content1/5 border border-content1/10"
+                  >
+                    {(() => {
+                      const current = { 
+                        weight: parseFloat(weight) || 0, 
+                        reps: parseInt(actualReps) || 0 
+                      };
+                      const motivation = getPerformanceMessage(
+                        current,
+                        lastPerformance,
+                        personalBest
+                      );
+                      return (
+                        <div className="space-y-2">
+                          <div className={cn(
+                            "flex items-center gap-2",
+                            `text-${motivation.color}-600`
+                          )}>
+                            <span className="text-lg">{motivation.emoji}</span>
+                            <span className="font-medium text-sm">
+                              {motivation.message}
+                            </span>
+                          </div>
+                          {motivation.tip && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.2 }}
+                              className="text-xs text-foreground/60 pl-7"
+                            >
+                              Tip: {motivation.tip}
+                            </motion.div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </motion.div>
                 </div>
   
                 {/* Progress Indicators */}
@@ -219,19 +338,43 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
               </Button>
             )}
   
+            {/* Unit Switch */}
+            <div className="flex justify-center items-center gap-3">
+              <span className={cn(
+                "text-sm font-medium",
+                !isLbs ? "text-primary-500" : "text-foreground/60"
+              )}>
+                KG
+              </span>
+              <Switch
+                isSelected={isLbs}
+                size="lg"
+                color="primary"
+                onValueChange={handleUnitToggle}
+              />
+              <span className={cn(
+                "text-sm font-medium",
+                isLbs ? "text-primary-500" : "text-foreground/60"
+              )}>
+                LB
+              </span>
+            </div>
+  
             {/* Input Section */}
             <div className="space-y-4">
               {/* Weight Input */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <Scale className="w-4 h-4 text-primary" />
-                  <label className="text-sm font-medium">Weight (kg)</label>
+                  <label className="text-sm font-medium">
+                    Weight ({isLbs ? "lb" : "kg"})
+                  </label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
                     value={weight}
-                    onValueChange={setWeight}
+                    onValueChange={handleWeightChange}
                     placeholder="Enter weight"
                     className="flex-1"
                     classNames={{

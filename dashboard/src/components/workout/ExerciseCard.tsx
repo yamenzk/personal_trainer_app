@@ -61,133 +61,133 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
         "transition-all duration-300 hover:shadow-lg border-none",
         isHovered && "scale-[1.02]"
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      isPressable
-      onPress={onViewDetails}
+      isPressable={false} // Changed to false
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
+      <div 
+        className="relative w-full h-full cursor-pointer" 
+        onClick={onViewDetails}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
 
-      <CardHeader className="absolute z-20 top-1 flex-col items-start">
-        <p className="text-tiny text-white uppercase font-bold tracking-wide">
-          {details.primary_muscle}
-        </p>
-        <h3 className="font-semibold flex text-2xl text-white">
-          {!isSuperset && exerciseNumber && (
-            <span className="text-white/80">{exerciseNumber}.</span>
+        <CardHeader className="absolute z-20 top-1 flex-col items-start">
+          <p className="text-tiny text-white uppercase font-bold tracking-wide">
+            {details.primary_muscle}
+          </p>
+          <h3 className="font-semibold flex text-2xl text-white">
+            {!isSuperset && exerciseNumber && (
+              <span className="text-white/80">{exerciseNumber}.</span>
+            )}
+            {exercise.ref}
+            {isLogged && (
+              <CheckCircle2 className="w-4 h-4 text-white-500" />
+            )}
+          </h3>
+        </CardHeader>
+
+        <div className="relative w-full h-full">
+          {isImageLoading && (
+            <Skeleton className="absolute inset-0 w-full h-full rounded-lg">
+              <div className="w-full h-full bg-default-300"></div>
+            </Skeleton>
           )}
-          {exercise.ref}
-          {isLogged && (
-      <CheckCircle2 className="w-4 h-4 text-white-500" />
-    )}
-        </h3>
-      </CardHeader>
 
-      <div className="relative w-full h-full">
-        {isImageLoading && (
-          <Skeleton className="absolute inset-0 w-full h-full rounded-lg">
-            <div className="w-full h-full bg-default-300"></div>
-          </Skeleton>
-        )}
-
-        <Image
-          removeWrapper
-          alt="Card example background"
-          className={cn(
-            "z-0 w-full h-full scale-125 -translate-y-6 object-cover",
-            "transition-opacity duration-300",
-            isImageLoading ? "opacity-0" : "opacity-100"
-          )}
-          src={details.thumbnail || details.starting}
-          onLoad={() => setIsImageLoading(false)}
-        />
+          <Image
+            removeWrapper
+            alt="Card example background"
+            className={cn(
+              "z-0 w-full h-full scale-125 -translate-y-6 object-cover",
+              "transition-opacity duration-300",
+              isImageLoading ? "opacity-0" : "opacity-100"
+            )}
+            src={details.thumbnail || details.starting}
+            onLoad={() => setIsImageLoading(false)}
+          />
+        </div>
       </div>
 
       <CardFooter
-  className={cn(
-    "absolute bottom-0 z-20",
-    "bg-black/60 backdrop-blur-md",
-    "flex justify-between items-center flex-wrap gap-2"
-  )}
->
-  {/* Tags section */}
-  <div className={cn("flex flex-wrap gap-2", {
-    "max-w-[70%]": (!isLogged && !isSuperset && selectedPlan === 'active'),
-  })}>
-    <Chip
-      size="sm"
-      className={cn(
-        "border-2 border-primary-500",
-        "bg-primary-500/30 backdrop-blur-md",
-        "text-white font-medium"
-      )}
-      startContent={<Dumbbell size={14} className="text-white" />}
-    >
-      {exercise.sets} × {exercise.reps}
-    </Chip>
-
-    <Chip
-      size="sm"
-      className={cn(
-        "border-2 border-secondary-500",
-        "bg-secondary-500/30 backdrop-blur-md",
-        "text-white font-medium"
-      )}
-      startContent={<Clock size={14} className="text-white" />}
-    >
-      {exercise.rest}s rest
-    </Chip>
-
-    {personalBest && (
-      <Chip
-        size="sm"
         className={cn(
-          "border-2 border-warning-500",
-          "bg-warning-500/30 backdrop-blur-md",
-          "text-white font-medium"
+          "absolute bottom-0 z-20",
+          "bg-black/60 backdrop-blur-md",
+          "flex justify-between items-center flex-wrap gap-2"
         )}
-        startContent={<Trophy size={14} className="text-white" />}
       >
-        {personalBest.weight}kg × {personalBest.reps}
-      </Chip>
-    )}
+        <div className="flex justify-between items-center w-full">
+          <div className={cn("flex flex-wrap gap-2", {
+            "max-w-[70%]": (!isLogged && !isSuperset && selectedPlan === 'active'),
+          })}>
+            <Chip
+              size="sm"
+              className={cn(
+                "border-2 border-primary-500",
+                "bg-primary-500/30 backdrop-blur-md",
+                "text-white font-medium"
+              )}
+              startContent={<Dumbbell size={14} className="text-white" />}
+            >
+              {exercise.sets} × {exercise.reps}
+            </Chip>
 
-    {lastPerformance && lastPerformance !== personalBest && (
-      <Chip
-        size="sm"
-        className={cn(
-          "border-2 border-success-500",
-          "bg-success-500/30 backdrop-blur-md",
-          "text-white font-medium"
-        )}
-        startContent={<History size={14} className="text-white" />}
-      >
-        {lastPerformance.weight}kg × {lastPerformance.reps}
-      </Chip>
-    )}
-  </div>
+            <Chip
+              size="sm"
+              className={cn(
+                "border-2 border-secondary-500",
+                "bg-secondary-500/30 backdrop-blur-md",
+                "text-white font-medium"
+              )}
+              startContent={<Clock size={14} className="text-white" />}
+            >
+              {exercise.rest}s rest
+            </Chip>
 
-  {/* Button section */}
-  <div className="flex items-center gap-2 ml-auto">
-    {!isLogged && !isSuperset && selectedPlan === 'active' && (
-      <Button
-        className={cn(
-          "bg-primary-500 text-white",
-          "shadow-lg shadow-primary-500/20",
-          "hover:bg-primary-600"
-        )}
-        radius="full"
-        size="sm"
-        startContent={<Zap size={14} />}
-        onPress={onLogSet}
-      >
-        Log Set
-      </Button>
-    )}
-  </div>
-</CardFooter>
+            {personalBest && (
+              <Chip
+                size="sm"
+                className={cn(
+                  "border-2 border-warning-500",
+                  "bg-warning-500/30 backdrop-blur-md",
+                  "text-white font-medium"
+                )}
+                startContent={<Trophy size={14} className="text-white" />}
+              >
+                {personalBest.weight}kg × {personalBest.reps}
+              </Chip>
+            )}
 
+            {lastPerformance && lastPerformance !== personalBest && (
+              <Chip
+                size="sm"
+                className={cn(
+                  "border-2 border-success-500",
+                  "bg-success-500/30 backdrop-blur-md",
+                  "text-white font-medium"
+                )}
+                startContent={<History size={14} className="text-white" />}
+              >
+                {lastPerformance.weight}kg × {lastPerformance.reps}
+              </Chip>
+            )}
+          </div>
 
+          {!isLogged && !isSuperset && selectedPlan === 'active' && (
+            <div onClick={e => e.stopPropagation()}>
+              <Button
+                className={cn(
+                  "bg-primary-500 text-white",
+                  "shadow-lg shadow-primary-500/20",
+                  "hover:bg-primary-600"
+                )}
+                radius="full"
+                size="sm"
+                startContent={<Zap size={14} />}
+                onPress={onLogSet}
+              >
+                Log Set
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardFooter>
     </Card>
   );
 };

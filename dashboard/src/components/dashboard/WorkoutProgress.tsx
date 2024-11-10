@@ -5,8 +5,12 @@ import {
   Trophy,
   Target,
   TimerIcon,
-  Sparkles
+  Sparkles,
+  Moon,
+  Stars,
+  BedDouble
 } from 'lucide-react';
+import { motion } from "framer-motion";
 import { Client } from '@/types/client';
 import { Plan } from '@/types/plan';
 import { ExerciseBase, ExerciseReference, Exercise } from '@/types/workout';
@@ -39,6 +43,7 @@ export const WorkoutProgress = ({
     ex.type === 'superset' && ex.exercises.every(e => e.logged === 1)
   ).length;
 
+  const isRestDay = todayExercises.length === 0;
   const isAllCompleted = completedExercises === todayExercises.length;
   const completionPercentage = (completedExercises / todayExercises.length) * 100;
 
@@ -93,19 +98,125 @@ export const WorkoutProgress = ({
     "Perfect form, perfect finish! 🎯"
   ];
 
+  const restMessages = [
+    "Sweet dreams, champion! 💤",
+    "Rest & recover! 🌙",
+    "Time to recharge! 🛏️",
+    "Your muscles thank you! 😴",
+    "Rest day = Growth day! ⭐",
+    "Catch those Zzz's! 💫",
+    "Recovery in progress... 🌠",
+    "Rest & come back stronger! 🌛"
+  ];
+
   const randomMotivationalMessage = 
     motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+  
+  const randomRestMessage = 
+    restMessages[Math.floor(Math.random() * restMessages.length)];
 
   return (
     <Card className="border-none bg-transparent shadow-none">
       <CardBody className="p-4">
         <div className="relative overflow-hidden rounded-xl">
-          {/* Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-secondary-500 via-secondary-600 to-secondary-700" />
+          {/* Background with conditional styling */}
+          <div className={cn(
+            "absolute inset-0 bg-gradient-to-br",
+            isRestDay 
+              ? "from-blue-900 via-indigo-900 to-violet-900" 
+              : "from-secondary-500 via-secondary-600 to-secondary-700"
+          )} />
           <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10" />
           
+          {/* Stars animation for rest day */}
+          {isRestDay && (
+            <div className="absolute inset-0 overflow-hidden">
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-white rounded-full"
+                  style={{
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                  }}
+                  animate={{
+                    opacity: [0.2, 1, 0.2],
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{
+                    duration: 2 + Math.random() * 2,
+                    repeat: Infinity,
+                    delay: Math.random() * 2,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+          
           <div className="relative p-4 space-y-4">
-            {isAllCompleted ? (
+            {isRestDay ? (
+              // Rest Day Message
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="p-2 bg-white/10 rounded-full">
+                    <Moon className="w-5 h-5 text-white" />
+                  </div>
+                  {/* Animated Zs */}
+                  <motion.div
+                    className="absolute -top-1 -right-3 text-white text-xs font-bold"
+                    animate={{
+                      y: [-4, -8, -4],
+                      opacity: [0, 1, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    Z
+                  </motion.div>
+                  <motion.div
+                    className="absolute -top-2 right-0 text-white text-xs font-bold"
+                    animate={{
+                      y: [-4, -8, -4],
+                      opacity: [0, 1, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      delay: 0.3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    z
+                  </motion.div>
+                  <motion.div
+                    className="absolute -top-3 right-3 text-white text-xs font-bold"
+                    animate={{
+                      y: [-4, -8, -4],
+                      opacity: [0, 1, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      delay: 0.6,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    z
+                  </motion.div>
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-white">
+                    {randomRestMessage}
+                  </h3>
+                  <p className="text-sm text-white/80">
+                    Recovery day for optimal gains
+                  </p>
+                </div>
+              </div>
+            ) : isAllCompleted ? (
               // Completion Message
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white/10 rounded-full">
@@ -121,7 +232,7 @@ export const WorkoutProgress = ({
                 </div>
               </div>
             ) : (
-              /* Progress Display */
+              // Regular Progress Display
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/10 rounded-full">
@@ -152,15 +263,26 @@ export const WorkoutProgress = ({
                   key={index}
                   className="flex items-center gap-2"
                 >
-                  <div className="p-1.5 bg-white/10 rounded-full">
-                    <stat.icon className="w-3.5 h-3.5 text-white" />
+                  <div className={cn(
+                    "p-1.5 rounded-full",
+                    isRestDay ? "bg-white/5" : "bg-white/10"
+                  )}>
+                    <stat.icon className={cn(
+                      "w-3.5 h-3.5",
+                      isRestDay ? "text-white/60" : "text-white"
+                    )} />
                   </div>
-                  <span className="text-sm font-medium text-white">{stat.value}</span>
+                  <span className={cn(
+                    "text-sm font-medium",
+                    isRestDay ? "text-white/60" : "text-white"
+                  )}>
+                    {stat.value}
+                  </span>
                 </div>
               ))}
             </div>
 
-            {!isAllCompleted && (
+            {!isRestDay && !isAllCompleted && (
               <div className="flex items-center gap-4">
                 {/* Progress Bar */}
                 <div className="flex-1">

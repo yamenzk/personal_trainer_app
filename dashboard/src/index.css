@@ -200,6 +200,10 @@
   opacity: 0.2;
 }
 
+.achievement-swiper{
+  padding-bottom: 0 !important;
+}
+
 .achievement-swiper .swiper-pagination-bullet-active {
   background: var(--nextui-primary);
   opacity: 1;

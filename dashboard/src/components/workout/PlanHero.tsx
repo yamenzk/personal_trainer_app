@@ -1,11 +1,12 @@
 import { Card, Button, Chip, Switch, CircularProgress } from "@nextui-org/react";
-import { motion } from "framer-motion";
-import { format, addDays, isToday, differenceInDays } from "date-fns";
-import { History, Zap, Calendar, Target, Dumbbell, Timer, Moon, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, LayoutGroup } from "framer-motion";
+import { format, addDays, isToday, differenceInDays, startOfDay, parseISO } from "date-fns";
+import { History, Zap, Calendar, Target, Dumbbell, Timer, Moon, CheckCircle2, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Plan } from "@/types/plan";
 import { cn } from "@/utils/cn";
 import { useTheme } from '../../contexts/ThemeContext';
+import { ContextualTip } from "./ContextualTip";
 
 interface PlanHeroProps {
   plan: Plan;
@@ -20,6 +21,33 @@ interface PlanHeroProps {
   onHistoricalPlanSelect: (index: number) => void;
 }
 
+// Sub-components for better organization
+const StatsCard = ({ icon, label, value, color }: any) => (
+  <div className="rounded-xl bg-content/5 p-3 flex items-center gap-2 hover:bg-content/10 transition-all duration-200">
+    <div className={`p-1.5 rounded-lg bg-${color}-500/10`}>
+      {icon}
+    </div>
+    <div>
+      <p className="text-xs text-foreground/60">{label}</p>
+      <p className="text-sm font-semibold">{value}</p>
+    </div>
+  </div>
+);
+
+const WeekProgress = ({ completed, total }: { completed: number, total: number }) => {
+  const percentage = (completed / total) * 100;
+  return (
+    <div className="relative h-1.5 w-full bg-content/10 rounded-full overflow-hidden">
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${percentage}%` }}
+        className="absolute h-full bg-gradient-to-r from-primary-500 to-secondary-500"
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      />
+    </div>
+  );
+};
+
 export const PlanHero: React.FC<PlanHeroProps> = ({
   plan,
   selectedDay,
@@ -33,37 +61,28 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
   onHistoricalPlanSelect,
 }: PlanHeroProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isCurrentWeek = selectedPlan === 'active';
-  const startDate = new Date(plan.start);
-  const initialScrollApplied = useRef(false);
   const { theme } = useTheme();
+  const initRef = useRef(false);
 
+  // Initialize with today's day if it's the current week
   useEffect(() => {
-    if (!initialScrollApplied.current && scrollRef.current && currentDay) {
-      const container = scrollRef.current;
-      const dayElements = container.children;
-
-      if (dayElements.length > 0) {
-        const dayElement = dayElements[currentDay - 1] as HTMLElement;
-        if (dayElement) {
-          // Calculate the center position
-          const containerWidth = container.clientWidth;
-          const elementWidth = dayElement.offsetWidth;
-          const elementLeft = dayElement.offsetLeft;
-          const scrollPosition = elementLeft - (containerWidth / 2) + (elementWidth / 2);
-
-          // Apply scroll with a slight delay to ensure layout is ready
-          setTimeout(() => {
-            container.scrollTo({
-              left: Math.max(0, scrollPosition),
-              behavior: 'smooth'
-            });
-            initialScrollApplied.current = true;
-          }, 100);
-        }
+    if (selectedDay && scrollRef.current) {
+      const scrollContainer = scrollRef.current;
+      const selectedElement = scrollContainer.children[selectedDay - 1] as HTMLElement;
+      
+      if (selectedElement) {
+        const containerWidth = scrollContainer.clientWidth;
+        const elementWidth = selectedElement.offsetWidth;
+        const scrollLeft = selectedElement.offsetLeft - (containerWidth / 2) + (elementWidth / 2);
+        
+        scrollContainer.scrollTo({
+          left: Math.max(0, scrollLeft),
+          behavior: 'smooth'
+        });
       }
     }
-  }, [currentDay, scrollRef.current]);
+  }, [selectedDay]);
+
 
   // Calculate statistics
   const stats = {
@@ -86,7 +105,7 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
     }
   };
 
-  // Calculate streak (counting consecutive days with completed workouts)
+  // Calculate streak
   const calculateStreak = () => {
     let streak = 0;
     let currentStreak = 0;
@@ -115,7 +134,8 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
   };
 
   const DayButton = ({ dayIndex }: { dayIndex: number }) => {
-    const date = addDays(startDate, dayIndex - 1);
+    const date = addDays(new Date(plan.start), dayIndex - 1);
+    const today = new Date();
     const dayKey = `day_${dayIndex}`;
     const dayData = plan.days[dayKey];
     const exerciseCount = dayData?.exercises?.length || 0;
@@ -123,243 +143,234 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
       e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
     );
     const isSelected = selectedDay === dayIndex;
-    const isCurrent = isToday(date);
+    const isCurrent = format(date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
 
     return (
-      <Button
-        className={cn(
-          "w-[90px] h-[90px] p-3",
-          "flex flex-col items-center justify-between",
-          "transition-all duration-300",
-          "bg-foreground/5 hover:bg-foreground/10",
-          isSelected && "bg-gradient-to-br from-primary-500 to-secondary-500 text-white scale-105 shadow-lg",
-          isCompleted && !isSelected && "bg-success-500/10 border border-success-500 hover:bg-success-500/20",
-          isCompleted && isSelected && "bg-gradient-to-br border border-indigo-500 from-primary-500 to-secondary-500 text-white scale-105 shadow-lg",
-          isCurrent && !isSelected && "bg-primary-500/10 hover:bg-primary-500/20",
-        )}
-        variant="flat"
-        onPress={() => onDaySelect(dayIndex)}
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="relative"
       >
-        <div className="text-center">
-          <p className={cn(
-            "text-[11px] uppercase tracking-wider",
-            isCurrent && "text-primary-500",
-            isSelected && "text-white/90"
-          )}>
-            {format(date, 'EEE')}
-          </p>
-          <p className={cn(
-            "text-xl font-bold",
-            isCurrent && !isSelected && "text-primary-500"
-          )}>
-            {format(date, 'd')}
-          </p>
-        </div>
-
-        {exerciseCount > 0 ? (
-          <Chip
-            size="sm"
-            className={cn(
-              "h-5 px-2",
-              isSelected
-                ? "bg-white/20 text-white"
-                : isCompleted
-                  ? "bg-success-500/20 text-success-500"
-                  : "bg-content/10"
-            )}
-          >
-            <div className="flex items-center gap-1">
-              <Dumbbell className="w-3 h-3" />
-              <span className="text-xs">{exerciseCount}</span>
+        <Card
+          isPressable
+          onPress={() => onDaySelect(dayIndex)}
+          className={cn(
+            "w-[68px] min-h-[84px]",
+            "flex flex-col items-center justify-between",
+            "transition-all duration-300",
+            "relative overflow-hidden",
+            // Selected states
+            isSelected && "bg-gradient-to-br from-primary-500 via-primary-400 to-secondary-500 border-none",
+            // Regular day with exercises
+            !isSelected && exerciseCount > 0 && "bg-secondary-500/5 border-secondary-500/20",
+            // Completed states
+            !isSelected && isCompleted && "bg-success-500/5 border-success-500/20",
+            // Current day states
+            !isSelected && isCurrent && "bg-warning-500/5 border-warning-500/20",
+            // Rest day (no exercises)
+            !isSelected && !exerciseCount && !isCurrent && "bg-content/5 border-content/10",
+          )}
+        >
+          {/* Completion Pattern - only show for completed days */}
+          {isCompleted && !isSelected && (
+            <div className="absolute inset-0 opacity-5">
+              <svg className="w-full h-full" viewBox="0 0 100 100">
+                <pattern id="completion-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <circle cx="5" cy="5" r="1" fill="currentColor" />
+                </pattern>
+                <rect x="0" y="0" width="100" height="100" fill="url(#completion-pattern)" />
+              </svg>
             </div>
-          </Chip>
-        ) : (
-          <Chip
-            size="sm"
-            className={cn(
-              "h-5 px-2", "bg-content/10"
-            )}
-          >
-            <Moon className="w-3 h-3" />
-          </Chip>
-        )}
+          )}
 
-        {(isCompleted || (isCurrent && !isCompleted)) && (
-          <div className="absolute -top-0 -right-0">
-            {isCompleted ? (
-              isSelected ? (
-                <div className="w-5 h-5 rounded-tr-lg rounded-bl-lg bg-indigo-500 flex items-center justify-center">
-                  <CheckCircle2 className="w-3 h-3 text-white" />
-                </div>
-              ) : (
-                <div className="w-5 h-5 rounded-tr-lg rounded-bl-lg bg-success-500 flex items-center justify-center">
-                  <CheckCircle2 className="w-3 h-3 text-white" />
-                </div>
-              )
-            ) : isCurrent && (
-              <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center">
-                <Zap className="w-3 h-3 text-white" />
+          <div className="flex flex-col items-center gap-1 p-2">
+            {/* Date Section */}
+            <span className={cn(
+              "text-xs font-medium",
+              isSelected ? "text-white/90" : "text-foreground/60"
+            )}>
+              {format(date, 'EEE')}
+            </span>
+            <span className={cn(
+              "text-xl font-bold",
+              isSelected ? "text-white" : 
+              isCurrent ? "text-warning-500" : 
+              "text-foreground"
+            )}>
+              {format(date, 'd')}
+            </span>
+
+            {/* Exercise Indicator */}
+            {exerciseCount > 0 ? (
+              <div className={cn(
+                "flex items-center gap-1",
+                "px-2 py-0.5 rounded-full",
+                "text-xs font-medium",
+                isSelected && "bg-white/20 text-white",
+                isCompleted && !isSelected && "bg-success-500/20 text-success-500",
+                !isSelected && !isCompleted && "bg-secondary-500/10 text-secondary-500"
+              )}>
+                <Dumbbell className="w-3 h-3" />
+                {exerciseCount}
+              </div>
+            ) : (
+              <div className={cn(
+                "p-1 rounded-full",
+                isSelected ? "bg-white/20" : "bg-content/10"
+              )}>
+                <Moon className={cn(
+                  "w-3 h-3",
+                  isSelected ? "text-white/70" : "text-foreground/40"
+                )} />
               </div>
             )}
           </div>
-        )}
 
-      </Button>
+          {/* Bottom Status Bar */}
+          {(exerciseCount > 0 || isCompleted || isCurrent) && (
+            <div className={cn(
+              "absolute bottom-0 left-0 right-0 h-1",
+              "transition-all duration-300",
+              // Selected states
+              isSelected && isCompleted && "bg-white/30",
+              isSelected && !isCompleted && "bg-white/20",
+              // Current day states
+              !isSelected && isCurrent && isCompleted && "bg-warning-500",
+              !isSelected && isCurrent && !isCompleted && "bg-primary-500",
+              // Completed state
+              !isSelected && isCompleted && !isCurrent && "bg-success-500",
+              // Regular day with exercises
+              !isSelected && !isCompleted && !isCurrent && exerciseCount > 0 && "bg-secondary-500"
+            )} />
+          )}
+        </Card>
+      </motion.div>
     );
   };
 
   return (
-    <Card isBlurred  className="relative overflow-hidden border-none bg-content-secondary/80 dark:bg-transparent">
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-secondary-500/5 to-primary-500/5" />
+    <LayoutGroup>
+      <Card className="border-none bg-content2 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] rounded-b-4xl overflow-visible">
+        <div className="p-6 space-y-4">
+          {/* Top Row: Week Indicator and Mode Switch */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {selectedPlan === 'history' ? (
+                <>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="flat"
+                    isDisabled={historicalPlanIndex === completedPlans.length - 1}
+                    onPress={() => onHistoricalPlanSelect(historicalPlanIndex + 1)}
+                    className="bg-content/5"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
 
-      {/* Content */}
-      <div className="relative p-4 space-y-4">
-        {/* Top Row with Progress and History Switch */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+                  <Chip size="sm" className="bg-content/10 border border-content/20">
+                    Week {completedPlans.length - historicalPlanIndex}
+                  </Chip>
+
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="flat"
+                    isDisabled={historicalPlanIndex === 0}
+                    onPress={() => onHistoricalPlanSelect(historicalPlanIndex - 1)}
+                    className="bg-content/5"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </>
+              ) : (
+                <Chip 
+                  size="sm" 
+                  className="bg-secondary-500/10 border border-secondary-500/20"
+                  startContent={<Zap className="w-3 h-3 text-secondary-500" />}
+                >
+                  Current Week
+                </Chip>
+              )}
+            </div>
+
             <Switch
+              classNames={{
+                wrapper: cn(
+                  selectedPlan === 'active' 
+                    ? "bg-secondary-500" 
+                    : "bg-primary-500"
+                ),
+              }}
               size="sm"
-              color="danger"
               startContent={<History className="w-3 h-3" />}
               endContent={<Zap className="w-3 h-3" />}
               isSelected={selectedPlan === 'history'}
               onValueChange={(isSelected) => onPlanTypeChange(isSelected ? 'history' : 'active')}
               isDisabled={completedPlansCount === 0}
-              classNames={{
-                wrapper: selectedPlan === 'active' ? "bg-secondary-500" : "bg-primary-500", // Apply bg-secondary-500 only when selectedPlan is 'active'
-              }}
             >
-              <span className="text-xs">
-                {selectedPlan === 'history' ? 'History Mode' : 'Current Week'}
+              <span className="text-sm font-medium">
+                {selectedPlan === 'history' ? 'History' : 'Current'}
               </span>
             </Switch>
-
-            {selectedPlan === 'history' && (
-              <Chip size="sm" >
-                Week {completedPlans.length - historicalPlanIndex} of {completedPlans.length}
-              </Chip>
-            )}
           </div>
 
-          <CircularProgress
-            value={(stats.completed.exercises / stats.total.exercises) * 100}
-            color="primary"
-            classNames={{
-              svg: "w-12 h-12 drop-shadow",
-              indicator: "stroke-primary-500",
-              track: "stroke-white/10",
-              value: "text-sm font-semibold text-primary-500",
-            }}
-            aria-label="Progress"
-            showValueLabel={true}
-            valueLabel={`${Math.round((stats.completed.exercises / stats.total.exercises) * 100)}%`}
-          />
-        </div>
-
-        {/* Date Navigation Row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {selectedPlan === 'history' && (
-              <Button
-                isIconOnly
-                variant="flat"
-                isDisabled={historicalPlanIndex === completedPlans.length - 1}
-                onPress={() => onHistoricalPlanSelect(historicalPlanIndex + 1)}
-                className="bg-content/5"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-            )}
-
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary-500" />
-              <h3 className="text-base font-semibold">
-                {format(startDate, 'MMM d')} - {format(addDays(startDate, 6), 'MMM d')}
-              </h3>
-            </div>
-
-            {selectedPlan === 'history' && (
-              <Button
-                isIconOnly
-                variant="flat"
-                isDisabled={historicalPlanIndex === 0}
-                onPress={() => onHistoricalPlanSelect(historicalPlanIndex - 1)}
-                className="bg-content/5"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Stats Row - Now with more space */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-content/5 p-3 flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-secondary-500/10">
-              <Target className="w-4 h-4 text-secondary-500" />
-            </div>
-            <div>
-              <p className="text-xs text-foreground/60">Workouts</p>
-              <p className="text-sm font-semibold">
-                {stats.completed.workouts}/{stats.total.workouts}
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-content/5 p-3 flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-success-500/10">
-              <Dumbbell className="w-4 h-4 text-success-500" />
-            </div>
-            <div>
-              <p className="text-xs text-foreground/60">Exercises</p>
-              <p className="text-sm font-semibold">
-                {stats.completed.exercises}/{stats.total.exercises}
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-content/5 p-3 flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-warning-500/10">
-              <Timer className="w-4 h-4 text-warning-500" />
-            </div>
-            <div>
-              <p className="text-xs text-foreground/60">Streak</p>
-              <p className="text-sm font-semibold">{calculateStreak()} days</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Days Row */}
-        <div className="relative -mx-4 px-4">
-          {/* Shadow Indicators */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10" />
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="flex gap-2 overflow-x-auto hide-scrollbar py-2 -mx-2 px-2"
-            ref={scrollRef}
-            style={{
-              scrollSnapType: 'x mandatory',
-              WebkitOverflowScrolling: 'touch',
-              scrollBehavior: 'smooth' // Added for smoother scrolling
-            }}
-          >
-            {Array.from({ length: 7 }, (_, i) => (
-              <div
-                key={i + 1}
-                className="flex-none"
-                style={{ scrollSnapAlign: 'center' }}
-              >
-                <DayButton dayIndex={i + 1} />
+          {/* Header Section with Stats */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-5 h-5 text-primary-500" />
+                <h2 className="text-xl font-bold tracking-tight">
+                {format(new Date(plan.start), 'MMMM d')} - {format(addDays(new Date(plan.start), 6), 'MMMM d')}
+                </h2>
               </div>
-            ))}
-          </motion.div>
+              <div className="flex items-center gap-6">
+                {/* Stats and Progress */}
+                <div className="flex items-center gap-4 text-sm text-foreground/60">
+                  <span className="flex items-center gap-1.5">
+                    <Target className="w-4 h-4 text-secondary-500" />
+                    <span>{stats.completed.workouts}/{stats.total.workouts} workouts</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Flame className="w-4 h-4 text-warning-500" />
+                    <span>{calculateStreak()} day streak</span>
+                  </span>
+                  {/* Inline Progress Bar */}
+                  <div className="w-32 h-1.5">
+                    <WeekProgress
+                      completed={stats.completed.exercises}
+                      total={stats.total.exercises}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Days Scroller */}
+          <div className="relative -mx-6">
+            <motion.div
+              ref={scrollRef}
+              className="flex gap-2 overflow-x-auto hide-scrollbar py-2 px-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {Array.from({ length: 7 }, (_, i) => (
+                <div key={i + 1} className="flex-none relative">
+                  <DayButton dayIndex={i + 1} />
+                </div>
+              ))}
+            </motion.div>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+      <ContextualTip
+          plan={plan}
+          selectedDay={selectedDay}
+          completedWorkouts={stats.completed.workouts}
+          totalWorkouts={stats.total.workouts}
+          streak={calculateStreak()}
+        />
+    </LayoutGroup>
   );
 };

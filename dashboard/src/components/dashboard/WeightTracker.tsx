@@ -232,17 +232,17 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
         </div>
 
         {/* Chart Section */}
-        <div className="space-y-4 bg-content2 rounded-xl p-4">
+        <div className="space-y-4 bg-content2/0 rounded-xl p-4">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
+            {/* <div className="space-y-1">
               <h3 className="text-xl font-semibold">Weight Progress</h3>
               <p className="text-sm text-foreground/60">
                 {weightData.length > 1 
                   ? getProgressMessage()
                   : "Start logging your weight to see progress"}
               </p>
-            </div>
-            <div className="flex items-center gap-4">
+            </div> */}
+            <div className="flex items-center gap-4 justify-end w-full">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: chartColors.line }} />
                 <span className="text-sm text-foreground/60">Progress</span>

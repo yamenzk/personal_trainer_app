@@ -103,7 +103,7 @@ const DashboardContent = ({
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br">
-      <div className="container mx-auto space-y-8">
+      <div className="container mx-auto space-y-12">
         {/* Hero Section */}
         <div className="fade-in">
           <HeroSection
@@ -118,7 +118,7 @@ const DashboardContent = ({
         <div className="space-y-4 fade-in-delayed">
           <div className="px-4">
             <h2 className="text-xl font-semibold">Your Statistics</h2>
-            <p className="text-sm text-foreground/60">Track your daily progress and achievements</p>
+            <p className="text-sm text-foreground/60">Track your daily progress and achievements.</p>
           </div>
           <div className="w-full">
             <QuickStats client={client} />
@@ -129,7 +129,7 @@ const DashboardContent = ({
         <div className="space-y-4 fade-in-delayed">
           <div className="px-4">
             <h2 className="text-xl font-semibold">Today's Workout</h2>
-            <p className="text-sm text-foreground/60">Keep track of your workout progress</p>
+            <p className="text-sm text-foreground/60">Keep track of your workout progress.</p>
           </div>
           <WorkoutProgress
             client={client}
@@ -141,21 +141,34 @@ const DashboardContent = ({
           />
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          {/* Weight Section */}
-          <div className="xl:col-span-8">
-            <WeightTracker
-              client={client}
-              onLogWeight={() => setShowWeightModal(true)}
-            />
+        {/* Weight Journey Section */}
+        <div className="space-y-4 fade-in-delayed">
+          <div className="px-4">
+            <h2 className="text-xl font-semibold">Your Weight Journey</h2>
+            <p className="text-sm text-foreground/60">Stay focused on your health goals</p>
           </div>
+          <WeightTracker
+            client={client}
+            onLogWeight={() => setShowWeightModal(true)}
+          />
+        </div>
 
-          {/* Right Sidebar */}
-          <div className="xl:col-span-4 space-y-6">
-            <AchievementCard client={client} />
-            <MuscleGroupsChart client={client} />
+        {/* Achievement Section */}
+        <div className="space-y-4 fade-in-delayed">
+          <div className="px-4">
+            <h2 className="text-xl font-semibold">Your Achievements</h2>
+            <p className="text-sm text-foreground/60">Track your milestones and progress</p>
           </div>
+          <AchievementCard client={client} />
+        </div>
+
+        {/* Muscle Focus Section */}
+        <div className="space-y-4 fade-in-delayed">
+          <div className="px-4">
+            <h2 className="text-xl font-semibold">What You've Been Focusing On</h2>
+            <p className="text-sm text-foreground/60">Analyze your muscle group distribution</p>
+          </div>
+          <MuscleGroupsChart client={client} />
         </div>
       </div>
 
@@ -174,6 +187,7 @@ const DashboardContent = ({
               onWeightLogged={refreshData}
               clientId={client.name}
               currentWeight={client.current_weight}
+              weightGoal={client.goal}
             />
           </motion.div>
         )}

@@ -2,15 +2,17 @@
 import { useMemo } from 'react';
 import { 
   Dumbbell, 
-  ArrowDownWideNarrow,
-  ChevronDown,
-  ShieldHalf,
-  Hand,
-  LucideIcon,
-  Baseline
+  Heart,  // For chest
+  Activity, // For overall balance
+  ArrowDown, // For back
+  ArrowUp,  // For shoulders
+  Circle,   // For biceps
+  CircleDot,// For triceps
+  MoveDown,  // For legs
+  Crown
 } from 'lucide-react';
 import { Client } from '@/types/client';
-import { Card, CardBody, Divider, Progress } from '@nextui-org/react';
+import { Card, CardBody, Divider, Progress, Chip } from '@nextui-org/react';
 import {
   RadialBarChart,
   RadialBar,
@@ -29,42 +31,42 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
       name: 'Chest',
       exercises: client.total_chest_exercises,
       fill: '#0ea5e9',
-      icon: ShieldHalf, // Chest icon
-      gradient: 'from-primary-500/20 to-primary-500/5'
+      icon: Heart,
+      gradient: 'from-primary-500/40 to-primary-500/70'
     },
     {
       name: 'Back',
       exercises: client.total_lats_exercises,
       fill: '#22c55e',
-      icon: ArrowDownWideNarrow, // Back icon
-      gradient: 'from-success-500/20 to-success-500/5'
+      icon: ArrowDown,
+      gradient: 'from-success-500/40 to-success-500/70'
     },
     {
       name: 'Shoulders',
       exercises: client.total_shoulders_exercises,
       fill: '#8b5cf6',
-      icon: ChevronDown, // Shoulders icon
-      gradient: 'from-secondary-500/20 to-secondary-500/5'
+      icon: ArrowUp,
+      gradient: 'from-secondary-500/40 to-secondary-500/70'
     },
     {
       name: 'Biceps',
       exercises: client.total_biceps_exercises,
       fill: '#f97316',
-      icon: Hand, // Hand icon
-      gradient: 'from-warning-500/20 to-warning-500/5'
+      icon: Circle,
+      gradient: 'from-warning-500/40 to-warning-500/70'
     },
     {
       name: 'Triceps',
       exercises: client.total_triceps_exercises,
       fill: '#ef4444',
-      icon: Hand, // Hand icon
-      gradient: 'from-danger-500/20 to-danger-500/5'
+      icon: CircleDot,
+      gradient: 'from-danger-500/40 to-danger-500/70'
     },
     {
       name: 'Legs',
       exercises: client.total_hamstrings_exercises,
       fill: '#06b6d4',
-      icon: Baseline, // Legs icon
+      icon: MoveDown,
       gradient: 'from-cyan-500/20 to-cyan-500/5'
     }
   ].sort((a, b) => b.exercises - a.exercises), [client]);
@@ -80,109 +82,108 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
   return (
     <Card className="border-none bg-transparent shadow-none">
       <CardBody className="p-4 space-y-6">
-        {/* Stats Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          {/* Most Trained Muscle Card */}
-          <Card className="md:col-span-8 border-none bg-gradient-to-br from-primary-500/5 via-primary-500/10 to-primary-500/20">
-            <CardBody className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-primary-500/10">
-                  <Dumbbell className="w-6 h-6 text-primary-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-foreground/60">Most Trained Muscle</p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-xl font-semibold">{mostWorkedMuscle.name}</p>
-                    <p className="text-sm text-foreground/60">
-                      {getPercentage(mostWorkedMuscle.exercises)}% of workouts
-                    </p>
+        {/* Main Layout */}
+        <div className="grid grid-cols-12 gap-4">
+          {/* Left Side Muscle Cards */}
+          <div className="col-span-3 space-y-2">
+            {muscleData.slice(0, 3).map((muscle, index) => (
+              <Card
+                key={muscle.name}
+                shadow="none"
+                className={`bg-gradient-to-r ${muscle.gradient} border border-content1`}
+              >
+                <CardBody className="p-2">
+                  <div className="flex flex-col items-center gap-1 text-center relative">
+                    {index === 0 && (
+                      <Chip
+                      size="sm"  // Make the chip smaller
+                      variant="solid"
+                      className="absolute -top-1 -right-1 z-10 px-1 py-4 bg-background-100/50 text-xs ring-2 ring-yellow-500"  // Adjust padding and text size for a more compact chip
+                    >
+                      <Crown className="w-4 h-4 text-yellow-500" />
+                    </Chip>
+                    )}
+                    <div className="p-1.5 rounded-lg bg-content2/50">
+                      <muscle.icon className="w-4 h-4" style={{ color: muscle.fill }} />
+                    </div>
+                    <p className="text-xs font-medium">{muscle.name}</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-sm font-semibold">
+                        {getPercentage(muscle.exercises)}
+                      </span>
+                      <span className="text-xs text-white">%</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <Divider className="my-3 bg-primary-500/10" />
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm text-foreground/60">Total Exercises</p>
-                  <p className="text-2xl font-semibold">{totalExercises}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-primary-500/10">
-                  <mostWorkedMuscle.icon className="w-8 h-8 text-primary-500" />
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
 
-          {/* Overall Balance Card */}
-          <Card className="md:col-span-4 border-none bg-gradient-to-br from-secondary-500/5 via-secondary-500/10 to-secondary-500/20">
-            <CardBody className="p-4">
-              <div className="h-[140px] md:h-[160px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadialBarChart
-                    cx="50%"
-                    cy="50%"
-                    innerRadius="40%"
-                    outerRadius="100%"
-                    barSize={8}
-                    data={muscleData}
-                    startAngle={90}
-                    endAngle={-270}
-                  >
-                    <PolarGrid gridType="circle" strokeOpacity={0.1} />
-                    <RadialBar
-                      dataKey="exercises"
-                      cornerRadius={12}
-                      background={{ fill: 'var(--nextui-content1)' }}
-                    />
-                  </RadialBarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardBody>
-          </Card>
+          {/* Center Chart */}
+          <div className="col-span-6">
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadialBarChart
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="30%"
+                  outerRadius="100%"
+                  barSize={12}
+                  data={muscleData}
+                  startAngle={90}
+                  endAngle={-270}
+                >
+                  <PolarGrid gridType="circle" strokeOpacity={0.1} />
+                  <RadialBar
+                    dataKey="exercises"
+                    cornerRadius={8}
+                    label={false}
+                    background={{ fill: 'var(--nextui-content2)', opacity: 0.2 }}
+                  />
+                </RadialBarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Right Side Muscle Cards */}
+          <div className="col-span-3 space-y-2">
+            {muscleData.slice(3).map((muscle) => (
+              <Card
+                key={muscle.name}
+                shadow="none"
+                className={`bg-gradient-to-r ${muscle.gradient} border border-content1`}
+              >
+                <CardBody className="p-2">
+                  <div className="flex flex-col items-center gap-1 text-center">
+                    <div className="p-1.5 rounded-lg bg-content2/50">
+                      <muscle.icon className="w-4 h-4" style={{ color: muscle.fill }} />
+                    </div>
+                    <p className="text-xs font-medium">{muscle.name}</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-sm font-semibold">
+                        {getPercentage(muscle.exercises)}
+                      </span>
+                      <span className="text-xs text-white">%</span>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
         </div>
 
-        {/* Muscle Groups List */}
-        <Card className="border-none">
-          <CardBody className="gap-3">
-            <h3 className="text-xl font-semibold">Muscle Distribution</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {muscleData.map((muscle) => (
-                <Card
-                  key={muscle.name}
-                  shadow="none"
-                  className={`bg-gradient-to-r ${muscle.gradient}`}
-                >
-                  <CardBody className="p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/10">
-                        <muscle.icon className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium">{muscle.name}</p>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-base font-semibold">
-                              {getPercentage(muscle.exercises)}
-                            </span>
-                            <span className="text-xs text-foreground/60">%</span>
-                          </div>
-                        </div>
-                        <Progress
-                          value={muscle.exercises}
-                          maxValue={Math.max(muscleData[0].exercises, 1)}
-                          size="sm"
-                          radius="full"
-                          classNames={{
-                            indicator: "bg-gradient-to-r",
-                          }}
-                          style={{
-                            '--muscle-color': muscle.fill
-                          } as any}
-                        />
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              ))}
+        {/* Total Summary */}
+        <Card 
+          shadow="none" 
+          className="bg-gradient-to-r from-success-500 to-success-400 border-none"
+        >
+          <CardBody className="py-2 px-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Dumbbell className="w-4 h-4 text-white" />
+                <span className="text-sm font-medium text-white">Total Exercises</span>
+              </div>
+              <span className="text-lg font-semibold text-white">{totalExercises}</span>
             </div>
           </CardBody>
         </Card>

@@ -130,10 +130,10 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
     <Card className="border-none bg-transparent shadow-none">
       <CardBody className="p-4 space-y-6">
         {/* Main Achievement Card */}
-        <Card className="border-none">
+        <Card className="border-none bg-content2/70">
           <CardHeader className="flex justify-between items-center">
             <div className="space-y-1">
-              <h3 className="text-xl font-semibold">Achievements</h3>
+              {/* <h3 className="text-xl font-semibold">Achievements</h3> */}
               <p className="text-sm text-foreground-500">Track your progress</p>
             </div>
             <div className="flex items-center gap-2">
@@ -209,7 +209,6 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
                   nextEl: '.achievement-next',
                   prevEl: '.achievement-prev',
                 }}
-                pagination={{ clickable: true }}
                 className="achievement-swiper"
               >
                 {oneTimeAchievements.map(({ id, name, description, icon: Icon, color, unlocked }) => (
@@ -221,7 +220,7 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
                       <CardBody className="p-3">
                         <div className="flex items-start gap-3">
                           <div className={`
-                            w-10 h-10 rounded-lg flex items-center justify-center
+                            w-10 shrink-0 h-10 rounded-lg flex items-center justify-center
                             ${unlocked ? `bg-${color}-500` : 'bg-default-200'}
                           `}>
                             <Icon 
@@ -231,7 +230,7 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
                           </div>
                           <div>
                             <p className="font-medium">{name}</p>
-                            <p className="text-sm text-foreground-500">{description}</p>
+                            <p className="text-xs text-foreground-500">{description}</p>
                           </div>
                         </div>
                       </CardBody>
