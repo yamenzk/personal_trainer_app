@@ -110,8 +110,6 @@ export const ContextualTip: React.FC<ContextualTipProps> = ({
         <div className={cn(
           "flex items-center gap-2 justify-center",
           "py-2 px-3 rounded-full",
-          "bg-content2/5",
-          "border border-content2/10",
           "shadow-sm"
         )}>
           {/* Animated Icon */}

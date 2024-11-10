@@ -51,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
         <main 
           className={cn(
             "flex-1 overflow-y-auto overflow-x-hidden",
-            !hideNavigation && "pb-20" // Account for bottom navbar
+            !hideNavigation && "pb-2" // Account for bottom navbar
           )}
           style={{ 
             height: hideNavigation ? '100%' : 'calc(100% - 4rem)',

@@ -1,22 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
-import { Skeleton, Button } from "@nextui-org/react";
-import { AlertTriangle, Dumbbell } from 'lucide-react';
-import { useClientData } from '../hooks/useClientData';
-import { usePlans } from '../hooks/usePlans';
-import { logPerformance, isPlanDayCompleted, calculatePlanProgress } from '../utils/api';
-import { ExerciseBase, ExerciseReference } from '@/types/workout';
-import { ExerciseCard } from '../components/workout/ExerciseCard';
-import { SupersetCard } from '../components/workout/SupersetCard';
-import { RestDayCard } from '../components/workout/RestDay';
-import { PlanHero } from '../components/workout/PlanHero';
-import { ExerciseDetailsModal } from '../components/workout/ExerciseDetailsModal';
-import { PerformanceModal } from '../components/workout/PerformanceModal';
-import { PageTransition } from '@/components/shared/PageTransition';
-import { Client } from '@/types/client';
-import { Plan } from '@/types/plan';
+import { useState, useEffect, useRef } from "react";
+import { Skeleton, Button, Card } from "@nextui-org/react";
+import { AlertTriangle, Dumbbell } from "lucide-react";
+import { useClientData } from "../hooks/useClientData";
+import { usePlans } from "../hooks/usePlans";
+import {
+  logPerformance,
+  isPlanDayCompleted,
+  calculatePlanProgress,
+} from "../utils/api";
+import { ExerciseBase, ExerciseReference } from "@/types/workout";
+import { ExerciseCard } from "../components/workout/ExerciseCard";
+import { SupersetCard } from "../components/workout/SupersetCard";
+import { RestDayCard } from "../components/workout/RestDay";
+import { PlanHero } from "../components/workout/PlanHero";
+import { ExerciseDetailsModal } from "../components/workout/ExerciseDetailsModal";
+import { PerformanceModal } from "../components/workout/PerformanceModal";
+import { PageTransition } from "@/components/shared/PageTransition";
+import { Client } from "@/types/client";
+import { Plan } from "@/types/plan";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, addDays } from 'date-fns';
-import { insertWorkoutTips, TipCard } from '@/components/workout/WorkoutTips';
+import { format, addDays } from "date-fns";
+import { insertWorkoutTips, TipCard } from "@/components/workout/WorkoutTips";
 
 // Skeleton Component
 const WorkoutPlanSkeleton = () => {
@@ -66,7 +70,7 @@ const WorkoutPlansContent = ({
   plans,
   references,
   refreshData,
-  currentDay
+  currentDay,
 }: {
   client: Client;
   plans: Plan[];
@@ -76,7 +80,9 @@ const WorkoutPlansContent = ({
 }) => {
   const { activePlan, completedPlans } = usePlans(plans);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<'active' | 'history'>('active');
+  const [selectedPlan, setSelectedPlan] = useState<"active" | "history">(
+    "active"
+  );
   const [historicalPlanIndex, setHistoricalPlanIndex] = useState(0);
   const initRef = useRef(false);
 
@@ -91,15 +97,20 @@ const WorkoutPlansContent = ({
 
   // Initialize selectedDay
   useEffect(() => {
-    if (!initRef.current && selectedPlan === 'active' && !selectedDay && activePlan) {
+    if (
+      !initRef.current &&
+      selectedPlan === "active" &&
+      !selectedDay &&
+      activePlan
+    ) {
       const today = new Date();
-      const todayString = format(today, 'yyyy-MM-dd');
+      const todayString = format(today, "yyyy-MM-dd");
       const planStart = new Date(activePlan.start);
-      
+
       for (let i = 1; i <= 7; i++) {
         const currentDate = addDays(planStart, i - 1);
-        const currentDateString = format(currentDate, 'yyyy-MM-dd');
-        
+        const currentDateString = format(currentDate, "yyyy-MM-dd");
+
         if (currentDateString === todayString) {
           setSelectedDay(i);
           initRef.current = true;
@@ -116,9 +127,10 @@ const WorkoutPlansContent = ({
     }
   }, [activePlan?.start]);
 
-  const currentPlan = selectedPlan === 'active'
-    ? activePlan
-    : completedPlans[historicalPlanIndex];
+  const currentPlan =
+    selectedPlan === "active"
+      ? activePlan
+      : completedPlans[historicalPlanIndex];
   if (!currentPlan) return null;
 
   const dayKey = `day_${selectedDay}`;
@@ -126,16 +138,14 @@ const WorkoutPlansContent = ({
   const hasWorkout = exercises.length > 0;
   const planProgress = calculatePlanProgress(currentPlan);
 
-  const handleLogPerformance = async (exerciseRef: string, weight: number, reps: number) => {
+  const handleLogPerformance = async (
+    exerciseRef: string,
+    weight: number,
+    reps: number
+  ) => {
     if (!client) return;
 
-    await logPerformance(
-      client.name,
-      exerciseRef,
-      weight,
-      reps,
-      dayKey
-    );
+    await logPerformance(client.name, exerciseRef, weight, reps, dayKey);
     await refreshData();
   };
   const exercisesWithTips = insertWorkoutTips(exercises);
@@ -151,10 +161,10 @@ const WorkoutPlansContent = ({
         sets: 0,
         reps: 0,
         rest: 0,
-        logged: 0
+        logged: 0,
       },
       details: exerciseDetails,
-      isLogged: false
+      isLogged: false,
     });
     setShowDetailsModal(true);
   };
@@ -162,11 +172,12 @@ const WorkoutPlansContent = ({
   return (
     <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
       <div className="container mx-auto">
+        {/* Hero Section - Full Width */}
         <div className="flex flex-col gap-4">
           <PlanHero
             plan={currentPlan}
             selectedDay={selectedDay}
-            currentDay={null} // Remove currentDay dependency
+            currentDay={null}
             onDaySelect={setSelectedDay}
             selectedPlan={selectedPlan}
             onPlanTypeChange={setSelectedPlan}
@@ -176,119 +187,144 @@ const WorkoutPlansContent = ({
             onHistoricalPlanSelect={setHistoricalPlanIndex}
           />
         </div>
-
-        {/* Only show SectionTitle and exercises if it's not a rest day */}
-        {hasWorkout && <SectionTitle />}
-        
-        <div className="space-y-4">
-    <AnimatePresence>
-      {hasWorkout ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <div className="space-y-4">
-          {exercisesWithTips.map((item, index) => (
-  <motion.div
-    key={item.type === 'tip' ? `tip-${index}` : 
-      item.type === 'regular' ? 
-        item.exercise.ref : 
-        `superset-${index}`}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: index * 0.1 }}
-  >
-    {item.type === 'tip' ? (
-      <TipCard tip={item.content} />
-    ) : item.type === 'regular' ? (
-      <ExerciseCard
-                    exercise={item.exercise}
-                    references={references.exercises}
-                    performance={references.performance}
-                    isLogged={item.exercise.logged === 1}
-                    onLogSet={() => {
-                      setSelectedExercise({
-                        exercise: item.exercise,
-                        details: references.exercises[item.exercise.ref],
-                        isLogged: item.exercise.logged === 1
-                      });
-                      setShowPerformanceModal(true);
-                    }}
-                    onViewDetails={() => {
-                      setSelectedExercise({
-                        exercise: item.exercise,
-                        details: references.exercises[item.exercise.ref],
-                        isLogged: item.exercise.logged === 1
-                      });
-                      setShowDetailsModal(true);
-                    }}
-                    selectedPlan={selectedPlan}
-                    exerciseNumber={index + 1}
-                  />
-                ) : (
-                  <SupersetCard
-                    exercises={item.exercises}
-                    references={references.exercises}
-                    onLogPerformance={handleLogPerformance}
-                    onViewDetails={handleExerciseDetails}
-                    selectedPlan={selectedPlan}
-                    exerciseNumber={index + 1}
-                  />
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      ) : (
-              <motion.div
-                key="rest-day"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-              >
-                <RestDayCard />
-              </motion.div>
+  
+        {/* Centered Content Container */}
+        <div className="flex justify-center">
+          <div className="w-full max-w-3xl">
+            {/* Section Title */}
+            {hasWorkout && (
+              <div className="px-4">
+                <SectionTitle />
+              </div>
             )}
-          </AnimatePresence>
+  
+            {/* Exercises and Tips */}
+            <div className="space-y-4">
+              <AnimatePresence>
+                {hasWorkout ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <div className="space-y-6">
+                      {exercisesWithTips.map((item, index) => (
+                        <motion.div
+                          key={
+                            item.type === "tip"
+                              ? `tip-${index}`
+                              : item.type === "regular"
+                              ? item.exercise.ref
+                              : `superset-${index}`
+                          }
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          {item.type === "tip" ? (
+                            <div className="px-4">
+                              <TipCard tip={item.content} />
+                            </div>
+                          ) : item.type === "regular" ? (
+                            <div className="px-4">
+                              <ExerciseCard
+                                exercise={item.exercise}
+                                references={references.exercises}
+                                performance={references.performance}
+                                isLogged={item.exercise.logged === 1}
+                                onLogSet={() => {
+                                  setSelectedExercise({
+                                    exercise: item.exercise,
+                                    details: references.exercises[item.exercise.ref],
+                                    isLogged: item.exercise.logged === 1,
+                                  });
+                                  setShowPerformanceModal(true);
+                                }}
+                                onViewDetails={() => {
+                                  setSelectedExercise({
+                                    exercise: item.exercise,
+                                    details: references.exercises[item.exercise.ref],
+                                    isLogged: item.exercise.logged === 1,
+                                  });
+                                  setShowDetailsModal(true);
+                                }}
+                                selectedPlan={selectedPlan}
+                                exerciseNumber={index + 1}
+                              />
+                            </div>
+                          ) : (
+                            <div className="px-4">
+                              <SupersetCard
+                                exercises={item.exercises}
+                                references={references.exercises}
+                                onLogPerformance={handleLogPerformance}
+                                onViewDetails={handleExerciseDetails}
+                                selectedPlan={selectedPlan}
+                                exerciseNumber={index + 1}
+                              />
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="rest-day"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="px-4"
+                  >
+                    <RestDayCard />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
+  
+        {/* Modals */}
+        {showPerformanceModal && selectedExercise && (
+          <PerformanceModal
+            isOpen={showPerformanceModal}
+            onClose={() => {
+              setShowPerformanceModal(false);
+              setSelectedExercise(null);
+            }}
+            onSubmit={(weight, reps) =>
+              handleLogPerformance(selectedExercise.exercise.ref, weight, reps)
+            }
+            exerciseName={selectedExercise.exercise.ref}
+            targetReps={selectedExercise.exercise.reps}
+            previousPerformance={
+              references.performance[selectedExercise.exercise.ref]
+            }
+          />
+        )}
+  
+        {showDetailsModal && selectedExercise && (
+          <ExerciseDetailsModal
+            isOpen={showDetailsModal}
+            onClose={() => {
+              setShowDetailsModal(false);
+              setSelectedExercise(null);
+            }}
+            exercise={selectedExercise.exercise}
+            details={selectedExercise.details}
+            isLogged={selectedExercise.isLogged}
+            performance={references.performance[selectedExercise.exercise.ref]}
+          />
+        )}
       </div>
-
-      {/* Modals */}
-      {showPerformanceModal && selectedExercise && (
-        <PerformanceModal
-          isOpen={showPerformanceModal}
-          onClose={() => {
-            setShowPerformanceModal(false);
-            setSelectedExercise(null);
-          }}
-          onSubmit={(weight, reps) => handleLogPerformance(selectedExercise.exercise.ref, weight, reps)}
-          exerciseName={selectedExercise.exercise.ref}
-          targetReps={selectedExercise.exercise.reps}
-          previousPerformance={references.performance[selectedExercise.exercise.ref]}
-        />
-      )}
-
-      {showDetailsModal && selectedExercise && (
-        <ExerciseDetailsModal
-          isOpen={showDetailsModal}
-          onClose={() => {
-            setShowDetailsModal(false);
-            setSelectedExercise(null);
-          }}
-          exercise={selectedExercise.exercise}
-          details={selectedExercise.details}
-          isLogged={selectedExercise.isLogged}
-          performance={references.performance[selectedExercise.exercise.ref]}
-        />
-      )}
     </div>
   );
 };
 
 // Main Component
 export default function WorkoutPlans() {
-  const { loading, error, client, plans, references, refreshData } = useClientData();
+  const { loading, error, client, plans, references, refreshData } =
+    useClientData();
   const { currentDay } = usePlans(plans ?? []);
 
   return (

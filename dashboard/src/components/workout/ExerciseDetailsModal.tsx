@@ -70,6 +70,19 @@ export const ExerciseDetailsModal = ({
           reps: p.reps,
         }));
     }, [performance]);
+
+    // Add this function to calculate Y-axis domain
+    const getYAxisDomain = useMemo(() => {
+      if (!chartData.length) return [0, 100];
+      const weights = chartData.map(d => d.weight);
+      const min = Math.min(...weights);
+      const max = Math.max(...weights);
+      const padding = (max - min) * 0.1; // Add 10% padding
+      return [
+        Math.max(0, Math.floor(min - padding)), // Don't go below 0
+        Math.ceil(max + padding)
+      ];
+    }, [chartData]);
   
     const QuickStatChip = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
       <Chip
@@ -271,7 +284,7 @@ export const ExerciseDetailsModal = ({
                         <Chip
                           className="h-auto py-2"
                           startContent={<Target size={14} />}
-                          color="warning"
+                          color="secondary"
                           variant="solid"
                         >
                           <div className="flex flex-col items-start">
@@ -283,7 +296,7 @@ export const ExerciseDetailsModal = ({
                             className="h-auto py-2"
                             key={index}
                             variant="faded"
-                            color="warning"
+                            color="secondary"
                             startContent={<Activity size={14} />}
                           >
                             <div className="flex flex-col items-start">
@@ -357,6 +370,8 @@ export const ExerciseDetailsModal = ({
                                 stroke="#888888"
                                 fontSize={12}
                                 label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft' }}
+                                domain={getYAxisDomain} // Add custom domain
+                                padding={{ top: 20, bottom: 20 }} // Add some padding
                               />
                               <Tooltip
                                 content={({ active, payload, label }) => {
@@ -397,8 +412,8 @@ export const ExerciseDetailsModal = ({
                             >
                               <div className="p-3 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-lg bg-primary-500/10">
-                                    <Dumbbell className="w-4 h-4 text-primary-500" />
+                                  <div className="p-2 rounded-lg bg-secondary-500/10">
+                                    <Dumbbell className="w-4 h-4 text-secondary-500" />
                                   </div>
                                   <div>
                                     <p className="font-medium">

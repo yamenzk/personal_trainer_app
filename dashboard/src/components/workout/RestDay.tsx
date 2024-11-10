@@ -1,22 +1,162 @@
 import { Card } from "@nextui-org/react";
-import { Moon, Heart, BedDouble, Bath, Waves, CloudMoon } from "lucide-react";
+import { 
+  Moon, 
+  Heart, 
+  BedDouble, 
+  Bath, 
+  Waves, 
+  CloudMoon, 
+  Pizza, 
+  Gamepad2,
+  Sandwich,
+  Coffee,
+  Tv,
+  Soup,
+  Milk,
+  Cat,
+  Dog,
+  MessagesSquare,
+  Book,
+  Music2,
+  Popcorn,
+  Brush,
+  Footprints
+} from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { motion } from "framer-motion";
 import { cn } from "@/utils/cn";
 
-const funnyRestMessages = [
-  "Time to become one with your pillow 🛏️",
-  "Your muscles are taking a coffee break ☕",
-  "Even superheroes need naps 🦸‍♂️",
-  "Making gains while snoozing 💪😴",
-  "Rest mode: Activated 🌙",
-  "Professional napping in progress 🏆",
+// Different categories of rest day messages
+const restMessages = {
+  morning: [
+    "Rise and rest! Today's workout is called 'The Professional Napper' 🛏️",
+    "Coffee and chill: Doctor's orders! ☕",
+    "Morning stretches (reaching for the TV remote counts) 📺",
+    "Breakfast in bed: The only gains we're chasing today 🥐",
+  ],
+  afternoon: [
+    "Time to become one with your couch 🛋️",
+    "Your muscles are taking a coffee break ☕",
+    "Even superheroes need naps 🦸‍♂️",
+    "Midday meditation (aka sneaky snooze) 😴",
+  ],
+  evening: [
+    "Netflix and mobility work (mostly Netflix) 🎬",
+    "Making gains while snoozing 💪😴",
+    "Rest mode: Activated 🌙",
+    "Time for some horizontal cardio (sleeping) 💤",
+  ]
+};
+
+// Different categories of recovery activities
+const recoveryActivities = {
+  relaxation: [
+    { emoji: "🎮", text: "Play your favorite game", icon: Gamepad2 },
+    { emoji: "📺", text: "Binge that new series", icon: Tv },
+    { emoji: "📱", text: "Scroll through memes guilt-free", icon: MessagesSquare },
+    { emoji: "🎵", text: "Create a chill playlist", icon: Music2 },
+    { emoji: "📚", text: "Read a good book", icon: Book },
+    { emoji: "🍿", text: "Movie marathon time", icon: Popcorn },
+  ],
+  selfCare: [
+    { emoji: "🛁", text: "Take a relaxing bath", icon: Bath },
+    { emoji: "🧘‍♂️", text: "Light stretching session", icon: Footprints },
+    { emoji: "🧊", text: "Ice cream therapy", icon: Milk },
+    { emoji: "🫖", text: "Enjoy some herbal tea", icon: Coffee },
+    { emoji: "🧹", text: "Tidy up (burns calories!)", icon: Brush },
+  ],
+  food: [
+    { emoji: "🍕", text: "Order your favorite food", icon: Pizza },
+    { emoji: "🥪", text: "Prep meals for tomorrow", icon: Sandwich },
+    { emoji: "🍲", text: "Cook something healthy", icon: Soup },
+    { emoji: "🥤", text: "Stay hydrated (very important!)", icon: Coffee },
+  ],
+  pets: [
+    { emoji: "🐱", text: "Cat cuddle therapy", icon: Cat },
+    { emoji: "🐕", text: "Dog walking meditation", icon: Dog },
+  ]
+};
+
+// Different rest benefits
+const restBenefits = [
+  {
+    icon: Heart,
+    title: "Rest = Gains",
+    description: "Your muscles are secretly growing 🌱",
+    color: "danger"
+  },
+  {
+    icon: Heart,
+    title: "Recovery Mode",
+    description: "Building strength while being lazy 💪",
+    color: "danger"
+  },
+  {
+    icon: BedDouble,
+    title: "Sleep Score: 100%",
+    description: "Time to become a sleep champion 🏆",
+    color: "warning"
+  },
+  {
+    icon: BedDouble,
+    title: "Nap Master",
+    description: "Professional resting in progress 😴",
+    color: "warning"
+  },
+  {
+    icon: Waves,
+    title: "Relaxation Mode",
+    description: "Netflix & stretch? 🧘‍♂️🎬",
+    color: "success"
+  },
+  {
+    icon: Waves,
+    title: "Chill Vibes Only",
+    description: "Today's workout: Deep breathing 🧘‍♂️",
+    color: "success"
+  }
 ];
 
 export const RestDayCard: React.FC = () => {
   const { theme } = useTheme();
-  const randomMessage = funnyRestMessages[Math.floor(Math.random() * funnyRestMessages.length)];
   
+  // Get time-appropriate message
+  const getTimeBasedMessage = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return restMessages.morning;
+    if (hour < 18) return restMessages.afternoon;
+    return restMessages.evening;
+  };
+
+  // Randomly select message based on time of day
+  const timeMessages = getTimeBasedMessage();
+  const randomMessage = timeMessages[Math.floor(Math.random() * timeMessages.length)];
+
+  // Randomly select 3 unique benefits
+  const selectedBenefits = [...restBenefits]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+
+  // Select random activities for the recovery menu
+  const getRandomActivities = () => {
+    const categories = Object.keys(recoveryActivities) as Array<keyof typeof recoveryActivities>;
+    const selectedActivities: any[] = [];
+    
+    // Get one from each category randomly
+    categories.forEach(category => {
+      const categoryActivities = recoveryActivities[category];
+      const randomActivity = categoryActivities[Math.floor(Math.random() * categoryActivities.length)];
+      selectedActivities.push(randomActivity);
+    });
+
+    // Shuffle and take first 4
+    return selectedActivities
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 4);
+  };
+
+  const selectedActivities = getRandomActivities();
+
   return (
     <Card
       className="p-6 space-y-6 mt-6 overflow-hidden relative border-none"
@@ -24,13 +164,19 @@ export const RestDayCard: React.FC = () => {
         background: "linear-gradient(to bottom right, #1a237e, #283593, #303f9f)",
       }}
     >
-      {/* Simple star-like dots for ambiance - no animation */}
+      {/* Stars background */}
       <div className="absolute inset-0">
-        <div className="absolute h-1 w-1 bg-white/30 rounded-full" style={{ top: '10%', left: '20%' }} />
-        <div className="absolute h-1 w-1 bg-white/30 rounded-full" style={{ top: '30%', left: '80%' }} />
-        <div className="absolute h-1 w-1 bg-white/30 rounded-full" style={{ top: '70%', left: '15%' }} />
-        <div className="absolute h-1 w-1 bg-white/30 rounded-full" style={{ top: '85%', left: '75%' }} />
-        <div className="absolute h-1 w-1 bg-white/30 rounded-full" style={{ top: '45%', left: '90%' }} />
+        {[...Array(5)].map((_, i) => (
+          <div 
+            key={i}
+            className="absolute h-1 w-1 bg-white/30 rounded-full"
+            style={{ 
+              top: `${10 + (i * 20)}%`,
+              left: `${15 + (i * 20)}%`,
+              animation: `twinkle ${2 + i}s ease-in-out infinite`
+            }}
+          />
+        ))}
       </div>
 
       {/* Content */}
@@ -41,14 +187,31 @@ export const RestDayCard: React.FC = () => {
             <div className="p-3 rounded-xl bg-white/10">
               <Moon className="w-6 h-6 text-white" />
             </div>
-            {/* Simplified Z animation - only three Zs with minimal animation */}
-            <motion.div
-              className="absolute -top-2 -right-2 text-xs font-bold text-white"
-              animate={{ opacity: [0, 1, 0], y: -5 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              z
-            </motion.div>
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className={cn(
+                  "absolute text-xs font-bold text-white",
+                  "-right-2",
+                  i === 0 && "-top-1",
+                  i === 1 && "-top-3",
+                  i === 2 && "-top-5"
+                )}
+                animate={{ 
+                  opacity: [0, 1, 0],
+                  y: -5,
+                  x: i * 2
+                }}
+                transition={{ 
+                  duration: 2,
+                  delay: i * 0.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                z
+              </motion.div>
+            ))}
           </div>
           <div>
             <motion.p
@@ -65,59 +228,28 @@ export const RestDayCard: React.FC = () => {
 
         {/* Recovery Cards */}
         <div className="space-y-3">
-          <motion.div
-            className="p-4 rounded-xl bg-white/5 border border-white/10"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-danger-500/20">
-                <Heart className="w-4 h-4 text-danger-500" />
+          {selectedBenefits.map((benefit, index) => (
+            <motion.div
+              key={index}
+              className="p-4 rounded-xl bg-white/5 border border-white/10"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg bg-${benefit.color}-500/20`}>
+                  <benefit.icon className={`w-4 h-4 text-${benefit.color}-500`} />
+                </div>
+                <div>
+                  <p className="text-white font-medium">{benefit.title}</p>
+                  <p className="text-white/60 text-sm">{benefit.description}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-white font-medium">Rest = Gains</p>
-                <p className="text-white/60 text-sm">Your muscles are secretly growing 🌱</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="p-4 rounded-xl bg-white/5 border border-white/10"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-warning-500/20">
-                <BedDouble className="w-4 h-4 text-warning-500" />
-              </div>
-              <div>
-                <p className="text-white font-medium">Sleep Score: 100%</p>
-                <p className="text-white/60 text-sm">Time to become a sleep champion 🏆</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="p-4 rounded-xl bg-white/5 border border-white/10"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success-500/20">
-                <Waves className="w-4 h-4 text-success-500" />
-              </div>
-              <div>
-                <p className="text-white font-medium">Relaxation Mode</p>
-                <p className="text-white/60 text-sm">Netflix & stretch? 🧘‍♂️🎬</p>
-              </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Fun Tip Box */}
+        {/* Recovery Menu */}
         <motion.div
           className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10"
           initial={{ opacity: 0, y: 10 }}
@@ -131,18 +263,11 @@ export const RestDayCard: React.FC = () => {
             <div>
               <p className="text-white font-medium mb-2">Today's Recovery Menu:</p>
               <ul className="text-sm text-white/60 space-y-1.5">
-                <li className="flex items-center gap-2">
-                  <span>🎮</span> Play your favorite game
-                </li>
-                <li className="flex items-center gap-2">
-                  <span>🛁</span> Take a relaxing bath
-                </li>
-                <li className="flex items-center gap-2">
-                  <span>🧊</span> Ice cream therapy (doctor's orders!)
-                </li>
-                <li className="flex items-center gap-2">
-                  <span>📱</span> Scroll through memes guilt-free
-                </li>
+                {selectedActivities.map((activity, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <span>{activity.emoji}</span> {activity.text}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
