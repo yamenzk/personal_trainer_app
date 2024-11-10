@@ -244,6 +244,7 @@ export const SupersetCard: React.FC<SupersetCardProps> = ({
           >
             <Zap className="w-5 h-5" />
           </motion.div>
+          
           <div>
             <h3 className="text-xl font-semibold flex items-center gap-2">
               {exerciseNumber && (
@@ -253,15 +254,34 @@ export const SupersetCard: React.FC<SupersetCardProps> = ({
             </h3>
             <div className="flex items-center gap-2 text-sm text-foreground/60">
               <span>Complete all {exercises.length} exercises back to back</span>
-              <span>•</span>
+              {/* <span>•</span>
               <span className="flex items-center gap-1">
                 <Timer className="w-3.5 h-3.5" />
                 {exercises[0].rest}s rest
-              </span>
+              </span> */}
             </div>
           </div>
         </motion.div>
-
+        <div className="grid grid-cols-3 gap-2">
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-content/5">
+            <Timer className="w-4 h-4 text-primary-500" />
+            <span className="text-xs">
+              {exercises[0].rest}s rest after
+            </span>
+          </div>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-content/5">
+            <ActivitySquare className="w-4 h-4 text-secondary-500" />
+            <span className="text-xs">
+              {exercises.length} moves
+            </span>
+          </div>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-content/5">
+            <Target className="w-4 h-4 text-success-500" />
+            <span className="text-xs">
+              {exercises[0].sets} rounds (sets)
+            </span>
+          </div>
+        </div>
         {/* Exercises Grid */}
         <ExercisesGrid />
 
@@ -295,26 +315,7 @@ export const SupersetCard: React.FC<SupersetCardProps> = ({
         </motion.div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-content/5">
-            <Timer className="w-4 h-4 text-primary-500" />
-            <span className="text-xs">
-              {exercises[0].rest}s rest after
-            </span>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-content/5">
-            <ActivitySquare className="w-4 h-4 text-secondary-500" />
-            <span className="text-xs">
-              {exercises.length} moves
-            </span>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-content/5">
-            <Target className="w-4 h-4 text-success-500" />
-            <span className="text-xs">
-              {exercises[0].sets} rounds
-            </span>
-          </div>
-        </div>
+        
       </div>
     </Card>
   );
