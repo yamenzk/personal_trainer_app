@@ -146,6 +146,9 @@ class Client(Document):
         if not self.adjust:
             self.calculate_targets()
 
-        if self.referred_by and self.referred_by == self.name:
-            frappe.throw("You cannot refer yourself. Please choose another user.")
+        if self.referred_by:
+            if self.referred_by == self.name:
+                frappe.throw("You cannot refer yourself.")
+            if not frappe.db.exists("Client", self.referred_by):
+                frappe.throw("Referral code does not exist.")
         

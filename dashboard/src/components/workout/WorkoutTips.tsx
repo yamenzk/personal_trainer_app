@@ -443,39 +443,64 @@ export const TipCard: React.FC<TipCardProps> = ({ tip }) => {
         {/* Content */}
         <div className="relative p-4">
           <div className="flex items-start gap-3">
-            {/* Icon with animated background pulse */}
-            <motion.div
-              className={cn(
-                "p-2 rounded-xl",
-                style.iconBg,
-                "relative"
-              )}
-              initial={{ scale: 1 }}
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                repeatType: "reverse"
-              }}
-            >
-              <tip.icon className={cn(
-                "w-5 h-5",
-                style.iconColor,
-                "relative z-10"
-              )} />
+            {/* Enhanced floating icon with modern animations */}
+            <div className="relative">
               <motion.div
                 className={cn(
-                  "absolute inset-0 rounded-xl",
-                  style.iconBg
+                  "p-2 rounded-xl cursor-pointer",
+                  style.iconBg,
+                  "relative"
                 )}
-                initial={{ scale: 1, opacity: 0.5 }}
-                animate={{ scale: 1.5, opacity: 0 }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity
+                initial={{ y: 0 }}
+                animate={{
+                  y: [-2, 2, -2],
+                  rotate: [-2, 2, -2],
+                  scale: [1, 1.05, 1]
                 }}
-              />
-            </motion.div>
+                transition={{
+                  duration: 4,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  repeatType: "reverse"
+                }}
+                whileHover={{
+                  scale: 1.15,
+                  rotate: [0, -5, 5, 0],
+                  transition: {
+                    duration: 0.3,
+                    ease: "easeOut"
+                  }
+                }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <tip.icon className={cn(
+                  "w-5 h-5",
+                  style.iconColor,
+                  "relative z-10",
+                  "transition-transform"
+                )} />
+                
+                {/* Dynamic glow effect */}
+                <motion.div
+                  className={cn(
+                    "absolute inset-0 rounded-xl blur-sm",
+                    style.iconBg
+                  )}
+                  initial={{ opacity: 0.5, scale: 1 }}
+                  animate={{
+                    opacity: [0.5, 0.3, 0.5],
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 180, 360]
+                  }}
+                  transition={{
+                    duration: 3,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }}
+                />
+              </motion.div>
+            </div>
 
             {/* Text content */}
             <div className="flex-1 relative">

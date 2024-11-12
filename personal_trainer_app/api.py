@@ -467,6 +467,29 @@ def get_membership(membership: str) -> Dict[str, Any]:
         return {"message": f"An error occurred: {str(e)}"}
 
 @frappe.whitelist(allow_guest=True)
+def get_micros(fdcid):
+    try:
+        food_doc = frappe.get_doc("Food", fdcid)
+        micros = {fact.nutrient: fact.value for fact in food_doc.nutritional_facts if fact.nutrient not in NUTRIENTS}
+        return {"status": "success", "micros": micros}
+    except Exception as e:
+        frappe.log_error(f"Error in get_micros: {str(e)}")
+        return {"status": "error", "message": f"An error occurred: {str(e)}"}
+
+@frappe.whitelist(allow_guest=True)
+def get_referrals(client_id):
+    try:
+        referrals = frappe.get_all(
+            "Client",
+            filters={"referred_by": client_id},
+            fields=["name", "client_name"]
+        )
+        if referrals:
+            return referrals
+    except Exception as e:
+        frappe.log_error(f"Error in get_referrals: {str(e)}")
+                    
+@frappe.whitelist(allow_guest=True)
 def update_client(client_id, is_performance=0, exercise_ref=None, exercise_day=None, **kwargs):
     client_doc = frappe.get_doc("Client", client_id)
     
