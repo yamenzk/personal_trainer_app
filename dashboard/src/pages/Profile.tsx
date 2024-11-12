@@ -11,6 +11,7 @@ import {
   Snippet,
   Tooltip,
   ScrollShadow,
+  Skeleton,
 } from "@nextui-org/react";
 import {
   User,
@@ -46,6 +47,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { WeightModal } from '../components/shared/WeightModal';
 import { usePreferencesUpdate } from '../App';
 import { cn } from '@/utils/cn';
+import { PageTransition } from '@/components/shared/PageTransition';
+import { Client } from '@/types/client';
+import { Membership } from '@/types/membership';
 
 // Reusable Components
 interface StatsCardProps {
@@ -114,9 +118,102 @@ const useReferrals = (clientId: string) => {
   return { referrals, loading };
 };
 
-export default function Profile() {
-  const { loading, error, client, membership, refreshData } = useClientData();
-  const { logout } = useAuth();
+// Add ProfileSkeleton component at the top level
+const ProfileSkeleton = () => {
+  return (
+    <div className="min-h-screen w-full">
+      <div className="container mx-auto space-y-12">
+        {/* Hero Section Skeleton */}
+        <Card className="border-none bg-content2 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] rounded-b-4xl">
+          <CardBody className="p-6">
+            <div className="flex flex-col lg:flex-row items-center gap-6">
+              <div className="relative">
+                <Skeleton className="w-24 h-24 rounded-full" />
+              </div>
+              <div className="flex-1 space-y-4 text-center lg:text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-center lg:justify-start gap-2">
+                    <Skeleton className="w-48 h-8 rounded-lg" />
+                    <Skeleton className="w-24 h-6 rounded-full" />
+                  </div>
+                  <Skeleton className="w-64 h-4 rounded-lg" />
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="w-24 h-6 rounded-full" />
+                  ))}
+                </div>
+              </div>
+              <Skeleton className="w-24 h-10 rounded-lg lg:self-start" />
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Membership & Personal Info Skeleton */}
+        <div className="space-y-4">
+          <div className="px-4">
+            <Skeleton className="w-48 h-6 rounded-lg" />
+            <Skeleton className="w-64 h-4 mt-1 rounded-lg" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-4">
+            <Skeleton className="h-[400px] rounded-2xl" />
+            <div className="space-y-3">
+              <Skeleton className="w-48 h-6 rounded-lg" />
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="w-full h-16 rounded-xl" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Fitness Preferences Skeleton */}
+        <div className="space-y-4">
+          <div className="px-4">
+            <Skeleton className="w-48 h-6 rounded-lg" />
+            <Skeleton className="w-64 h-4 mt-1 rounded-lg" />
+          </div>
+          <div className="px-4">
+            <div className="rounded-2xl p-6 space-y-6">
+              <div className="flex justify-between items-center">
+                <Skeleton className="w-48 h-6 rounded-lg" />
+                <Skeleton className="w-32 h-9 rounded-lg" />
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <Skeleton key={i} className="h-[100px] rounded-xl" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Referral Program Skeleton */}
+        <div className="space-y-4">
+          <div className="px-4">
+            <Skeleton className="w-48 h-6 rounded-lg" />
+            <Skeleton className="w-64 h-4 mt-1 rounded-lg" />
+          </div>
+          <div className="px-4">
+            <Skeleton className="w-full h-[400px] rounded-xl" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Create a ProfileContent component
+const ProfileContent = ({
+  client,
+  membership,
+  refreshData
+}: {
+  client: Client;
+  membership: Membership;
+  refreshData: () => Promise<void>;
+}) => {
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [referralCode, setReferralCode] = useState('');
   const [referralError, setReferralError] = useState('');
@@ -124,23 +221,8 @@ export default function Profile() {
   const handlePreferencesUpdate = usePreferencesUpdate();
   const [isCopying, setIsCopying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { referrals, loading: loadingReferrals } = useReferrals(client?.name || '');
-
-  if (loading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-        <div className="relative flex flex-col items-center gap-4">
-          <div className="w-16 h-16 relative">
-            <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
-            <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
-          </div>
-          <div className="text-foreground/60 font-medium">Loading your profile...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !client || !membership) return null;
+  const { referrals, loading: loadingReferrals } = useReferrals(client.name);
+  const { logout } = useAuth();
 
   const updatePreferences = () => {
     handlePreferencesUpdate([
@@ -696,5 +778,26 @@ export default function Profile() {
         </AnimatePresence>
       </div>
     </div>
+  );
+};
+
+// Update the main Profile component
+export default function Profile() {
+  const { loading, error, client, membership, refreshData } = useClientData();
+
+  return (
+    <PageTransition
+      loading={loading}
+      error={error}
+      skeleton={<ProfileSkeleton />}
+    >
+      {client && membership && (
+        <ProfileContent
+          client={client}
+          membership={membership}
+          refreshData={refreshData}
+        />
+      )}
+    </PageTransition>
   );
 }
