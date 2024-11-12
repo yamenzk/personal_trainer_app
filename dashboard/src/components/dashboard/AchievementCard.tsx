@@ -157,7 +157,6 @@ export const AchievementCard = ({ client }: AchievementCardProps) => {
                       color={stat.color as any}
                       classNames={{
                         svg: "w-24 h-24 drop-shadow-md",
-                        indicator: "stroke-foreground",
                         track: "stroke-default-300",
                         value: "font-semibold text-xl",
                       }}

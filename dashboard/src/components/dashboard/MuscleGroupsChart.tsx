@@ -95,13 +95,14 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
                 <CardBody className="p-2">
                   <div className="flex flex-col items-center gap-1 text-center relative">
                     {index === 0 && (
-                      <Chip
-                      size="sm"  // Make the chip smaller
-                      variant="solid"
-                      className="absolute -top-1 -right-1 z-10 px-1 py-4 bg-background-100/50 text-xs ring-2 ring-yellow-500"  // Adjust padding and text size for a more compact chip
-                    >
-                      <Crown className="w-4 h-4 text-yellow-500" />
-                    </Chip>
+                      <div className="absolute -top-2 -right-2 z-10">
+                        <div className="relative">
+                          <div className="absolute inset-0 blur-sm bg-yellow-500/50"></div>
+                          <div className="relative bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full p-1.5">
+                            <Crown className="w-3.5 h-3.5 text-white" />
+                          </div>
+                        </div>
+                      </div>
                     )}
                     <div className="p-1.5 rounded-lg bg-content2/50">
                       <muscle.icon className="w-4 h-4" style={{ color: muscle.fill }} />
@@ -175,15 +176,25 @@ export const MuscleGroupsChart = ({ client }: MuscleGroupsChartProps) => {
         {/* Total Summary */}
         <Card 
           shadow="none" 
-          className="bg-gradient-to-r from-success-500 to-success-400 border-none"
+          className="bg-gradient-to-br from-success-900 via-success-800 to-success-700 border-none overflow-hidden relative"
         >
-          <CardBody className="py-2 px-3">
+          <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
+          <CardBody className="py-3 px-4 relative">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Dumbbell className="w-4 h-4 text-white" />
-                <span className="text-sm font-medium text-white">Total Exercises</span>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-success-600/30">
+                  <Dumbbell className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-white/90">Total Exercises</span>
+                  <span className="text-xl font-bold text-white">{totalExercises}</span>
+                </div>
               </div>
-              <span className="text-lg font-semibold text-white">{totalExercises}</span>
+              <div className="h-8 w-[1px] bg-white/10"></div>
+              <div className="flex flex-col items-end">
+                <span className="text-xs text-white/90">Most Worked</span>
+                <span className="text-sm font-semibold text-white">{mostWorkedMuscle.name}</span>
+              </div>
             </div>
           </CardBody>
         </Card>

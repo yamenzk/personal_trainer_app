@@ -30,6 +30,17 @@ interface WeightTrackerProps {
 
 export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
   const { theme } = useTheme();
+  
+  // Add this function to check for today's weight entry
+  const hasLoggedWeightToday = () => {
+    if (client.weight.length === 0) return false;
+    const today = new Date().setHours(0, 0, 0, 0);
+    return client.weight.some(w => {
+      const entryDate = new Date(w.date).setHours(0, 0, 0, 0);
+      return entryDate === today;
+    });
+  };
+
   const weightData = client.weight
     .map(w => ({
       date: format(new Date(w.date), 'MMM d'),
@@ -353,30 +364,32 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
           </div>
         </div>
 
-        {/* Weight Logging CTA */}
-        <div className="relative overflow-hidden rounded-xl">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700" />
-          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10" />
-          <div className="relative py-3 px-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-white/10">
-                  <Scale className="w-5 h-5 text-white" />
+        {/* Weight Logging CTA - Only show if weight not logged today */}
+        {!hasLoggedWeightToday() && (
+          <div className="relative overflow-hidden rounded-xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700" />
+            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10" />
+            <div className="relative py-3 px-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-white/10">
+                    <Scale className="w-5 h-5 text-white" />
+                  </div>
+                  <p className="font-medium text-white">
+                    Track your daily weight for better progress tracking
+                  </p>
                 </div>
-                <p className="font-medium text-white">
-                  Track your daily weight for better progress tracking
-                </p>
+                <Button
+                  className="bg-white text-primary-500 font-medium px-8"
+                  size="sm"
+                  onPress={onLogWeight}
+                >
+                  Log Weight
+                </Button>
               </div>
-              <Button
-                className="bg-white text-primary-500 font-medium px-8"
-                size="sm"
-                onPress={onLogWeight}
-              >
-                Log Weight
-              </Button>
             </div>
           </div>
-        </div>
+        )}
       </CardBody>
     </Card>
   );

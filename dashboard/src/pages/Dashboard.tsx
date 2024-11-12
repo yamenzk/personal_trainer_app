@@ -24,44 +24,107 @@ import { ExerciseReference } from '@/types/workout';
 // Skeleton Component
 const DashboardSkeleton = () => {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-primary-500/10 via-background to-secondary-500/10">
-      <div className="container mx-auto space-y-8">
+    <div className="min-h-screen w-full">
+      <div className="container mx-auto space-y-12">
         {/* Hero Section Skeleton */}
-        <Skeleton className="w-full h-[180px] rounded-xl" />
+        <Card className="border-none bg-content2 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] rounded-b-4xl">
+          <CardBody className="p-6">
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex items-center gap-6">
+                <Skeleton className="w-24 h-24 rounded-full" />
+                <div className="space-y-3">
+                  <Skeleton className="w-32 h-4 rounded-lg" />
+                  <Skeleton className="w-48 h-6 rounded-lg" />
+                  <div className="flex gap-2">
+                    <Skeleton className="w-24 h-6 rounded-full" />
+                    <Skeleton className="w-24 h-6 rounded-full" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="grid grid-cols-2 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} className="w-full h-[72px] rounded-xl" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
 
-        {/* Quick Stats Skeleton */}
+        {/* Quick Stats Section */}
         <div className="space-y-4">
-          <div className="px-6">
-            <Skeleton className="w-48 h-7 rounded-lg" />
-            <Skeleton className="w-72 h-5 mt-2 rounded-lg" />
+          <div className="px-4">
+            <Skeleton className="w-32 h-6 rounded-lg" />
+            <Skeleton className="w-64 h-4 mt-1 rounded-lg" />
           </div>
-          <div className="flex gap-4 px-6 overflow-x-hidden">
+          <div className="px-4 flex gap-4 overflow-x-hidden">
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className="w-[280px] h-[120px] rounded-xl flex-shrink-0" />
             ))}
           </div>
         </div>
 
-        {/* Workout Progress Skeleton */}
+        {/* Workout Progress Section */}
         <div className="space-y-4">
-          <div className="px-6">
-            <Skeleton className="w-48 h-7 rounded-lg" />
-            <Skeleton className="w-72 h-5 mt-2 rounded-lg" />
+          <div className="px-4">
+            <Skeleton className="w-32 h-6 rounded-lg" />
+            <Skeleton className="w-64 h-4 mt-1 rounded-lg" />
           </div>
-          <Skeleton className="w-full h-[350px] rounded-xl" />
+          <div className="p-4">
+            <Skeleton className="w-full h-[160px] rounded-xl" />
+          </div>
         </div>
 
-        {/* Main Content Skeleton */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          {/* Left Column */}
-          <div className="xl:col-span-8">
+        {/* Weight Journey Section */}
+        <div className="space-y-4">
+          <div className="px-4">
+            <Skeleton className="w-40 h-6 rounded-lg" />
+            <Skeleton className="w-64 h-4 mt-1 rounded-lg" />
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-12 gap-4 px-4">
+              <Skeleton className="col-span-6 h-[120px] rounded-xl" />
+              <Skeleton className="col-span-6 h-[120px] rounded-xl" />
+              <Skeleton className="col-span-12 h-[80px] rounded-xl" />
+            </div>
+            <Skeleton className="w-full h-[300px] rounded-xl mx-4" />
+            <Skeleton className="w-full h-[72px] rounded-xl mx-4" />
+          </div>
+        </div>
+
+        {/* Achievement Section */}
+        <div className="space-y-4">
+          <div className="px-4">
+            <Skeleton className="w-40 h-6 rounded-lg" />
+            <Skeleton className="w-64 h-4 mt-1 rounded-lg" />
+          </div>
+          <div className="p-4">
             <Skeleton className="w-full h-[400px] rounded-xl" />
           </div>
+        </div>
 
-          {/* Right Column */}
-          <div className="xl:col-span-4 space-y-6">
-            <Skeleton className="w-full h-[300px] rounded-xl" />
-            <Skeleton className="w-full h-[300px] rounded-xl" />
+        {/* Muscle Focus Section */}
+        <div className="space-y-4">
+          <div className="px-4">
+            <Skeleton className="w-48 h-6 rounded-lg" />
+            <Skeleton className="w-64 h-4 mt-1 rounded-lg" />
+          </div>
+          <div className="p-4">
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-3 space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="w-full h-[72px] rounded-xl" />
+                ))}
+              </div>
+              <Skeleton className="col-span-6 h-[300px] rounded-xl" />
+              <div className="col-span-3 space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="w-full h-[72px] rounded-xl" />
+                ))}
+              </div>
+            </div>
+            <Skeleton className="w-full h-[72px] rounded-xl mt-6" />
           </div>
         </div>
       </div>

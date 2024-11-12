@@ -8,6 +8,7 @@ import { cn } from "@/utils/cn";
 import { useTheme } from '../../contexts/ThemeContext';
 import { ContextualTip } from "./ContextualTip";
 
+
 interface PlanHeroProps {
   plan: Plan;
   selectedDay: number | null;

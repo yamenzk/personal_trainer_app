@@ -25,27 +25,55 @@ import { insertWorkoutTips, TipCard } from "@/components/workout/WorkoutTips";
 // Skeleton Component
 const WorkoutPlanSkeleton = () => {
   return (
-    <div className="min-h-screen w-full bg-background relative overflow-hidden">
+    <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
       <div className="container mx-auto">
-        {/* Hero Section Skeleton */}
+        {/* Hero Card Section */}
         <div className="flex flex-col gap-4">
-          <Skeleton className="w-full h-[220px] rounded-xl" />
+          <Skeleton className="w-full rounded-none rounded-b-4xl h-[220px]">
+            <div className="p-6 space-y-4">
+              {/* Top Row */}
+              <div className="flex justify-between">
+                <Skeleton className="w-32 h-8 rounded-lg" />
+                <Skeleton className="w-24 h-8 rounded-lg" />
+              </div>
+
+              {/* Title Row */}
+              <div className="space-y-2">
+                <Skeleton className="w-64 h-8 rounded-lg" />
+                <Skeleton className="w-96 h-6 rounded-lg" />
+              </div>
+
+              {/* Days Row */}
+              <div className="flex gap-2 mt-4 overflow-hidden">
+                {[...Array(7)].map((_, i) => (
+                  <Skeleton key={i} className="w-[68px] h-[84px] rounded-xl flex-shrink-0" />
+                ))}
+              </div>
+            </div>
+          </Skeleton>
+
+          {/* Contextual Tip */}
+          <div className="px-6">
+            <Skeleton className="w-64 h-8 rounded-full mx-auto" />
+          </div>
         </div>
 
-        {/* Exercise Section Skeleton */}
-        <div className="mt-8">
-          {/* Section Title Skeleton */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="h-px flex-1 bg-content-secondary/10" />
-            <Skeleton className="w-40 h-8 rounded-lg" />
-            <div className="h-px flex-1 bg-content-secondary/10" />
-          </div>
+        {/* Centered Content Container */}
+        <div className="flex justify-center mt-8">
+          <div className="w-full max-w-3xl px-4">
+            {/* Section Title */}
+            <div className="flex items-center gap-4 my-6">
+              <div className="h-px flex-1 bg-content-secondary/10" />
+              <Skeleton className="w-32 h-8 rounded-lg" />
+              <div className="h-px flex-1 bg-content-secondary/10" />
+            </div>
 
-          {/* Exercise Cards Skeleton */}
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="w-full h-[300px] rounded-xl" />
-            ))}
+            {/* Exercise Cards */}
+            <div className="space-y-6">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="w-full h-[300px] rounded-xl" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
