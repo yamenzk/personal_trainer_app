@@ -142,13 +142,23 @@ class Client(Document):
             if (frappe.utils.getdate().month, frappe.utils.getdate().day) < (frappe.utils.getdate(self.date_of_birth).month, frappe.utils.getdate(self.date_of_birth).day):
                 self.age -= 1
 
-        # Call the target calculation
+        # Call the target calculation if adjust is not set
         if not self.adjust:
             self.calculate_targets()
 
-        if self.referred_by:
-            if self.referred_by == self.name:
-                frappe.throw("You cannot refer yourself.")
-            if not frappe.db.exists("Client", self.referred_by):
-                frappe.throw("Referral code does not exist.")
-        
+        # Referral Validation Logic
+        if self.referred_by and self.has_value_changed("referred_by"):
+            # Proceed with referral logic only if `referred_by` has changed
+            if self.referred_by:
+                # Prevent referring oneself
+                if self.referred_by == self.name:
+                    frappe.response["error"] = "You cannot refer yourself."
+                    raise frappe.ValidationError("You cannot refer yourself.")
+
+                # Check if the referred user exists
+                if not frappe.db.exists("Client", self.referred_by):
+                    raise frappe.ValidationError("Referral code does not exist.")
+
+                # Check for circular referrals (i.e., Friend A refers Friend B, and Friend B refers back to Friend A)
+                if frappe.db.exists("Client", {"name": self.referred_by, "referred_by": self.name}):
+                    raise frappe.ValidationError("Circular referral detected.")

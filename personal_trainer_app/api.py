@@ -482,7 +482,7 @@ def get_referrals(client_id):
         referrals = frappe.get_all(
             "Client",
             filters={"referred_by": client_id},
-            fields=["name", "client_name"]
+            fields=["name", "client_name", "image"]
         )
         if referrals:
             return referrals
