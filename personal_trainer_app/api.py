@@ -515,6 +515,10 @@ def get_available_codes(membership):
         frappe.log_error(f"Error in get_available_codes: {str(e)}")                
 
 @frappe.whitelist(allow_guest=True)
+def get_announcement():
+    return frappe.get_single("Website Announcement").as_dict()
+
+@frappe.whitelist(allow_guest=True)
 def redeem_code(membership, code):
     try:
         code_doc = frappe.get_doc("Promo Code", code)

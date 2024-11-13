@@ -1,9 +1,16 @@
 // src/components/layout/Layout.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import TopNavbar from './TopNavbar';
 import BottomNavbar from './BottomNavbar';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@nextui-org/react';
+
+interface AnnouncementData {
+  bg_class: string;
+  title: string;
+  description: string;
+  modified: string;
+}
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,10 +19,37 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => {
   const location = useLocation();
+  const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
+  const [isAnnouncementDismissed, setIsAnnouncementDismissed] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const fetchAnnouncement = async () => {
+      try {
+        const response = await fetch('/api/v2/method/personal_trainer_app.api.get_announcement');
+        const result = await response.json();
+        if (result.data) {
+          const isDismissed = localStorage.getItem(`announcement-${result.data.modified}`) === 'dismissed';
+          setIsAnnouncementDismissed(isDismissed);
+          setAnnouncement(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching announcement:', error);
+      }
+    };
+
+    fetchAnnouncement();
+  }, []);
+
+  const handleDismissAnnouncement = () => {
+    if (announcement) {
+      localStorage.setItem(`announcement-${announcement.modified}`, 'dismissed');
+      setIsAnnouncementDismissed(true);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-background overflow-hidden">
@@ -44,6 +78,24 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
         {!hideNavigation && (
           <div className="flex-none h-16">
             <TopNavbar />
+          </div>
+        )}
+
+        {/* Announcement Banner */}
+        {announcement && !isAnnouncementDismissed && !hideNavigation && (
+          <div className={`w-full px-4 py-3 ${announcement.bg_class}`}>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="font-bold text-md">{announcement.title}</h3>
+                <p className="text-xs mt-1 opacity-90">{announcement.description}</p>
+              </div>
+              <button 
+                onClick={handleDismissAnnouncement}
+                className="ml-4 opacity-70 hover:opacity-100 transition-opacity"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         )}
         

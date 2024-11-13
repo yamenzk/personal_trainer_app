@@ -7,6 +7,20 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx}",
     "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    // Gradient patterns
+    {
+      pattern: /^bg-gradient-to-(r|l|t|b|tr|tl|br|bl)/,
+    },
+    // Background colors
+    {
+      pattern: /^(from|via|to)-(red|yellow|green|slate|blue|indigo|purple|pink|success|danger|primary|secondary|warning)-[0-9]+/,
+    },
+    // Text colors
+    {
+      pattern: /^text-(white|black|gray-[0-9]+)/,
+    }
+  ],
   theme: {
     extend: {
       fontFamily: {

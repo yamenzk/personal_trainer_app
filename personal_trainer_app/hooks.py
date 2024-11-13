@@ -173,7 +173,7 @@ scheduler_events = {
 # 		"personal_trainer_app.tasks.all"
 # 	],
 	"daily": [
-        "personal_trainer_app.promo_code.update_promo_code_statuses",
+        "personal_trainer_app.personal_trainer.doctype.promo_code.promo_code.update_promo_code_statuses",
 		"personal_trainer_app.tasks.update_all_client_statistics",
         "personal_trainer_app.tasks.update_all_client_achievements"
 	],
