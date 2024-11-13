@@ -14,6 +14,7 @@ import {
 import { ExerciseBase, ExerciseReference } from "@/types";
 import { motion } from "framer-motion";
 import { cn } from "@/utils/cn";
+import React, { useEffect, useRef, useState } from "react";
 
 interface SupersetCardProps {
   exercises: ExerciseBase[];
@@ -88,16 +89,29 @@ const getTitleByCount = (count: number): string => {
   return titles[Math.floor(Math.random() * titles.length)];
 };
 
-export const SupersetCard: React.FC<SupersetCardProps> = ({
+export const SupersetCard = React.memo(({
   exercises,
   references,
+  onLogPerformance,
   onViewDetails,
+  selectedPlan,
   exerciseNumber
-}) => {
+}: SupersetCardProps) => {
   const randomTip = supersetTips[Math.floor(Math.random() * supersetTips.length)];
 
-  const ExerciseItem = ({ exercise, index }: { exercise: ExerciseBase; index: number }) => {
+  const ExerciseItem = React.memo(({ exercise, index }: { exercise: ExerciseBase; index: number }) => {
+    const [isImageLoading, setIsImageLoading] = useState(true);
+    const imageRef = useRef<HTMLImageElement>(null);
     const exerciseRef = references[exercise.ref];
+
+    useEffect(() => {
+      return () => {
+        if (imageRef.current) {
+          imageRef.current.src = '';
+        }
+      };
+    }, []);
+
     if (!exerciseRef) return null;
 
     return (
@@ -111,10 +125,13 @@ export const SupersetCard: React.FC<SupersetCardProps> = ({
 
         {/* Exercise Image */}
         <Image
+          ref={imageRef}
           removeWrapper
           alt={`Exercise ${exercise.ref}`}
           className="z-0 w-full h-full object-cover"
           src={exerciseRef.thumbnail || exerciseRef.starting}
+          onLoad={() => setIsImageLoading(false)}
+          loading="lazy"
         />
 
         {/* Content */}
@@ -147,9 +164,34 @@ export const SupersetCard: React.FC<SupersetCardProps> = ({
         </div>
       </Card>
     );
-  };
+  });
 
-  const ExercisesGrid = () => {
+  const ExercisesGrid = React.memo(() => {
+    if (exercises.length > 3) {
+      // For large supersets, render in batches
+      return (
+        <div className="space-y-4">
+          {chunk(exercises, 2).map((batch, batchIndex) => (
+            <div key={batchIndex} className="grid grid-cols-2 gap-4">
+              {batch.map((exercise, index) => (
+                <motion.div
+                  key={exercise.ref}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: (batchIndex * 2 + index) * 0.1 }}
+                >
+                  <ExerciseItem 
+                    exercise={exercise} 
+                    index={batchIndex * 2 + index} 
+                  />
+                </motion.div>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     if (exercises.length === 2) {
       return (
         <div className="grid grid-cols-2 gap-4">
@@ -216,7 +258,7 @@ export const SupersetCard: React.FC<SupersetCardProps> = ({
     }
 
     return null;
-  };
+  });
 
   return (
     <Card className="w-full bg-background/1 border-none" style={{ boxShadow: 'none' }}>
@@ -315,5 +357,20 @@ export const SupersetCard: React.FC<SupersetCardProps> = ({
         
       </div>
     </Card>
+  );
+}, (prevProps, nextProps) => {
+  // Add custom comparison for better memoization
+  return (
+    prevProps.exerciseNumber === nextProps.exerciseNumber &&
+    prevProps.selectedPlan === nextProps.selectedPlan &&
+    prevProps.exercises.length === nextProps.exercises.length &&
+    prevProps.exercises.every((ex, i) => ex.ref === nextProps.exercises[i].ref)
+  );
+});
+
+// Helper function to chunk arrays
+const chunk = <T,>(array: T[], size: number): T[][] => {
+  return Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
+    array.slice(i * size, i * size + size)
   );
 };

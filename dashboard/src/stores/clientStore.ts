@@ -13,6 +13,11 @@ interface ClientState {
   fetch: () => Promise<void>;
   clear: () => void;
   needsRefresh: () => boolean;
+  mediaCache: {
+    images: Record<string, string>;
+    videos: Record<string, string>;
+  };
+  preloadImages: (urls: string[]) => void;
 }
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -25,6 +30,34 @@ export const useClientStore = create<ClientState>((set, get) => ({
   isLoading: false,
   error: null,
   lastFetched: null,
+  mediaCache: {
+    images: {},
+    videos: {}
+  },
+
+  preloadImages: (urls: string[]) => {
+    const state = get();
+    const newImages = { ...state.mediaCache.images };
+    
+    urls.forEach(url => {
+      if (!newImages[url]) {
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+          set(state => ({
+            ...state,
+            mediaCache: {
+              ...state.mediaCache,
+              images: {
+                ...state.mediaCache.images,
+                [url]: url
+              }
+            }
+          }));
+        };
+      }
+    });
+  },
 
   fetch: async () => {
     const state = get();
@@ -67,6 +100,43 @@ export const useClientStore = create<ClientState>((set, get) => ({
         return;
       }
 
+      // Cache media URLs with proper typing
+      const mediaCache = {
+        images: {} as Record<string, string>,
+        videos: {} as Record<string, string>
+      };
+
+      Object.values(response.data.references.exercises).forEach((exercise: {
+        thumbnail?: string;
+        starting?: string;
+        ending?: string;
+        video?: string;
+      }) => {
+        if (typeof exercise.thumbnail === 'string') {
+          mediaCache.images[exercise.thumbnail] = exercise.thumbnail;
+        }
+        if (typeof exercise.starting === 'string') {
+          mediaCache.images[exercise.starting] = exercise.starting;
+        }
+        if (typeof exercise.ending === 'string') {
+          mediaCache.images[exercise.ending] = exercise.ending;
+        }
+        if (typeof exercise.video === 'string') {
+          mediaCache.videos[exercise.video] = exercise.video;
+        }
+      });
+
+      // Gather all image URLs first
+      const imageUrls = new Set<string>();
+      Object.values(response.data.references.exercises).forEach((exercise: any) => {
+        if (exercise.thumbnail) imageUrls.add(exercise.thumbnail);
+        if (exercise.starting) imageUrls.add(exercise.starting);
+        if (exercise.ending) imageUrls.add(exercise.ending);
+      });
+
+      // Start preloading immediately
+      get().preloadImages(Array.from(imageUrls));
+
       // Use separate state updates to reduce re-renders
       set((state) => ({
         ...state,
@@ -75,7 +145,8 @@ export const useClientStore = create<ClientState>((set, get) => ({
         plans: response.data.plans,
         references: response.data.references,
         lastFetched: now,
-        error: null
+        error: null,
+        mediaCache
       }));
 
     } catch (err) {

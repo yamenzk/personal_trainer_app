@@ -31,18 +31,25 @@ interface DayButtonProps {
   onDaySelect: (day: number) => void;
 }
 
-// Update the DayButton component
+// Optimize DayButton further
 const DayButton = React.memo(({ 
   dayIndex, 
   plan, 
   selectedDay, 
   onDaySelect 
 }: DayButtonProps) => {
+  // Memoize expensive calculations
+  const dayData = useMemo(() => {
+    const dayKey = `day_${dayIndex}`;
+    return plan.days[dayKey];
+  }, [dayIndex, plan.days]);
+
+  const exerciseCount = useMemo(() => 
+    dayData?.exercises?.length || 0
+  , [dayData]);
+
   const date = addDays(new Date(plan.start), dayIndex - 1);
   const today = new Date();
-  const dayKey = `day_${dayIndex}`;
-  const dayData = plan.days[dayKey];
-  const exerciseCount = dayData?.exercises?.length || 0;
   const isCompleted = dayData?.exercises?.every((e: any) =>
     e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
   );
@@ -54,18 +61,15 @@ const DayButton = React.memo(({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className="relative"
-      // Add pointer event properties
-      style={{ touchAction: 'none' }}
     >
       <Card
         isPressable
-        onPress={() => onDaySelect(dayIndex)}  // Remove e.preventDefault()
-        // Add pointer event handlers instead of mouse events
+        onPress={() => onDaySelect(dayIndex)}
         className={cn(
           "w-[68px] min-h-[84px]",
           "flex flex-col items-center justify-between",
           "transition-all duration-300",
-          "relative overflow-hidden touch-none",
+          "relative overflow-hidden",
           // Selected states
           isSelected && "bg-gradient-to-br from-primary-500 via-primary-400 to-secondary-500 border-none",
           // Regular day with exercises
@@ -152,6 +156,14 @@ const DayButton = React.memo(({
         )}
       </Card>
     </motion.div>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison function
+  return (
+    prevProps.dayIndex === nextProps.dayIndex &&
+    prevProps.selectedDay === nextProps.selectedDay &&
+    prevProps.plan.days[`day_${prevProps.dayIndex}`]?.exercises?.length === 
+    nextProps.plan.days[`day_${nextProps.dayIndex}`]?.exercises?.length
   );
 });
 

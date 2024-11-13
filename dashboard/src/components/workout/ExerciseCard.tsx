@@ -12,11 +12,12 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/utils/cn";
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { ExercisePerformance, ExerciseCardProps } from "@/types";
+import React from "react";
+import { useClientStore } from "@/stores/clientStore"; // Add this line
 
-
-export const ExerciseCard: React.FC<ExerciseCardProps> = ({
+export const ExerciseCard = React.memo(({
   exercise,
   references,
   performance,
@@ -26,9 +27,55 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   onViewDetails,
   selectedPlan,
   exerciseNumber
-}) => {
+}: ExerciseCardProps) => {
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const imageRef = useRef<HTMLImageElement>(null);
   const details = references[exercise.ref];
+  const { mediaCache } = useClientStore(); // Add this line
+
+  // Use cached image if available
+  const imageUrl = useMemo(() => {
+    const targetUrl = details.thumbnail || details.starting;
+    return mediaCache.images[targetUrl] || targetUrl;
+  }, [details, mediaCache.images]);
+
+  // Cleanup image references when unmounting
+  useEffect(() => {
+    return () => {
+      if (imageRef.current) {
+        imageRef.current.src = '';
+      }
+    };
+  }, []);
+
+  // Modified lazy loading with cache check
+  useEffect(() => {
+    if (!imageRef.current || !details) return;
+
+    // If image is in cache, load immediately
+    if (mediaCache.images[imageUrl]) {
+      imageRef.current.src = imageUrl;
+      setIsImageLoading(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement;
+          img.src = imageUrl;
+          observer.unobserve(img);
+        }
+      });
+    }, { 
+      rootMargin: '50px',
+      threshold: 0.1 // Lower threshold for earlier loading
+    });
+
+    observer.observe(imageRef.current);
+    return () => observer.disconnect();
+  }, [details, imageUrl, mediaCache.images]);
+
   const exercisePerformance = performance?.[exercise.ref] || [];
 
   const personalBest = exercisePerformance.reduce((best, current) => {
@@ -40,14 +87,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     : null;
 
   return (
-    <div 
-      onPointerDown={(e) => {
-        e.preventDefault();
-        onViewDetails?.();
-      }}
-      className="cursor-pointer touch-none"
-      style={{ touchAction: 'manipulation' }}
-    >
+    <div onClick={onViewDetails} className="cursor-pointer">
       <Card className="relative w-full h-[300px] border-none group overflow-hidden">
         {/* Remove the gradient overlay div and modify the image container */}
         <div className="absolute inset-0">
@@ -57,6 +97,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             </Skeleton>
           )}
           <Image
+            ref={imageRef}
             removeWrapper
             alt={`Exercise ${exercise.ref}`}
             className={cn(
@@ -65,8 +106,8 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
               "brightness-[0.7] contrast-[1.2]", // Add filters here
               isImageLoading ? "opacity-0" : "opacity-100"
             )}
-            src={details.thumbnail || details.starting}
             onLoad={() => setIsImageLoading(false)}
+            loading="lazy"
           />
         </div>
 
@@ -173,8 +214,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             {/* Action Buttons */}
             {!isLogged && !isSuperset && selectedPlan === 'active' && (
               <motion.div 
-                onPointerDown={e => {
-                  e.preventDefault();
+                onClick={e => {
                   e.stopPropagation();
                 }}
                 className="flex items-center gap-2"
@@ -185,7 +225,9 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                   className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium w-full"
                   size="sm"
                   startContent={<Zap size={14} />}
-                  onPress={onLogSet}  // Simplified
+                  onPress={() => {
+                    onLogSet?.();
+                  }}
                 >
                   Log Set
                 </Button>
@@ -193,7 +235,9 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                   isIconOnly
                   className="bg-white/10 backdrop-blur-md text-white"
                   size="sm"
-                  onPress={onViewDetails}  // Simplified
+                  onPress={() => {
+                    onViewDetails();
+                  }}
                 >
                   <BarChart size={14} />
                 </Button>
@@ -204,4 +248,4 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
       </Card>
     </div>
   );
-};
+});

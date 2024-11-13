@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import { Skeleton } from "@nextui-org/react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { Button, Skeleton } from "@nextui-org/react";
 import { Dumbbell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays } from "date-fns";
@@ -101,6 +101,13 @@ const SectionTitle = () => (
   </div>
 );
 
+interface ExerciseItem {
+  type: 'regular' | 'superset' | 'tip';
+  exercise?: ExerciseBase;
+  exercises?: ExerciseBase[];
+  content?: any;
+}
+
 // Main Content Component
 const WorkoutPlansContent = React.memo(({
   client,
@@ -187,10 +194,17 @@ const WorkoutPlansContent = React.memo(({
   };
   const exercisesWithTips = insertWorkoutTips(exercises);
 
-  const handleExerciseDetails = (exerciseRef: string) => {
-    // Get the exercise details from the correct references path
+  const handleExerciseDetails = useCallback((exerciseRef: string) => {
     const exerciseDetails = references.exercises[exerciseRef];
     if (!exerciseDetails) return;
+
+    // Create a copy without video URL initially
+    const details = { ...exerciseDetails };
+    if (details.video) {
+      // Store video URL separately to avoid immediate loading
+      details._videoUrl = details.video;
+      delete details.video;
+    }
 
     setSelectedExercise({
       exercise: {
@@ -200,11 +214,11 @@ const WorkoutPlansContent = React.memo(({
         rest: 0,
         logged: 0,
       },
-      details: exerciseDetails,
+      details,
       isLogged: false,
     });
     setShowDetailsModal(true);
-  };
+  }, [references.exercises]);
 
   // Cleanup effect
   useEffect(() => {
@@ -219,6 +233,85 @@ const WorkoutPlansContent = React.memo(({
     showDetailsModal,
     selectedExercise,
   }), [showPerformanceModal, showDetailsModal, selectedExercise]);
+
+  // Remove useCallback and modify renderExercises to be a regular function
+  const renderExercises = () => {
+    return (
+      <div className="space-y-6">
+        {exercisesWithTips.map((item, index) => (
+          <motion.div
+            key={getItemKey(item, index)}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: Math.min(index * 0.1, 1) }} // Cap delay at 1 second
+          >
+            {item.type === "tip" ? (
+              <div className="px-4">
+                <TipCard tip={item.content} />
+              </div>
+            ) : item.type === "regular" ? (
+              <div className="px-4">
+                <ExerciseCard
+                  exercise={item.exercise}
+                  references={references.exercises}
+                  performance={references.performance}
+                  isLogged={item.exercise.logged === 1}
+                  onLogSet={() => handleExerciseLog(item)}
+                  onViewDetails={() => handleExerciseDetails(item.exercise.ref)}
+                  selectedPlan={selectedPlan}
+                  exerciseNumber={index + 1}
+                />
+              </div>
+            ) : (
+              <div className="px-4">
+                <SupersetCard
+                  exercises={item.exercises}
+                  references={references.exercises}
+                  onLogPerformance={handleLogPerformance}
+                  onViewDetails={handleExerciseDetails}
+                  selectedPlan={selectedPlan}
+                  exerciseNumber={index + 1}
+                />
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    );
+  };
+
+  // Add handleExerciseLog function
+  const handleExerciseLog = (item: any) => {
+    if (!item.exercise) return;
+    setSelectedExercise({
+      exercise: item.exercise,
+      details: references.exercises[item.exercise.ref],
+      isLogged: item.exercise.logged === 1,
+    });
+    setShowPerformanceModal(true);
+  };
+
+  // Preload images for visible exercises
+  useEffect(() => {
+    if (!exercisesWithTips?.length) return;
+
+    const urls = exercisesWithTips
+      .flatMap((item: ExerciseItem) => {
+        if (item.type === 'regular' && item.exercise) {
+          const exercise = references.exercises[item.exercise.ref];
+          return [exercise.thumbnail, exercise.starting, exercise.ending].filter(Boolean);
+        }
+        if (item.type === 'superset' && item.exercises) {
+          return item.exercises.flatMap((ex: ExerciseBase) => {
+            const exercise = references.exercises[ex.ref];
+            return [exercise.thumbnail, exercise.starting, exercise.ending].filter(Boolean);
+          });
+        }
+        return [];
+      });
+
+    useClientStore.getState().preloadImages(urls);
+  }, [exercisesWithTips, references.exercises]);
 
   return (
     <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
@@ -258,66 +351,7 @@ const WorkoutPlansContent = React.memo(({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <div className="space-y-6">
-                      {exercisesWithTips.map((item, index) => (
-                        <motion.div
-                          key={
-                            item.type === "tip"
-                              ? `tip-${index}`
-                              : item.type === "regular"
-                              ? item.exercise.ref
-                              : `superset-${index}`
-                          }
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          {item.type === "tip" ? (
-                            <div className="px-4">
-                              <TipCard tip={item.content} />
-                            </div>
-                          ) : item.type === "regular" ? (
-                            <div className="px-4">
-                              <ExerciseCard
-                                exercise={item.exercise}
-                                references={references.exercises}
-                                performance={references.performance}
-                                isLogged={item.exercise.logged === 1}
-                                onLogSet={() => {
-                                  setSelectedExercise({
-                                    exercise: item.exercise,
-                                    details: references.exercises[item.exercise.ref],
-                                    isLogged: item.exercise.logged === 1,
-                                  });
-                                  setShowPerformanceModal(true);
-                                }}
-                                onViewDetails={() => {
-                                  setSelectedExercise({
-                                    exercise: item.exercise,
-                                    details: references.exercises[item.exercise.ref],
-                                    isLogged: item.exercise.logged === 1,
-                                  });
-                                  setShowDetailsModal(true);
-                                }}
-                                selectedPlan={selectedPlan}
-                                exerciseNumber={index + 1}
-                              />
-                            </div>
-                          ) : (
-                            <div className="px-4">
-                              <SupersetCard
-                                exercises={item.exercises}
-                                references={references.exercises}
-                                onLogPerformance={handleLogPerformance}
-                                onViewDetails={handleExerciseDetails}
-                                selectedPlan={selectedPlan}
-                                exerciseNumber={index + 1}
-                              />
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
-                    </div>
+                    {renderExercises()}
                   </motion.div>
                 ) : (
                   <motion.div
@@ -371,6 +405,12 @@ const WorkoutPlansContent = React.memo(({
     </div>
   );
 });
+
+const getItemKey = (item: any, index: number) => {
+  if (item.type === "tip") return `tip-${index}`;
+  if (item.type === "regular") return item.exercise.ref;
+  return `superset-${index}`;
+};
 
 // Main Component
 export default function WorkoutPlans() {
