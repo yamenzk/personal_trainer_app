@@ -2,10 +2,11 @@ import { Card, Button, Chip, Switch } from "@nextui-org/react";
 import { motion, LayoutGroup } from "framer-motion";
 import { format, addDays, differenceInDays } from "date-fns";
 import { History, Zap, Calendar, Target, Dumbbell, Moon, ChevronLeft, ChevronRight, Flame } from "lucide-react";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { PlanHeroProps } from "@/types";
 import { cn } from "@/utils/cn";
 import { ContextualTip } from "./ContextualTip";
+import React from "react";
 
 const WeekProgress = ({ completed, total }: { completed: number, total: number }) => {
   const percentage = (completed / total) * 100;
@@ -21,7 +22,141 @@ const WeekProgress = ({ completed, total }: { completed: number, total: number }
   );
 };
 
-export const PlanHero: React.FC<PlanHeroProps> = ({
+// Add memoization for expensive calculations
+// Update DayButton props interface
+interface DayButtonProps {
+  dayIndex: number;
+  plan: any; // Replace 'any' with your Plan type
+  selectedDay: number | null;
+  onDaySelect: (day: number) => void;
+}
+
+// Update the DayButton component
+const DayButton = React.memo(({ 
+  dayIndex, 
+  plan, 
+  selectedDay, 
+  onDaySelect 
+}: DayButtonProps) => {
+  const date = addDays(new Date(plan.start), dayIndex - 1);
+  const today = new Date();
+  const dayKey = `day_${dayIndex}`;
+  const dayData = plan.days[dayKey];
+  const exerciseCount = dayData?.exercises?.length || 0;
+  const isCompleted = dayData?.exercises?.every((e: any) =>
+    e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
+  );
+  const isSelected = selectedDay === dayIndex;
+  const isCurrent = format(date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="relative"
+      // Add pointer event properties
+      style={{ touchAction: 'none' }}
+    >
+      <Card
+        isPressable
+        onPress={() => onDaySelect(dayIndex)}  // Remove e.preventDefault()
+        // Add pointer event handlers instead of mouse events
+        className={cn(
+          "w-[68px] min-h-[84px]",
+          "flex flex-col items-center justify-between",
+          "transition-all duration-300",
+          "relative overflow-hidden touch-none",
+          // Selected states
+          isSelected && "bg-gradient-to-br from-primary-500 via-primary-400 to-secondary-500 border-none",
+          // Regular day with exercises
+          !isSelected && exerciseCount > 0 && "bg-secondary-500/5 border-secondary-500/20",
+          // Completed states
+          !isSelected && isCompleted && "bg-success-500/5 border-success-500/20",
+          // Current day states
+          !isSelected && isCurrent && "bg-warning-500/5 border-warning-500/20",
+          // Rest day (no exercises)
+          !isSelected && !exerciseCount && !isCurrent && "bg-content/5 border-content/10",
+        )}
+      >
+        {/* Completion Pattern - only show for completed days */}
+        {isCompleted && !isSelected && (
+          <div className="absolute inset-0 opacity-5">
+            <svg className="w-full h-full" viewBox="0 0 100 100">
+              <pattern id="completion-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                <circle cx="5" cy="5" r="1" fill="currentColor" />
+              </pattern>
+              <rect x="0" y="0" width="100" height="100" fill="url(#completion-pattern)" />
+            </svg>
+          </div>
+        )}
+
+        <div className="flex flex-col items-center gap-1 p-2">
+          {/* Date Section */}
+          <span className={cn(
+            "text-xs font-medium",
+            isSelected ? "text-white/90" : "text-foreground/60"
+          )}>
+            {format(date, 'EEE')}
+          </span>
+          <span className={cn(
+            "text-xl font-bold",
+            isSelected ? "text-white" : 
+            isCurrent ? "text-warning-500" : 
+            "text-foreground"
+          )}>
+            {format(date, 'd')}
+          </span>
+
+          {/* Exercise Indicator */}
+          {exerciseCount > 0 ? (
+            <div className={cn(
+              "flex items-center gap-1",
+              "px-2 py-0.5 rounded-full",
+              "text-xs font-medium",
+              isSelected && "bg-white/20 text-white",
+              isCompleted && !isSelected && "bg-success-500/20 text-success-500",
+              !isSelected && !isCompleted && "bg-secondary-500/10 text-secondary-500"
+            )}>
+              <Dumbbell className="w-3 h-3" />
+              {exerciseCount}
+            </div>
+          ) : (
+            <div className={cn(
+              "p-1 rounded-full",
+              isSelected ? "bg-white/20" : "bg-content/10"
+            )}>
+              <Moon className={cn(
+                "w-3 h-3",
+                isSelected ? "text-white/70" : "text-foreground/40"
+              )} />
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Status Bar */}
+        {(exerciseCount > 0 || isCompleted || isCurrent) && (
+          <div className={cn(
+            "absolute bottom-0 left-0 right-0 h-1",
+            "transition-all duration-300",
+            // Selected states
+            isSelected && isCompleted && "bg-white/30",
+            isSelected && !isCompleted && "bg-white/20",
+            // Current day states
+            !isSelected && isCurrent && isCompleted && "bg-warning-500",
+            !isSelected && isCurrent && !isCompleted && "bg-primary-500",
+            // Completed state
+            !isSelected && isCompleted && !isCurrent && "bg-success-500",
+            // Regular day with exercises
+            !isSelected && !isCompleted && !isCurrent && exerciseCount > 0 && "bg-secondary-500"
+          )} />
+        )}
+      </Card>
+    </motion.div>
+  );
+});
+
+// Optimize the scroll effect
+export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
   plan,
   selectedDay,
   onDaySelect,
@@ -34,27 +169,30 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
 }: PlanHeroProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Debounce scroll handling
   useEffect(() => {
-    if (selectedDay && scrollRef.current) {
-      const scrollContainer = scrollRef.current;
-      const selectedElement = scrollContainer.children[selectedDay - 1] as HTMLElement;
+    if (!selectedDay || !scrollRef.current) return;
+
+    const scrollContainer = scrollRef.current;
+    const selectedElement = scrollContainer.children[selectedDay - 1] as HTMLElement;
+    
+    if (!selectedElement) return;
+
+    // Use requestAnimationFrame for smoother scrolling
+    requestAnimationFrame(() => {
+      const containerWidth = scrollContainer.clientWidth;
+      const elementWidth = selectedElement.offsetWidth;
+      const scrollLeft = selectedElement.offsetLeft - (containerWidth / 2) + (elementWidth / 2);
       
-      if (selectedElement) {
-        const containerWidth = scrollContainer.clientWidth;
-        const elementWidth = selectedElement.offsetWidth;
-        const scrollLeft = selectedElement.offsetLeft - (containerWidth / 2) + (elementWidth / 2);
-        
-        scrollContainer.scrollTo({
-          left: Math.max(0, scrollLeft),
-          behavior: 'smooth'
-        });
-      }
-    }
+      scrollContainer.scrollTo({
+        left: Math.max(0, scrollLeft),
+        behavior: 'smooth'
+      });
+    });
   }, [selectedDay]);
 
-
-  // Calculate statistics
-  const stats = {
+  // Memoize stats calculations
+  const stats = useMemo(() => ({
     total: {
       workouts: Object.values(plan.days).reduce((total: number, day: any) =>
         total + (day.exercises?.length > 0 ? 1 : 0), 0),
@@ -72,7 +210,7 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
           e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
         ).length || 0), 0),
     }
-  };
+  }), [plan]);
 
   // Calculate streak
   const calculateStreak = () => {
@@ -100,121 +238,6 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
       });
     }
     return streak;
-  };
-
-  const DayButton = ({ dayIndex }: { dayIndex: number }) => {
-    const date = addDays(new Date(plan.start), dayIndex - 1);
-    const today = new Date();
-    const dayKey = `day_${dayIndex}`;
-    const dayData = plan.days[dayKey];
-    const exerciseCount = dayData?.exercises?.length || 0;
-    const isCompleted = dayData?.exercises?.every((e: any) =>
-      e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
-    );
-    const isSelected = selectedDay === dayIndex;
-    const isCurrent = format(date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-
-    return (
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="relative"
-      >
-        <Card
-          isPressable
-          onPress={() => onDaySelect(dayIndex)}
-          className={cn(
-            "w-[68px] min-h-[84px]",
-            "flex flex-col items-center justify-between",
-            "transition-all duration-300",
-            "relative overflow-hidden",
-            // Selected states
-            isSelected && "bg-gradient-to-br from-primary-500 via-primary-400 to-secondary-500 border-none",
-            // Regular day with exercises
-            !isSelected && exerciseCount > 0 && "bg-secondary-500/5 border-secondary-500/20",
-            // Completed states
-            !isSelected && isCompleted && "bg-success-500/5 border-success-500/20",
-            // Current day states
-            !isSelected && isCurrent && "bg-warning-500/5 border-warning-500/20",
-            // Rest day (no exercises)
-            !isSelected && !exerciseCount && !isCurrent && "bg-content/5 border-content/10",
-          )}
-        >
-          {/* Completion Pattern - only show for completed days */}
-          {isCompleted && !isSelected && (
-            <div className="absolute inset-0 opacity-5">
-              <svg className="w-full h-full" viewBox="0 0 100 100">
-                <pattern id="completion-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
-                  <circle cx="5" cy="5" r="1" fill="currentColor" />
-                </pattern>
-                <rect x="0" y="0" width="100" height="100" fill="url(#completion-pattern)" />
-              </svg>
-            </div>
-          )}
-
-          <div className="flex flex-col items-center gap-1 p-2">
-            {/* Date Section */}
-            <span className={cn(
-              "text-xs font-medium",
-              isSelected ? "text-white/90" : "text-foreground/60"
-            )}>
-              {format(date, 'EEE')}
-            </span>
-            <span className={cn(
-              "text-xl font-bold",
-              isSelected ? "text-white" : 
-              isCurrent ? "text-warning-500" : 
-              "text-foreground"
-            )}>
-              {format(date, 'd')}
-            </span>
-
-            {/* Exercise Indicator */}
-            {exerciseCount > 0 ? (
-              <div className={cn(
-                "flex items-center gap-1",
-                "px-2 py-0.5 rounded-full",
-                "text-xs font-medium",
-                isSelected && "bg-white/20 text-white",
-                isCompleted && !isSelected && "bg-success-500/20 text-success-500",
-                !isSelected && !isCompleted && "bg-secondary-500/10 text-secondary-500"
-              )}>
-                <Dumbbell className="w-3 h-3" />
-                {exerciseCount}
-              </div>
-            ) : (
-              <div className={cn(
-                "p-1 rounded-full",
-                isSelected ? "bg-white/20" : "bg-content/10"
-              )}>
-                <Moon className={cn(
-                  "w-3 h-3",
-                  isSelected ? "text-white/70" : "text-foreground/40"
-                )} />
-              </div>
-            )}
-          </div>
-
-          {/* Bottom Status Bar */}
-          {(exerciseCount > 0 || isCompleted || isCurrent) && (
-            <div className={cn(
-              "absolute bottom-0 left-0 right-0 h-1",
-              "transition-all duration-300",
-              // Selected states
-              isSelected && isCompleted && "bg-white/30",
-              isSelected && !isCompleted && "bg-white/20",
-              // Current day states
-              !isSelected && isCurrent && isCompleted && "bg-warning-500",
-              !isSelected && isCurrent && !isCompleted && "bg-primary-500",
-              // Completed state
-              !isSelected && isCompleted && !isCurrent && "bg-success-500",
-              // Regular day with exercises
-              !isSelected && !isCompleted && !isCurrent && exerciseCount > 0 && "bg-secondary-500"
-            )} />
-          )}
-        </Card>
-      </motion.div>
-    );
   };
 
   return (
@@ -326,7 +349,12 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
             >
               {Array.from({ length: 7 }, (_, i) => (
                 <div key={i + 1} className="flex-none relative">
-                  <DayButton dayIndex={i + 1} />
+                  <DayButton 
+                    dayIndex={i + 1}
+                    plan={plan}
+                    selectedDay={selectedDay}
+                    onDaySelect={onDaySelect}
+                  />
                 </div>
               ))}
             </motion.div>
@@ -342,4 +370,4 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
         />
     </LayoutGroup>
   );
-};
+});

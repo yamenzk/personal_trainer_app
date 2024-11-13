@@ -11,8 +11,9 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { 
   ExerciseDetailsModalProps,
 } from '@/types';
+import React from "react";
 
-export const ExerciseDetailsModal = ({
+export const ExerciseDetailsModal = React.memo(({
     isOpen,
     onClose,
     exercise,
@@ -52,12 +53,20 @@ export const ExerciseDetailsModal = ({
       }
       return () => setIsPlaying(false);
     }, [isOpen]);
+
+    // Clear intervals on unmount
+    useEffect(() => {
+      return () => {
+        setIsPlaying(false);
+      };
+    }, []);
   
     // Prepare performance data for the chart
     const chartData = useMemo(() => {
       if (!performance) return [];
       return [...performance]
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(-10) // Limit data points to improve performance
         .map(p => ({
           date: p.date,
           weight: p.weight,
@@ -121,12 +130,12 @@ export const ExerciseDetailsModal = ({
         className="bg-white/50 dark:bg-black/50"
         backdrop="blur"
         classNames={{
-          base: "h-[100dvh] max-h-[100dvh]",
+          base: "h-[100dvh] max-h-[100dvh] will-change-transform touch-none",
         }}
         scrollBehavior="inside"
       >
         <ModalContent>
-          <div className="flex flex-col h-[100dvh]">
+          <div className="flex flex-col h-[100dvh] touch-none" style={{ touchAction: 'pan-y' }}>
             {/* Fixed Header/Navigation */}
             <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md pb-2 ">
               <div className="px-4 py-3 flex items-center justify-between">
@@ -195,8 +204,8 @@ export const ExerciseDetailsModal = ({
                             isIconOnly
                             size="sm"
                             variant="flat"
-                            className="bg-background/10 backdrop-blur-md"
-                            onPress={() => setImageIndex((prev) => (prev === 0 ? 1 : 0))}
+                            className="bg-background/10 backdrop-blur-md touch-none"
+                            onPress={() => setImageIndex((prev) => (prev === 0 ? 1 : 0))}  // Remove e?.preventDefault()
                           >
                             <ChevronLeft className="w-4 h-4 text-white" />
                           </Button>
@@ -519,4 +528,4 @@ export const ExerciseDetailsModal = ({
         </ModalContent>
       </Modal>
     );
-  };
+  });

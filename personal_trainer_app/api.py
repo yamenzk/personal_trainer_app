@@ -547,7 +547,7 @@ def redeem_code(membership, code):
             "doctype": "Code Redeem",
             "membership": membership,
             "code": code
-        }).insert(ignore_permissions=True)
+        }).save(ignore_permissions=True)
         frappe.db.commit()
         
         return {"status": "success", "message": "Promo code redeemed successfully."}

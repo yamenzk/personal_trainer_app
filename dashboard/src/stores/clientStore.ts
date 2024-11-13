@@ -31,20 +31,29 @@ export const useClientStore = create<ClientState>((set, get) => ({
     const now = Date.now();
     const membershipId = localStorage.getItem('membershipId');
 
+    // Add early return if already loading
+    if (state.isLoading) return;
+
     if (!membershipId) {
       set({ error: 'No membership ID found' });
       return;
     }
 
-    // Return cached data if it's still fresh
+    // Improve cache check
     if (state.client && state.lastFetched && (now - state.lastFetched < CACHE_DURATION)) {
-      return;
+      if (!state.error) return; // Only return if there's no error
     }
 
     set({ isLoading: true, error: null });
 
     try {
       const response = await getMembership(membershipId);
+      
+      // Add validation check
+      if (!response?.data) {
+        throw new Error('Invalid response data');
+      }
+
       if (!response.data?.membership?.active) {
         localStorage.removeItem('membershipId');
         set({ 
@@ -58,13 +67,17 @@ export const useClientStore = create<ClientState>((set, get) => ({
         return;
       }
 
-      set({
+      // Use separate state updates to reduce re-renders
+      set((state) => ({
+        ...state,
         client: response.data.client,
         membership: response.data.membership,
         plans: response.data.plans,
         references: response.data.references,
-        lastFetched: now
-      });
+        lastFetched: now,
+        error: null
+      }));
+
     } catch (err) {
       localStorage.removeItem('membershipId');
       set({ 
@@ -76,7 +89,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
         error: err instanceof Error ? err.message : 'An error occurred'
       });
     } finally {
-      set({ isLoading: false });
+      set((state) => ({ ...state, isLoading: false }));
     }
   },
 

@@ -79,13 +79,13 @@ export const PromoCodeModal = ({ isOpen, onClose }: PromoCodeModalProps) => {
       } else {
         setStatus({ 
           type: 'error', 
-          message: getFriendlyErrorMessage(response.data.message)
+          message: response.data.message
         });
       }
     } catch (error: any) {
       setStatus({ 
         type: 'error', 
-        message: getFriendlyErrorMessage(error.message)
+        message: error.message
       });
     } finally {
       setIsLoading(false);

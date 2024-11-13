@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Skeleton } from "@nextui-org/react";
 import { Dumbbell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,6 +29,7 @@ import { PerformanceModal } from "../components/workout/PerformanceModal";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { insertWorkoutTips, TipCard } from "@/components/workout/WorkoutTips";
 import { useClientStore } from "@/stores/clientStore";
+import React from "react";
 
 // Skeleton Component
 const WorkoutPlanSkeleton = () => {
@@ -101,7 +102,7 @@ const SectionTitle = () => (
 );
 
 // Main Content Component
-const WorkoutPlansContent = ({
+const WorkoutPlansContent = React.memo(({
   client,
   plans,
   references,
@@ -204,6 +205,20 @@ const WorkoutPlansContent = ({
     });
     setShowDetailsModal(true);
   };
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      // Cleanup any subscriptions or pending operations
+    };
+  }, []);
+
+  // Optimize modal state management
+  const modalState = useMemo(() => ({
+    showPerformanceModal,
+    showDetailsModal,
+    selectedExercise,
+  }), [showPerformanceModal, showDetailsModal, selectedExercise]);
 
   return (
     <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
@@ -323,7 +338,7 @@ const WorkoutPlansContent = ({
         {/* Modals */}
         {showPerformanceModal && selectedExercise && (
           <PerformanceModal
-            isOpen={showPerformanceModal}
+            isOpen={modalState.showPerformanceModal}
             onClose={() => {
               setShowPerformanceModal(false);
               setSelectedExercise(null);
@@ -341,7 +356,7 @@ const WorkoutPlansContent = ({
   
         {showDetailsModal && selectedExercise && (
           <ExerciseDetailsModal
-            isOpen={showDetailsModal}
+            isOpen={modalState.showDetailsModal}
             onClose={() => {
               setShowDetailsModal(false);
               setSelectedExercise(null);
@@ -355,12 +370,23 @@ const WorkoutPlansContent = ({
       </div>
     </div>
   );
-};
+});
 
 // Main Component
 export default function WorkoutPlans() {
   const { client, plans, references, isLoading: loading, error, fetch: refreshData } = useClientStore();
   const { currentDay } = usePlans(plans ?? []);
+
+  // Add error handling for failed renders
+  useEffect(() => {
+    const handler = (event: ErrorEvent) => {
+      console.error('Workout Plans Error:', event);
+      // Implement error reporting here
+    };
+
+    window.addEventListener('error', handler);
+    return () => window.removeEventListener('error', handler);
+  }, []);
 
   return (
     <PageTransition

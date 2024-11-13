@@ -268,7 +268,8 @@ scheduler_events = {
 
 website_route_rules = [
     {'from_route': '/dashboard/<path:app_path>', 'to_route': 'dashboard'},
-    {'from_route': '/workouts', 'to_route': 'workouts'},
-    {'from_route': '/meals', 'to_route': 'meals'},
-    {'from_route': '/profile', 'to_route': 'profile'},
+    {'from_route': '/workouts', 'to_route': 'dashboard'},
+    {'from_route': '/meals', 'to_route': 'dashboard'},
+    {'from_route': '/login', 'to_route': 'dashboard'},
+    {'from_route': '/profile', 'to_route': 'dashboard'},
 ]

@@ -40,7 +40,14 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     : null;
 
   return (
-    <div onClick={onViewDetails} className="cursor-pointer">
+    <div 
+      onPointerDown={(e) => {
+        e.preventDefault();
+        onViewDetails?.();
+      }}
+      className="cursor-pointer touch-none"
+      style={{ touchAction: 'manipulation' }}
+    >
       <Card className="relative w-full h-[300px] border-none group overflow-hidden">
         {/* Remove the gradient overlay div and modify the image container */}
         <div className="absolute inset-0">
@@ -166,7 +173,8 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             {/* Action Buttons */}
             {!isLogged && !isSuperset && selectedPlan === 'active' && (
               <motion.div 
-                onClick={e => {
+                onPointerDown={e => {
+                  e.preventDefault();
                   e.stopPropagation();
                 }}
                 className="flex items-center gap-2"
@@ -177,9 +185,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                   className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium w-full"
                   size="sm"
                   startContent={<Zap size={14} />}
-                  onPress={() => {
-                    onLogSet?.();
-                  }}
+                  onPress={onLogSet}  // Simplified
                 >
                   Log Set
                 </Button>
@@ -187,9 +193,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                   isIconOnly
                   className="bg-white/10 backdrop-blur-md text-white"
                   size="sm"
-                  onPress={() => {
-                    onViewDetails();
-                  }}
+                  onPress={onViewDetails}  // Simplified
                 >
                   <BarChart size={14} />
                 </Button>
