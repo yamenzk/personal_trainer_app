@@ -1,8 +1,9 @@
-import { Modal, ModalContent, Button, Input, Progress, Switch } from "@nextui-org/react";
-import { Scale, Dumbbell, Timer, AlertTriangle, Repeat, History, ChevronUp, ChevronDown, CheckCircle, Target, Trophy } from "lucide-react";
 import { useState, useEffect } from "react";
-import { cn } from "@/utils/cn";
+import { Modal, ModalContent, Button, Input, Progress, Switch } from "@nextui-org/react";
 import { motion } from "framer-motion";
+import { Target, Trophy, AlertTriangle, CheckCircle, History, ChevronDown, ChevronUp, Dumbbell, Repeat, Scale, Timer} from "lucide-react";
+import { cn } from "@/utils/cn";
+
 
 const getPerformanceMessage = (
   current: { weight: number; reps: number },

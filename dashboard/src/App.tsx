@@ -15,14 +15,11 @@ import { getSiteName } from './utils/frappe';
 import { useClientData } from './hooks/useClientData';
 import OnboardingWizard from './components/onboarding/OnboardingWizard';
 import { AnimatePresence } from "framer-motion";
-import { Client } from './types/client';
-import dayjs from 'dayjs';
 import { NavigationProvider } from './contexts/NavigationContext';
+import dayjs from 'dayjs';
 
-// Interface for components that can receive preferences update
-export interface WithPreferencesUpdate {
-  onPreferencesUpdate?: (steps: string[]) => void;
-}
+// Updated imports from centralized types
+import { Client, WithPreferencesUpdate } from '@/types';
 
 const getMissingSteps = (client: Client | null): string[] => {
   if (!client) return [];

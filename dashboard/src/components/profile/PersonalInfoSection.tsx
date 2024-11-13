@@ -2,11 +2,9 @@ import { ScrollShadow } from "@nextui-org/react";
 import { Cake, Mail, Phone, Globe, UsersRound } from 'lucide-react';
 import { format } from 'date-fns';
 import { StatsCard } from './StatsCard';
-import { Client } from '@/types/client';
+import { PersonalInfoSectionProps } from '@/types';
 
-interface PersonalInfoSectionProps {
-  client: Client;
-}
+
 
 export const PersonalInfoSection = ({ client }: PersonalInfoSectionProps) => {
   return (

@@ -1,13 +1,8 @@
 // src/contexts/NavigationContext.tsx
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { NavigationContextType } from '@/types';
 
-interface NavigationContextType {
-  isNavigating: boolean;
-  startNavigation: () => void;
-  endNavigation: () => void;
-  smoothNavigate: (path: string) => void;
-}
 
 const NavigationContext = createContext<NavigationContextType>({
   isNavigating: false,

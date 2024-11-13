@@ -1,14 +1,18 @@
 // src/pages/Dashboard.tsx
 import { useState } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardBody, Skeleton } from "@nextui-org/react";
 import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
 import { calculatePlanProgress } from '../utils/api';
-import { useTheme } from '../contexts/ThemeContext';
-import { PageTransition } from '@/components/shared/PageTransition';
-import { Card, CardBody, CardHeader, Skeleton } from '@nextui-org/react';
 
-// Import components
+// Updated imports from centralized types
+import { 
+  Client, 
+  Plan, 
+} from '@/types';
+
+// Component imports
 import { HeroSection } from '../components/dashboard/HeroSection';
 import { QuickStats } from '../components/dashboard/QuickStats';
 import { WeightTracker } from '../components/dashboard/WeightTracker';
@@ -17,9 +21,7 @@ import { AchievementCard } from '../components/dashboard/AchievementCard';
 import { MuscleGroupsChart } from '../components/dashboard/MuscleGroupsChart';
 import { WeightModal } from '../components/shared/WeightModal';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
-import { Client } from '@/types/client';
-import { Plan } from '@/types/plan';
-import { ExerciseReference } from '@/types/workout';
+import { PageTransition } from '@/components/shared/PageTransition';
 
 // Skeleton Component
 const DashboardSkeleton = () => {
@@ -144,7 +146,6 @@ const DashboardContent = ({
 }) => {
   const { activePlan, completedPlans, currentDay } = usePlans(plans);
   const [showWeightModal, setShowWeightModal] = useState(false);
-  const { theme } = useTheme();
   const { references = { exercises: {} } } = useClientData(); // Add default value
 
   // Check for onboarding needs

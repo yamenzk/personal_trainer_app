@@ -1,25 +1,17 @@
 // src/components/onboarding/steps/MealsStep.tsx
-import { useState, useEffect } from "react";
-import { Card, CardBody, Chip } from "@nextui-org/react";
+import { useState } from "react";
+import { Card, CardBody } from "@nextui-org/react";
 import {
   Coffee,
   Utensils,
   Cookie,
   ChefHat,
-  Timer,
   Check,
-  Info,
-  ArrowRight,
-  Clock,
+  Info
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useStepValidation } from "@/hooks/useStepValidation";
-
-interface MealsStepProps {
-  onComplete: (value: number) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: number;
-}
+import { MealsStepProps } from "@/types";
 
 const mealOptions = [
   {

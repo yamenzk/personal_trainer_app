@@ -1,16 +1,9 @@
-import { useState, useEffect } from 'react';
+
 import { Card, CardBody } from "@nextui-org/react";
-import { Armchair, Footprints, Rabbit, Dumbbell, Zap, Info, Check, Activity } from 'lucide-react';
+import { Armchair, Footprints, Rabbit, Dumbbell, Zap, Info, Check} from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useStepValidation } from '@/hooks/useStepValidation';
-
-interface ActivityLevelStepProps {
-  onComplete: (value: string) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: string;
-}
-
-type ActivityLevel = 'Sedentary' | 'Light' | 'Moderate' | 'Very Active' | 'Extra Active';
+import { ActivityLevelStepProps, ActivityLevel } from "@/types";
 
 const activityLevels = [
   {

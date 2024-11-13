@@ -22,7 +22,6 @@ import {
   Brush,
   Footprints
 } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
 import { motion } from "framer-motion";
 import { cn } from "@/utils/cn";
 
@@ -118,7 +117,6 @@ const restBenefits = [
 ];
 
 export const RestDayCard: React.FC = () => {
-  const { theme } = useTheme();
   
   // Get time-appropriate message
   const getTimeBasedMessage = () => {

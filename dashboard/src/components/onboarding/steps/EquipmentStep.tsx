@@ -1,29 +1,20 @@
 // src/components/onboarding/steps/EquipmentStep.tsx
 import { useState, useEffect } from "react";
-import { Card, CardBody, Chip } from "@nextui-org/react";
+import { Card, CardBody} from "@nextui-org/react";
 import {
   Dumbbell,
   Building2,
   Home,
   Clock,
-  Ruler,
   CircleDollarSign,
   Trophy,
-  AlertCircle,
   Check,
   Sparkles,
   ChevronRight,
   Info,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
-
-interface EquipmentStepProps {
-  onComplete: (value: WorkoutLocation) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: WorkoutLocation;
-}
-
-type WorkoutLocation = "Gym" | "Home";
+import { EquipmentStepProps, WorkoutLocation } from "@/types";
 
 const equipmentOptions = [
   {

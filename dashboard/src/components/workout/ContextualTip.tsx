@@ -2,17 +2,10 @@
 
 import { motion } from "framer-motion";
 import { Sun, Moon, Dumbbell, Target, Trophy, Flame, Coffee, Wind, Battery } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@/utils/cn";
-import { Plan } from "@/types/plan";
+import { ContextualTipProps } from "@/types";
 
-interface ContextualTipProps {
-  plan: Plan;
-  selectedDay: number | null;
-  completedWorkouts: number;
-  totalWorkouts: number;
-  streak: number;
-}
+
 
 const getTimeBasedTip = () => {
   const hour = new Date().getHours();

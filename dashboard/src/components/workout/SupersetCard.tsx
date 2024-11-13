@@ -2,7 +2,6 @@ import { Card, Image, Chip } from "@nextui-org/react";
 import { 
   Zap, 
   Dumbbell, 
-  Clock, 
   CheckCircle2, 
   Flame,
   Target,
@@ -12,7 +11,7 @@ import {
   ActivitySquare,
   ArrowDownUp
 } from "lucide-react";
-import { ExerciseBase, ExerciseReference } from "@/types/workout";
+import { ExerciseBase, ExerciseReference } from "@/types";
 import { motion } from "framer-motion";
 import { cn } from "@/utils/cn";
 
@@ -92,9 +91,7 @@ const getTitleByCount = (count: number): string => {
 export const SupersetCard: React.FC<SupersetCardProps> = ({
   exercises,
   references,
-  onLogPerformance,
   onViewDetails,
-  selectedPlan,
   exerciseNumber
 }) => {
   const randomTip = supersetTips[Math.floor(Math.random() * supersetTips.length)];

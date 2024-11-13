@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { AnimatePresence } from "framer-motion";
-import { useClientData } from '../hooks/useClientData';
 import { useAuth } from '../contexts/AuthContext';
 import { WeightModal } from '../components/shared/WeightModal';
 import { usePreferencesUpdate } from '../App';
@@ -12,6 +11,8 @@ import { ReferralSection } from '@/components/profile/ReferralSection';
 import { HeroSection } from '@/components/profile/HeroSection';
 import { FitnessPreferencesSection } from '@/components/profile/FitnessPreferencesSection';
 
+// Hook imports
+import { useClientData } from '../hooks/useClientData';
 
 // Main Profile component
 export default function Profile() {

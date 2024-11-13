@@ -17,12 +17,11 @@ import {
   ChevronDown,
   CheckCircle,
   Info,
-  Crown,
-  Target
 } from 'lucide-react';
 import { cn } from "@/utils/cn";
 import { updateWeight } from '@/utils/api';
 import { motion } from "framer-motion";
+import { WeightModalProps } from "@/types";
 
 const getMotivationalMessage = (
   change: { value: string; isGain: boolean },
@@ -178,14 +177,7 @@ const weightTrackingTips = [
   }
 ];
 
-interface WeightModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onWeightLogged: () => void;
-  clientId: string;
-  currentWeight: number;
-  weightGoal: 'Weight Gain' | 'Weight Loss' | 'Maintenance' | 'Muscle Building';
-}
+
 
 export const WeightModal: React.FC<WeightModalProps> = ({
   isOpen,

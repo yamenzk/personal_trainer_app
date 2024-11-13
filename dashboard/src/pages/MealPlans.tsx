@@ -1,9 +1,25 @@
+
+
+
+// MealPlans.tsx
+
 import { useState, useEffect } from "react";
 import { Card, CardBody, Chip, cn, Progress } from "@nextui-org/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChefHat, Droplet, Info, Waves, Lightbulb, ChevronDown } from "lucide-react";
+import { ChefHat, Droplet, Waves, Lightbulb, ChevronDown } from "lucide-react";
 import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
+import { format } from "date-fns";
+
+// Updated imports from centralized types
+import { 
+  Food, 
+  FoodReference,
+  Client,
+  Plan 
+} from '@/types';
+
+// Component imports
 import { MealPlanHero } from "@/components/meal/MealPlanHero";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { MealCard } from "@/components/meal/MealCard";
@@ -12,15 +28,13 @@ import { NoMealsCard } from "@/components/meal/NoMealsCard";
 import { FoodDetailsModal } from "@/components/meal/FoodDetailsModal";
 import { MealPlanSkeleton } from "@/components/meal/MealPlanSkeleton";
 import { insertNutritionTips, mealTimes } from "@/components/meal/utils";
-import type { Food, FoodReference } from "@/types/meal";
-import type { Client } from "@/types/client";
-import type { Plan } from "@/types/plan";
-import { format } from "date-fns";
 import { MealContextualTip } from "@/components/meal/MealContextualTip";
+
+
+
 
 // MealPlansContent component remains mostly the same, but uses imported components
 const MealPlansContent = ({
-  client,
   plans,
   references,
   currentDay,

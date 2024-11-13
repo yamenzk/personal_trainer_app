@@ -1,15 +1,9 @@
 // src/components/onboarding/steps/EmailStep.tsx
-import { useState, useEffect } from 'react';
-import { Input, Chip } from "@nextui-org/react";
-import { Mail, Bell, Shield, ChartBarIcon, MailIcon, Info } from 'lucide-react';
+import { useState } from 'react';
+import { Input } from "@nextui-org/react";
+import { Mail, Bell, Shield, ChartBarIcon} from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { useStepValidation } from '@/hooks/useStepValidation';
-
-interface EmailStepProps {
-  onComplete: (value: string) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: string;
-}
+import { EmailStepProps } from '@/types';
 
 const EmailStep = ({ onComplete, onValidationChange, initialValue = '' }: EmailStepProps) => {
   const [email, setEmail] = useState(initialValue);

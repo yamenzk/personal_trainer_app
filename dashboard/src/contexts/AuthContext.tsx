@@ -2,13 +2,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMembership } from '../utils/api';
+import { AuthContextType } from '@/types';
 
-interface AuthContextType {
-  isAuthenticated: boolean;
-  login: (membershipId: string) => Promise<void>;
-  logout: () => void;
-  isLoading: boolean;
-}
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,

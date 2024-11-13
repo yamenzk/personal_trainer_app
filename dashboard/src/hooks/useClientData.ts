@@ -1,20 +1,9 @@
 // src/hooks/useClientData.ts
 import { useState, useEffect } from 'react';
 import { ApiResponse } from '../types/api';
-import { Client } from '@/types/client';
-import { Membership } from '@/types/membership';
-import { Plan } from '@/types/plan';
+import { UseClientDataReturn } from '@/types';
 import { getMembership } from '../utils/api';
 
-interface UseClientDataReturn {
-  loading: boolean;
-  error: string | null;
-  client: Client | null;
-  membership: Membership | null;
-  plans: Plan[];
-  references: ApiResponse<any>['data']['references'] | null;
-  refreshData: () => Promise<void>;
-}
 
 export function useClientData(): UseClientDataReturn {
   const [loading, setLoading] = useState(true);

@@ -2,12 +2,8 @@ import { useState, useEffect } from 'react';
 import { Input, Switch, Card, CardBody } from "@nextui-org/react";
 import { Ruler, Info } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { HeightStepProps } from '@/types';
 
-interface HeightStepProps {
-  onComplete: (value: number) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: number;
-}
 
 // Utility functions for height conversion
 const cmToFeetInches = (cm: number): { feet: number; inches: number } => {

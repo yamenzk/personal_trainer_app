@@ -1,14 +1,8 @@
 import { OnboardingWizard } from '../onboarding/OnboardingWizard';
 import { Modal, ModalContent } from '@nextui-org/react';
-import { Client } from '@/types/client';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { PreferencesModalProps } from '@/types';
 
-interface PreferencesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  client: Client;
-  onComplete: () => void;
-}
 
 const PREFERENCE_STEPS = [
   'Goal',

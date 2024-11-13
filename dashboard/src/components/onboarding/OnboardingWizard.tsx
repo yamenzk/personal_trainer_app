@@ -1,8 +1,7 @@
 // src/components/onboarding/OnboardingWizard.tsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Progress, Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Client } from '@/types/client';
 import { motion, AnimatePresence } from "framer-motion";
 
 // Import step components
@@ -11,7 +10,8 @@ import DateOfBirthStep from './steps/DateOfBirthStep';
 import EmailStep from './steps/EmailStep';
 import EquipmentStep from './steps/EquipmentStep';
 import GenderStep from './steps/GenderStep';
-import GoalStep, { FitnessGoal } from './steps/GoalStep';
+import GoalStep from './steps/GoalStep';
+import { OnboardingWizardProps, StepValues, StepConfig } from '@/types';
 import HeightStep from './steps/HeightStep';
 import MealsStep from './steps/MealsStep';
 import NameStep from './steps/NameStep';
@@ -19,37 +19,6 @@ import NationalityStep from './steps/NationalityStep';
 import TargetWeightStep from './steps/TargetWeightStep';
 import WeightStep from './steps/WeightStep';
 import WorkoutsStep from './steps/WorkoutsStep';
-
-interface OnboardingWizardProps {
-  clientData: Client;
-  onComplete: () => void;
-  steps?: string[];
-}
-
-// Define the step values type
-type StepValues = {
-  client_name?: string;
-  email?: string;
-  date_of_birth?: string;
-  gender?: string;
-  nationality?: string;
-  height?: number;
-  weight?: number;
-  goal?: FitnessGoal;
-  target_weight?: number;
-  activity_level?: string;
-  equipment?: 'Gym' | 'Home';
-  workouts?: number;
-  meals?: number;
-};
-
-// Define the step configuration type
-interface StepConfig {
-  component: React.ComponentType<any>;
-  title: string;
-  subtitle: string;
-  field: keyof StepValues;
-}
 
 const StepComponents: Record<string, StepConfig> = {
   'Name': {

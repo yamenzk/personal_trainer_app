@@ -1,14 +1,26 @@
 import { useState, useEffect, useRef } from "react";
-import { Skeleton, Button, Card } from "@nextui-org/react";
-import { AlertTriangle, Dumbbell } from "lucide-react";
+import { Skeleton } from "@nextui-org/react";
+import { Dumbbell } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { format, addDays } from "date-fns";
+
+// Updated imports from centralized types
+import {
+  ExerciseBase,
+  ExerciseReference,
+  Client,
+  Plan
+} from '@/types';
+
+// Utility imports
 import { useClientData } from "../hooks/useClientData";
 import { usePlans } from "../hooks/usePlans";
 import {
   logPerformance,
-  isPlanDayCompleted,
   calculatePlanProgress,
 } from "../utils/api";
-import { ExerciseBase, ExerciseReference } from "@/types/workout";
+
+// Component imports
 import { ExerciseCard } from "../components/workout/ExerciseCard";
 import { SupersetCard } from "../components/workout/SupersetCard";
 import { RestDayCard } from "../components/workout/RestDay";
@@ -16,10 +28,6 @@ import { PlanHero } from "../components/workout/PlanHero";
 import { ExerciseDetailsModal } from "../components/workout/ExerciseDetailsModal";
 import { PerformanceModal } from "../components/workout/PerformanceModal";
 import { PageTransition } from "@/components/shared/PageTransition";
-import { Client } from "@/types/client";
-import { Plan } from "@/types/plan";
-import { motion, AnimatePresence } from "framer-motion";
-import { format, addDays } from "date-fns";
 import { insertWorkoutTips, TipCard } from "@/components/workout/WorkoutTips";
 
 // Skeleton Component

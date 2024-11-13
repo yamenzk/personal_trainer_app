@@ -1,16 +1,9 @@
-import { useState, useEffect } from 'react';
 import { Card, CardBody } from "@nextui-org/react";
 import { Scale, Dumbbell, Target, Shield, Info, Check } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useStepValidation } from '@/hooks/useStepValidation';
+import { GoalStepProps, FitnessGoal } from '@/types';
 
-interface GoalStepProps {
-  onComplete: (goal: string) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: string;
-}
-
-export type FitnessGoal = 'Weight Loss' | 'Weight Gain' | 'Muscle Building' | 'Maintenance';
 
 const goals = [
   {

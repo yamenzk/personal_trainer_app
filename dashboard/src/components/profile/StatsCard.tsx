@@ -1,6 +1,6 @@
 
 import { cn } from '@/utils/cn';
-import { StatsCardProps } from '@/types/stats';
+import { StatsCardProps } from '@/types';
 
 export const StatsCard = ({ icon: Icon, label, value, color, className }: StatsCardProps) => (
   <div className={cn(

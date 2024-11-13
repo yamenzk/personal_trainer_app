@@ -1,4 +1,5 @@
 // src/types/client.ts
+
 export interface Weight {
   weight: number;
   date: string;
@@ -70,3 +71,62 @@ export interface Client {
   current_weight: number;
   membership_id: string;
 }
+
+export interface FitnessPreferencesSectionProps {
+  client: Client;
+  updatePreferences: () => void;
+  refreshData: () => void;  // Add this prop
+}
+export interface PreferenceGridItemProps {
+  icon: any;
+  label: string;
+  value: string;
+  color: string;
+}
+
+
+export interface HeroSectionProps {
+  client: Client;
+  onLogout: () => void;
+  membership: Membership;
+}
+
+export interface Membership {
+  name: string;
+  package: string;
+  client: string;
+  start: string;
+  end: string;
+  active: number;
+}
+
+export interface MembershipSectionProps {
+  membership: Membership;
+}
+
+export interface PersonalInfoSectionProps {
+  client: Client;
+}
+
+export interface PreferencesModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  client: Client;
+  onComplete: () => void;
+}
+
+export interface ReferralSectionProps {
+  client: Client;
+  refreshData: () => Promise<void>;
+}
+
+export interface WeightModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onWeightLogged: () => void;
+  clientId: string;
+  currentWeight: number;
+  weightGoal: 'Weight Gain' | 'Weight Loss' | 'Maintenance' | 'Muscle Building';
+}
+
+

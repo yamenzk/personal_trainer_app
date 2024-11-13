@@ -1,11 +1,9 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import { Button, Progress, Card, CardBody, Chip } from "@nextui-org/react";
 import { ArrowRight, Crown, Trophy, Calendar, Clock, Sparkles } from 'lucide-react';
-import { Membership } from '@/types/membership';
+import { MembershipSectionProps } from '@/types';
 
-interface MembershipSectionProps {
-  membership: Membership;
-}
+
 
 export const MembershipSection = ({ membership }: MembershipSectionProps) => {
   // Calculate membership progress

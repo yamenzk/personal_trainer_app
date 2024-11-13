@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Card } from "@nextui-org/react";
 import { cn } from "@/lib/utils";
-import type { NutritionTip } from "./types";
+import type { NutritionTip } from "@/types";
 
 // Updated styles with more subtle design
 export const nutritionTipStyles: Record<string, {

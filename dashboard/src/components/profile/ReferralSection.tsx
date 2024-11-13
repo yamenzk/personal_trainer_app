@@ -14,71 +14,15 @@ import {
   Users,
   Check,
   Copy,
-  AlertCircle,
   Share2,
   Heart,
   Sparkles,
-  Trophy
 } from 'lucide-react';
-import { Client } from '@/types/client';
 import { useReferrals } from '@/hooks/useReferrals';
+import { ReferralSectionProps } from '@/types';
 
-interface ReferralSectionProps {
-  client: Client;
-  refreshData: () => Promise<void>;
-}
 
-interface Referral {
-  name: string;
-  client_name: string;
-  image: string;
-}
 
-const parseErrorMessage = (error: any): string => {
-    try {
-      // If it's a string that looks like JSON, parse it
-      if (typeof error === 'string' && error.startsWith('[')) {
-        const parsedErrors = JSON.parse(error);
-        // Find the validation error message
-        const validationError = parsedErrors.find((err: any) => 
-          err.message && (
-            err.message.includes('ValidationError') || 
-            err.message.includes('Circular referral detected')
-          )
-        );
-        if (validationError) {
-          // Extract the actual error message
-          const match = validationError.message.match(/ValidationError: (.*?)(\n|$)/) || 
-                       validationError.message.match(/ValidationError: (.+)/) ||
-                       validationError.message.match(/(.+)/);
-          return match ? match[1] : validationError.message;
-        }
-      }
-      
-      // Handle cases where the error message might be nested differently
-      if (typeof error === 'string') {
-        const circularMatch = error.match(/ValidationError: (.+)/);
-        if (circularMatch) {
-          return circularMatch[1];
-        }
-      }
-      
-      // If error has a message property
-      if (error.message) {
-        return error.message;
-      }
-  
-      // If error.error exists
-      if (error.error) {
-        return error.error;
-      }
-  
-      // If nothing else works, stringify the error
-      return String(error);
-    } catch (e) {
-      return 'An unexpected error occurred. Please try again.';
-    }
-  };
 
 export const ReferralSection = ({ client, refreshData }: ReferralSectionProps) => {
   const [referralCode, setReferralCode] = useState('');

@@ -1,13 +1,6 @@
 // src/hooks/usePlans.ts
 import { useMemo } from 'react';
-import { Plan } from '../types/plan';
-
-interface UsePlansReturn {
-  activePlan: Plan | null;
-  completedPlans: Plan[];
-  scheduledPlans: Plan[];
-  currentDay: number;
-}
+import { Plan, UsePlansReturn } from '@/types';
 
 export function usePlans(plans: Plan[]): UsePlansReturn {
   return useMemo(() => {

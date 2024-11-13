@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Input, Card, CardBody } from "@nextui-org/react";
-import { Calendar, Info, Check, AlertCircle } from 'lucide-react';
+import { Calendar, Check, AlertCircle } from 'lucide-react';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { cn } from '@/utils/cn';
-
+import { DateOfBirthStepProps } from '@/types';
 dayjs.extend(customParseFormat);
 dayjs.extend(isSameOrBefore);
-
-interface DateOfBirthStepProps {
-  onComplete: (value: string) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: string;
-}
 
 const DateOfBirthStep = ({ onComplete, onValidationChange, initialValue = '' }: DateOfBirthStepProps) => {
   const [displayDate, setDisplayDate] = useState(initialValue ? dayjs(initialValue).format('DD/MM/YYYY') : '');

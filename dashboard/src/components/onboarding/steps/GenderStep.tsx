@@ -1,14 +1,8 @@
-import { useState, useEffect } from 'react';
 import { Card, CardBody } from "@nextui-org/react";
-import { Info, PersonStanding, Users } from 'lucide-react';
+import { Info, PersonStanding } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useStepValidation } from '@/hooks/useStepValidation';
-
-interface GenderStepProps {
-  onComplete: (value: string) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: string;
-}
+import { GenderStepProps } from '@/types';
 
 const GenderStep = ({ onComplete, onValidationChange, initialValue }: GenderStepProps) => {
   const { selected, handleSelect } = useStepValidation<'Male' | 'Female'>(

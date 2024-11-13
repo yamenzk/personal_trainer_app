@@ -1,7 +1,5 @@
 // src/utils/api.ts
-import { ApiResponse } from '../types/api';
-import { Plan, DayPlan } from '../types/plan';
-import { RegularExercise } from '../types/workout';
+import { ApiResponse, Plan, DayPlan, RegularExercise } from '@/types';
 
 export const API_BASE_URL = '/api/v2/method/personal_trainer_app.api';
 

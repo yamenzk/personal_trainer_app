@@ -2,23 +2,11 @@ import { Card, Button, Chip, Switch } from "@nextui-org/react";
 import { motion, LayoutGroup } from "framer-motion";
 import { format, addDays } from "date-fns";
 import { History, Zap, Calendar, ChevronLeft, ChevronRight, Flame, Beef, Wheat, Droplet, ShoppingBasket } from "lucide-react";
-import { useState, useRef, useEffect } from "react"; // Add useRef and useEffect
+import { useState, useRef, useEffect } from "react"; 
 import { cn } from "@/utils/cn";
-import type { Plan } from "@/types/plan";
+import type { MealPlanHeroProps } from "@/types";
 import { GroceryListModal } from "./GroceryListModal";
 
-interface MealPlanHeroProps {
-  plan: Plan;
-  selectedDay: number | null;
-  onDaySelect: (day: number) => void;
-  selectedPlan: 'active' | 'history';
-  onPlanTypeChange: (key: 'active' | 'history') => void;
-  completedPlansCount: number;
-  completedPlans: Plan[];
-  historicalPlanIndex: number;
-  onHistoricalPlanSelect: (index: number) => void;
-  foodRefs: Record<string, any>; // Add this new prop
-}
 
 // Replace MacroCard with MacroStat inline component
 const MacroStat = ({ icon: Icon, value, unit, color }: any) => (

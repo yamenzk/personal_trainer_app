@@ -1,14 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardBody, Input, ScrollShadow } from "@nextui-org/react";
 import { Search, Globe, MapPin, Info, Check, X } from 'lucide-react';
-import { cn } from '@/utils/cn';
 import countries from '../../../data/countries';
+import { NationalityStepProps } from '@/types';
 
-interface NationalityStepProps {
-  onComplete: (value: string) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: string;
-}
 
 const commonCountries = [
   'United Arab Emirates', 'Saudi Arabia', 'Egypt',

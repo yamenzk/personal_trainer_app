@@ -1,39 +1,11 @@
-import { Card, Button, Chip, Switch, CircularProgress } from "@nextui-org/react";
+import { Card, Button, Chip, Switch } from "@nextui-org/react";
 import { motion, LayoutGroup } from "framer-motion";
-import { format, addDays, isToday, differenceInDays, startOfDay, parseISO } from "date-fns";
-import { History, Zap, Calendar, Target, Dumbbell, Timer, Moon, CheckCircle2, ChevronLeft, ChevronRight, Flame } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import { Plan } from "@/types/plan";
+import { format, addDays, differenceInDays } from "date-fns";
+import { History, Zap, Calendar, Target, Dumbbell, Moon, ChevronLeft, ChevronRight, Flame } from "lucide-react";
+import { useRef, useEffect } from "react";
+import { PlanHeroProps } from "@/types";
 import { cn } from "@/utils/cn";
-import { useTheme } from '../../contexts/ThemeContext';
 import { ContextualTip } from "./ContextualTip";
-
-
-interface PlanHeroProps {
-  plan: Plan;
-  selectedDay: number | null;
-  currentDay: number | null;
-  onDaySelect: (day: number) => void;
-  selectedPlan: 'active' | 'history';
-  onPlanTypeChange: (key: 'active' | 'history') => void;
-  completedPlansCount: number;
-  completedPlans: Plan[];
-  historicalPlanIndex: number;
-  onHistoricalPlanSelect: (index: number) => void;
-}
-
-// Sub-components for better organization
-const StatsCard = ({ icon, label, value, color }: any) => (
-  <div className="rounded-xl bg-content/5 p-3 flex items-center gap-2 hover:bg-content/10 transition-all duration-200">
-    <div className={`p-1.5 rounded-lg bg-${color}-500/10`}>
-      {icon}
-    </div>
-    <div>
-      <p className="text-xs text-foreground/60">{label}</p>
-      <p className="text-sm font-semibold">{value}</p>
-    </div>
-  </div>
-);
 
 const WeekProgress = ({ completed, total }: { completed: number, total: number }) => {
   const percentage = (completed / total) * 100;
@@ -52,7 +24,6 @@ const WeekProgress = ({ completed, total }: { completed: number, total: number }
 export const PlanHero: React.FC<PlanHeroProps> = ({
   plan,
   selectedDay,
-  currentDay,
   onDaySelect,
   selectedPlan,
   onPlanTypeChange,
@@ -62,10 +33,7 @@ export const PlanHero: React.FC<PlanHeroProps> = ({
   onHistoricalPlanSelect,
 }: PlanHeroProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
-  const initRef = useRef(false);
 
-  // Initialize with today's day if it's the current week
   useEffect(() => {
     if (selectedDay && scrollRef.current) {
       const scrollContainer = scrollRef.current;

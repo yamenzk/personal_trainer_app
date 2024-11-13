@@ -1,17 +1,12 @@
 // src/components/onboarding/steps/WorkoutsStep.tsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardBody, Chip } from "@nextui-org/react";
-import { Calendar, Clock, Dumbbell, Trophy, ChartBar, Timer, Info, Activity } from 'lucide-react';
+import { Dumbbell, Timer, Info } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useStepValidation } from '@/hooks/useStepValidation';
+import { WorkoutsStepProps, WeekDay } from '@/types';
 
-interface WorkoutsStepProps {
-  onComplete: (value: number) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: number;
-}
 
-type WeekDay = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
 const WEEK_DAYS: WeekDay[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const workoutOptions = [
@@ -96,7 +91,6 @@ const WorkoutsStep = ({ onComplete, onValidationChange, initialValue }: Workouts
           description,
           schedule,
           duration,
-          intensity,
           color,
           features,
           details

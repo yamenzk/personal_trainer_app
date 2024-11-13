@@ -1,17 +1,12 @@
 import { useState, useEffect } from "react";
-import { Modal, ModalContent, Button, Avatar, Tabs, Tab, Card, CardBody, Switch, Tooltip } from "@nextui-org/react";
-import { X, Info, ChefHat, Scale, Flame, Beef, Wheat, Droplet, Clock, ScrollText, Loader2, Pill, Coffee, FlaskConical, ChevronDown } from "lucide-react";
-import type { Food, FoodReference } from "@/types/meal";
+import { Modal, ModalContent, Button, Tabs, Tab, Card, Avatar, CardBody, Switch, Tooltip } from "@nextui-org/react";
+import { Info, ChefHat, Scale, Flame, Beef, Wheat, Droplet, Clock, ChevronDown, Coffee, FlaskConical, Loader2, Pill, ScrollText, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-
-// Add type for micronutrients response
-interface MicrosResponse {
-  message: {
-    status: string;
-    micros: Record<string, number>;
-  }
-}
+import { cn } from "@/utils/cn";
+import { 
+  MicrosResponse,
+  FoodDetailsModalProps
+} from '@/types';
 
 // Add categories for grouping micronutrients
 const microCategories = {
@@ -37,13 +32,6 @@ const microCategories = {
   ]
 };
 
-interface FoodDetailsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  food: Food;
-  foodRef: FoodReference;
-  meal: string;
-}
 
 export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = ({
   isOpen,

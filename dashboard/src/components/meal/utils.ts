@@ -1,7 +1,7 @@
 
 import { Food } from "@/types/meal";
 import { Coffee, Droplet, Scale, Timer, Brain, ChefHat, Pizza, Soup, Sandwich, Milk } from "lucide-react";
-import type { NutritionTip, MealOrTipItem } from "./types";
+import type { NutritionTip, MealOrTipItem } from "@/types";
 
 export const nutritionTips: NutritionTip[] = [
   {

@@ -1,28 +1,22 @@
-import { Modal, ModalContent, Button, Tabs, Tab, Card, Chip, Avatar } from "@nextui-org/react";
-import { ExerciseBase, ExerciseReference } from "@/types/workout";
 import { useState, useEffect, useMemo } from "react";
+import { Modal, ModalContent, Button, Tabs, Tab, Card, Chip, Avatar } from "@nextui-org/react";
+import { 
+  Info, Activity, Video, X, ChevronLeft, ChevronRight, Pause, 
+  Play, Target, Trophy, Medal, AlertTriangle, Dumbbell, Flame, ScrollText, TrendingUp,
+  Clock
+} from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Info, Activity, Video, X,  ChevronLeft, ChevronRight, Pause, Play, Dumbbell, Target, Clock, ScrollText, Flame, Trophy, Medal, TrendingUp, AlertTriangle } from "lucide-react";
 
-interface ExerciseDetailsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  exercise: ExerciseBase;
-  details: ExerciseReference;
-  isLogged: boolean;
-  performance?: {
-    weight: number;
-    reps: number;
-    date: string;
-  }[];
-}
+// Import types from centralized location
+import { 
+  ExerciseDetailsModalProps,
+} from '@/types';
 
 export const ExerciseDetailsModal = ({
     isOpen,
     onClose,
     exercise,
     details,
-    isLogged,
     performance,
   }: ExerciseDetailsModalProps) => {
     const [selectedTab, setSelectedTab] = useState("overview");

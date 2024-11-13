@@ -3,12 +3,9 @@ import { Gift } from "lucide-react";
 import { useState } from "react";
 import { PromoCodeModal } from "./PromoCodeModal";
 import { motion } from 'framer-motion';
+import { PromoCodeButtonProps } from "@/types";
 
-interface PromoCodeButtonProps {
-  membershipId: string;
-  variant?: "flat" | "solid" | "bordered" | "light" | "ghost" | "shadow" | "faded";
-  className?: string;
-}
+
 
 export const PromoCodeButton = ({ membershipId, variant = "flat", className }: PromoCodeButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);

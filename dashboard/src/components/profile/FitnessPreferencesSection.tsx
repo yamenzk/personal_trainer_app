@@ -1,19 +1,14 @@
 import { Button, Card, CardBody } from "@nextui-org/react";
 import { Settings, Target, Activity, Scale, Dumbbell, Calendar, Clock } from 'lucide-react';
-import { Client } from '@/types/client';
 import { useState } from 'react';
 import { PreferencesModal } from './PreferencesModal';
+import { FitnessPreferencesSectionProps, PreferenceGridItemProps } from '@/types';
 
-interface FitnessPreferencesSectionProps {
-  client: Client;
-  updatePreferences: () => void;
-  refreshData: () => void;  // Add this prop
-}
+
 
 export const FitnessPreferencesSection = ({ 
   client, 
-  updatePreferences,
-  refreshData 
+  updatePreferences
 }: FitnessPreferencesSectionProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -75,12 +70,7 @@ export const FitnessPreferencesSection = ({
   );
 };
 
-interface PreferenceGridItemProps {
-  icon: any;
-  label: string;
-  value: string;
-  color: string;
-}
+
 
 const PreferenceGridItem = ({ icon: Icon, label, value, color }: PreferenceGridItemProps) => (
   <Card className="bg-primary-500/10 border-none">

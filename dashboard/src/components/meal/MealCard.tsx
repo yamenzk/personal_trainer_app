@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardBody, Button, Chip, Avatar, AvatarGroup } from "@nextui-org/react";
 import { Coffee, UtensilsCrossed, Cookie, Apple, Moon, ChevronDown, Flame, Beef, Wheat, Droplet, Clock, LucideIcon, Dumbbell, Zap, Pill, Weight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Food, FoodReference } from "@/types/meal";
+import type { Food, FoodReference } from "@/types";
 
 // Helper function to generate random emoji pattern
 const generateEmojiPattern = (emojis: string[]) => {
@@ -135,7 +135,6 @@ export const MealCard: React.FC<MealCardProps> = ({
     icon: Icon, 
     value, 
     type, 
-    prefix 
   }: { 
     icon: LucideIcon; 
     value: number; 

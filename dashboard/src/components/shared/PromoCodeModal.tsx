@@ -1,29 +1,11 @@
 import { useState, useEffect } from 'react';
 import { 
-  Modal, 
-  ModalContent, 
-  Button,
-  Input,
-  Chip,
-  Card,
-  CardBody,
-  Divider,
-  ScrollShadow,
-  Progress
+  Modal, ModalContent, Button, Input, Chip, Card, CardBody,
+  ScrollShadow, Progress, 
+  Divider
 } from "@nextui-org/react";
 import { Ticket, Gift, Sparkles, CheckCircle } from 'lucide-react';
-
-interface PromoCode {
-  name: string;
-  title: string;
-  description: string;
-}
-
-interface PromoCodeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  membershipId: string;
-}
+import { PromoCode, PromoCodeModalProps } from '@/types';
 
 const getFriendlyErrorMessage = (error: string) => {
   const errorMap: Record<string, string> = {

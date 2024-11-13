@@ -1,14 +1,8 @@
 
 import { motion } from "framer-motion";
 import { Coffee, Sun, Moon, Apple, Utensils, Clock, Carrot, Beef } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@/utils/cn";
-import { Plan } from "@/types/plan";
-
-interface MealContextualTipProps {
-  plan: Plan;
-  selectedDay: number | null;
-}
+import { MealContextualTipProps } from "@/types";
 
 const getTimeBasedTip = () => {
   const hour = new Date().getHours();

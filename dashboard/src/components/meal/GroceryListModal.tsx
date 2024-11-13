@@ -1,32 +1,18 @@
-import { Modal, ModalContent, ModalHeader, ModalBody, Card, CardBody, Button, Chip, Divider, Tabs, Tab } from "@nextui-org/react";
+import { Modal, ModalContent, Button, Chip, Card, CardBody, Tab, Tabs } from "@nextui-org/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBasket, Weight, Copy, X, Package, Carrot, Beef, Fish, Milk, Cookie, Apple, Egg, Grid, List, Share2 } from "lucide-react";
+import { 
+  ShoppingBasket, Copy, X, Package, Grid, List, Share2
+} from 'lucide-react';
 import { useState } from "react";
-import { Food } from "@/types/meal";
-import { Plan } from "@/types/plan";
-import { cn } from "@/utils/cn";
 import React from "react";
 
-// Category icons mapping
-const categoryIcons: Record<string, any> = {
-  'Proteins': Beef,
-  'Vegetables': Carrot,
-  'Fruits': Apple,
-  'Dairy': Milk,
-  'Grains': Cookie,
-  'Seafood': Fish,
-  'Eggs': Egg,
-  'Other': Package
-};
+// Import types from centralized location
+import { 
+  Food, 
+  GroceryListModalProps
+} from '@/types';
 
-interface GroceryListModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  plan: Plan;
-  foodRefs: Record<string, any>;
-  isPastPlan?: boolean;  // Add this prop
-  weekNumber?: number;    // Add this prop
-}
+
 
 export const GroceryListModal: React.FC<GroceryListModalProps> = ({
   isOpen,
@@ -42,8 +28,6 @@ export const GroceryListModal: React.FC<GroceryListModalProps> = ({
   // Aggregate all foods for the week and group by type
   const groceryList = Object.values(plan.days).reduce((acc: Record<string, number>, day) => {
     day.foods?.forEach((food: Food) => {
-      const foodRef = foodRefs[food.ref];
-      const category = foodRef.category || 'Other';
       if (!acc[food.ref]) {
         acc[food.ref] = 0;
       }
@@ -256,9 +240,7 @@ export const GroceryListModal: React.FC<GroceryListModalProps> = ({
                   <React.Fragment key={category}>
                     <div className="col-span-full flex items-center gap-2 mt-2 first:mt-0">
                       <div className="p-1.5 rounded-lg bg-secondary/10">
-                        {React.createElement(categoryIcons[category] || categoryIcons.Other, {
-                          className: "w-4 h-4 text-secondary"
-                        })}
+                        <Package className="w-4 h-4 text-secondary" />
                       </div>
                       <h4 className="text-sm font-semibold">{category}</h4>
                     </div>

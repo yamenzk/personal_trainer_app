@@ -1,11 +1,11 @@
 // src/components/onboarding/steps/TargetWeightStep.tsx
 import { useState, useEffect, useMemo } from 'react';
-import { Input, Select, SelectItem, Card, CardBody, Chip, Switch } from "@nextui-org/react";
-import { Target, Scale, TrendingDown, TrendingUp, Calendar, Trophy, Sparkles, Check, Info } from 'lucide-react';
+import { Input, Card, CardBody, Chip, Switch } from "@nextui-org/react";
+import { Target, Scale, TrendingDown, TrendingUp, Calendar, Sparkles, Check, Info } from 'lucide-react';
 import dayjs from 'dayjs';
-import type { FitnessGoal } from './GoalStep';
 import { cn } from '@/utils/cn';
-import { BaseStepProps } from '@/types/onboarding';
+import { BaseStepProps, FitnessGoal, WeightTarget, CalculatedTarget, GoalRecommendations, GoalRecommendationMap, TargetWeightStepProps } from '@/types';
+
 
 // Configuration constants for easy adjustment
 const WEIGHT_FACTORS = {
@@ -28,34 +28,6 @@ const WEIGHT_FACTORS = {
   MAX_DEVIATION: 100    // Allow up to 100% deviation from recommended changes
 };
 
-interface WeightTarget {
-  id: string;
-  label: string;
-  weeklyRate: number;
-  description: string;
-  color: 'primary' | 'secondary' | 'success' | 'warning';
-}
-
-interface CalculatedTarget extends WeightTarget {
-  targetWeight: number;
-  totalChange: number;
-}
-
-interface GoalRecommendations {
-  targets: WeightTarget[];
-}
-
-type GoalRecommendationMap = Record<FitnessGoal, GoalRecommendations>;
-
-interface TargetWeightStepProps extends BaseStepProps {
-  onComplete: (value: number) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  currentWeight: number;
-  selectedGoal?: FitnessGoal;
-  initialValue?: number;
-  membershipStart?: string;
-  membershipEnd?: string;
-}
 
 const TargetWeightStep = ({ 
   onComplete, 

@@ -1,12 +1,7 @@
 // useReferrals.ts
 
 import { useState, useEffect } from 'react';
-
-interface Referral {
-  name: string;
-  client_name: string;
-  image: string;
-}
+import { Referral } from '@/types';
 
 export const useReferrals = (clientId: string) => {
   const [referrals, setReferrals] = useState<Array<Referral>>([]);

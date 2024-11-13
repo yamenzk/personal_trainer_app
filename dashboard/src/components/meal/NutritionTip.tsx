@@ -1,14 +1,9 @@
 
 import { motion } from "framer-motion";
 import { Utensils, Coffee, Sun, Moon, Apple, Salad, Beef, Scale, Battery } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@/utils/cn";
-import { Plan } from "@/types/plan";
+import { Plan, NutritionTipProps } from "@/types";
 
-interface NutritionTipProps {
-  plan: Plan;
-  selectedDay: number | null;
-}
 
 const getTimeBasedTip = () => {
   const hour = new Date().getHours();
@@ -115,11 +110,11 @@ export const NutritionTip: React.FC<NutritionTipProps> = ({
             "p-1.5 rounded-full",
             "bg-secondary-500/10",
           )}
-        ></motion.div>
+        >
           <Icon className="w-3.5 h-3.5 text-secondary-500" />
         </motion.div>
 
-        <div className="flex items-center gap-1.5"></div>
+        <div className="flex items-center gap-1.5">
           <p className={cn(
             "text-xs font-medium",
             "bg-gradient-to-r from-secondary-500 to-primary-500 text-transparent bg-clip-text"

@@ -1,9 +1,5 @@
 // src/utils/performance.ts
-type PerformanceData = Array<{
-    weight: number;
-    reps: number;
-    date: string;
-  }>;
+import { PerformanceData } from '@/types';
   
   export const getBestWeight = (performanceData: PerformanceData | undefined): number => {
     if (!performanceData || performanceData.length === 0) return 0;

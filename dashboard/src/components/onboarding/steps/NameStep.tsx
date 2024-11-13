@@ -1,15 +1,9 @@
 // src/components/onboarding/steps/NameStep.tsx
 import { useState, useEffect } from 'react';
-import { Input, Card } from "@nextui-org/react";
-import { User, Mail, Bell, Shield, ChartBarIcon, Info, Check } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { Input } from "@nextui-org/react";
+import { User, Check } from 'lucide-react';
+import { NameStepProps } from '@/types';
 
-interface NameStepProps {
-  onComplete: (value: string) => void;
-  // Add isValid prop to control parent's button state
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: string;
-}
 
 const NameStep = ({ onComplete, onValidationChange, initialValue = '' }: NameStepProps) => {
   const [name, setName] = useState(initialValue);

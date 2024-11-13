@@ -1,15 +1,9 @@
 import { format } from 'date-fns';
 import { Card, CardBody, Avatar, Button, Chip } from "@nextui-org/react";
-import { Crown, LogOut, Target, Dumbbell, Activity, Gift } from 'lucide-react';
-import { Client } from '@/types/client';
-import { Membership } from '@/types/membership';
+import { Crown, LogOut, Target, Dumbbell, Activity } from 'lucide-react';
 import { PromoCodeButton } from '../shared/PromoCodeButton';
+import { HeroSectionProps } from '@/types';
 
-interface HeroSectionProps {
-  client: Client;
-  onLogout: () => void;
-  membership: Membership;
-}
 
 export const HeroSection = ({ client, onLogout, membership }: HeroSectionProps) => {
   return (

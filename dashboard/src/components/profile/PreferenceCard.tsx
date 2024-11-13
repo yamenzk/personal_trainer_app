@@ -1,5 +1,5 @@
 
-import { PreferenceCardProps } from '@/types/stats';
+import { PreferenceCardProps } from '@/types';
 
 export const PreferenceCard = ({ icon: Icon, label, value, color }: PreferenceCardProps) => (
   <div className="bg-white/10 rounded-xl p-4 space-y-2">

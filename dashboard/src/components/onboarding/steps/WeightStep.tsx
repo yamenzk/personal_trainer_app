@@ -2,12 +2,7 @@ import { useState, useEffect } from "react";
 import { Input, Switch, Card, CardBody } from "@nextui-org/react";
 import { Scale, Info } from "lucide-react";
 import { cn } from "@/utils/cn";
-
-interface WeightStepProps {
-  onComplete: (value: number) => void;
-  onValidationChange?: (isValid: boolean) => void;
-  initialValue?: number;
-}
+import { WeightStepProps } from "@/types";
 
 const WeightStep = ({
   onComplete,

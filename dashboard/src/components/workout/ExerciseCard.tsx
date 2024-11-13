@@ -1,4 +1,4 @@
-import { Card, CardFooter, Chip, Button, Image, Skeleton } from "@nextui-org/react";
+import { Card, Chip, Button, Image, Skeleton } from "@nextui-org/react";
 import { 
   Dumbbell, 
   Clock, 
@@ -9,30 +9,12 @@ import {
   ArrowUpRight,
   Target,
   BarChart,
-  CheckCircle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/utils/cn";
 import { useState } from "react";
-import { ExerciseBase, ExerciseReference } from "@/types/workout";
+import { ExercisePerformance, ExerciseCardProps } from "@/types";
 
-interface ExercisePerformance {
-  weight: number;
-  reps: number;
-  date: string;
-}
-
-interface ExerciseCardProps {
-  exercise: ExerciseBase;
-  references: { [key: string]: ExerciseReference };
-  performance?: { [key: string]: ExercisePerformance[] };
-  isLogged?: boolean;
-  isSuperset?: boolean;
-  onLogSet?: () => void;
-  onViewDetails: () => void;
-  selectedPlan: 'active' | 'history';
-  exerciseNumber?: number;
-}
 
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   exercise,

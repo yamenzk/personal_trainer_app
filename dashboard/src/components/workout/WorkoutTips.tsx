@@ -1,15 +1,12 @@
 // src/components/workout/WorkoutTip.tsx
 
 import { Card } from "@nextui-org/react";
-import { useRef } from 'react';
 import { motion } from "framer-motion";
 import { 
   Droplets, 
   Bath, 
   Scale, 
   Wind, 
-  ArrowDown, 
-  Laugh, 
   Brain, 
   Heart,
   Dumbbell,
@@ -26,20 +23,8 @@ import {
   Flame
 } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { WorkoutTip, TipType, TipCardProps } from "@/types";
 
-type TipType = 'hydration' | 'form' | 'etiquette' | 'mindset' | 'recovery' | 'nutrition' | 'safety';
-
-interface WorkoutTip {
-  icon: any;
-  title: string;
-  message: string;
-  type: TipType;
-  emoji: string;
-}
-
-interface TipCardProps {
-  tip: WorkoutTip;
-}
 
 const tipStyles: Record<TipType, {
   gradient: string;

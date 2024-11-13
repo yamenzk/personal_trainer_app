@@ -1,11 +1,10 @@
 // src/pages/Login.tsx
 import { useState, useEffect } from 'react';
 import { Input, Button, Card, CardBody, Chip } from "@nextui-org/react";
-import { CSSTransition } from 'react-transition-group';
 import { Key, Mail, Clock, Triangle, Circle, Square } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const MAX_RECENT_IDS = 3;
 
