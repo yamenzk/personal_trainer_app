@@ -87,6 +87,24 @@ class Plan(Document):
             if self.weekly_workouts < 4:
                 self.d4_rest = 1
 
+@frappe.whitelist()
+def update_plan_statuses():
+    """
+    Update status of all plans based on current date
+    """
+    current_date = getdate(nowdate())
+    plans = frappe.get_all('Plan', filters={'status': ['!=', 'Completed']})
+    for plan in plans:
+        plan_doc = frappe.get_doc('Plan', plan.name)
+        if plan_doc.start <= current_date <= plan_doc.end:
+            plan_doc.status = 'Active'
+        elif current_date > plan_doc.end:
+            plan_doc.status = 'Completed'
+        else:
+            plan_doc.status = 'Scheduled'
+        plan_doc.save()
+    frappe.db.commit()
+
 
 @frappe.whitelist()
 def calculate_all_nutritional_totals(all_food_data):

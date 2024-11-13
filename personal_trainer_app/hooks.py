@@ -175,7 +175,8 @@ scheduler_events = {
 	"daily": [
         "personal_trainer_app.personal_trainer.doctype.promo_code.promo_code.update_promo_code_statuses",
 		"personal_trainer_app.tasks.update_all_client_statistics",
-        "personal_trainer_app.tasks.update_all_client_achievements"
+        "personal_trainer_app.tasks.update_all_client_achievements",
+        "personal_trainer_app.personal_trainer.doctype.plan.plan.update_plan_statuses",
 	],
 	"hourly": [
 		"personal_trainer_app.personal_trainer.doctype.membership.membership.update_membership_statuses"
