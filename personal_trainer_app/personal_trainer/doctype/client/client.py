@@ -138,8 +138,10 @@ class Client(Document):
 
         # Calculate age based on date_of_birth
         if self.date_of_birth:
-            self.age = frappe.utils.getdate().year - frappe.utils.getdate(self.date_of_birth).year
-            if (frappe.utils.getdate().month, frappe.utils.getdate().day) < (frappe.utils.getdate(self.date_of_birth).month, frappe.utils.getdate(self.date_of_birth).day):
+            today = frappe.utils.getdate()
+            dob = frappe.utils.getdate(self.date_of_birth)
+            self.age = today.year - dob.year
+            if (today.month, today.day) < (dob.month, dob.day):
                 self.age -= 1
 
         # Call the target calculation if adjust is not set
@@ -148,17 +150,38 @@ class Client(Document):
 
         # Referral Validation Logic
         if self.referred_by and self.has_value_changed("referred_by"):
-            # Proceed with referral logic only if `referred_by` has changed
-            if self.referred_by:
-                # Prevent referring oneself
-                if self.referred_by == self.name:
-                    frappe.response["error"] = "You cannot refer yourself."
-                    raise frappe.ValidationError("You cannot refer yourself.")
+            # Check if referred_by is the same as the client's name
+            if self.referred_by == self.name:
+                frappe.throw("You cannot refer yourself.")
 
-                # Check if the referred user exists
-                if not frappe.db.exists("Client", self.referred_by):
-                    raise frappe.ValidationError("Referral code does not exist.")
+            # Check if the referred user exists
+            if not frappe.db.exists("Client", self.referred_by):
+                frappe.throw("Referral code does not exist.")
 
-                # Check for circular referrals (i.e., Friend A refers Friend B, and Friend B refers back to Friend A)
-                if frappe.db.exists("Client", {"name": self.referred_by, "referred_by": self.name}):
-                    raise frappe.ValidationError("Circular referral detected.")
+            # Check for circular referrals
+            referred_client = frappe.get_doc("Client", self.referred_by)
+            if referred_client.referred_by == self.name:
+                frappe.throw("Circular referral detected.")
+
+            if not self.referer_awarded:
+                # Get active memberships
+                memberships = frappe.get_all(
+                    "Membership",
+                    filters={
+                        "client": self.referred_by,
+                        "active": 1
+                    },
+                    fields=["name", "end"],
+                    limit=1
+                )
+
+                if not memberships:
+                    frappe.throw(
+                        "Referral code does not have an active membership.")
+
+                # Update membership end date
+                membership = frappe.get_doc("Membership", memberships[0].name)
+                membership.end = frappe.utils.add_to_date(membership.end, days=30)
+                membership.save(ignore_permissions=True)
+
+                self.referer_awarded = 1

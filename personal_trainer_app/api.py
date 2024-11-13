@@ -488,7 +488,70 @@ def get_referrals(client_id):
             return referrals
     except Exception as e:
         frappe.log_error(f"Error in get_referrals: {str(e)}")
-                    
+
+@frappe.whitelist(allow_guest=True)
+def get_available_codes(membership):
+    try:
+        codes = frappe.get_all(
+            "Promo Code",
+            filters={"enabled": 1, "announce": 1},
+            fields=["name", "title"]
+        )
+        
+        available_codes = []
+        
+        for code in codes:
+            existing_redemption = frappe.db.exists('Code Redeem', {
+                'membership': membership,
+                'code': code.name
+            })
+            # If the code has not been redeemed, add it to available_codes
+            if not existing_redemption:
+                available_codes.append(code)
+
+        return available_codes
+    
+    except Exception as e:
+        frappe.log_error(f"Error in get_available_codes: {str(e)}")                
+
+@frappe.whitelist(allow_guest=True)
+def redeem_code(membership, code):
+    try:
+        code_doc = frappe.get_doc("Promo Code", code)
+        membership_doc = frappe.get_doc("Membership", membership)
+        
+        if not code_doc:
+            return {"status": "error", "message": "Invalid promo code."}
+        
+        if not membership_doc:
+            return {"status": "error", "message": "Invalid membership."}
+        
+        if not code_doc.enabled:
+            return {"status": "error", "message": "Promo code is expired."}
+        
+        if not membership_doc.active:
+            return {"status": "error", "message": "Membership is not active."}
+        
+        existing_redemption = frappe.db.exists('Code Redeem', {
+            'membership': membership,
+            'code': code
+        })
+        if existing_redemption:
+            return {"status": "error", "message": "This client has already redeemed this code."}
+        
+        frappe.get_doc({
+            "doctype": "Code Redeem",
+            "membership": membership,
+            "code": code
+        }).insert(ignore_permissions=True)
+        frappe.db.commit()
+        
+        return {"status": "success", "message": "Promo code redeemed successfully."}
+    
+    except Exception as e:
+        frappe.log_error(f"Error in redeem_code: {str(e)}")
+        return {"status": "error", "message": f"An error occurred: {str(e)}"}
+
 @frappe.whitelist(allow_guest=True)
 def update_client(client_id, is_performance=0, exercise_ref=None, exercise_day=None, **kwargs):
     client_doc = frappe.get_doc("Client", client_id)

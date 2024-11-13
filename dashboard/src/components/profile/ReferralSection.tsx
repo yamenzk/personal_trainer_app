@@ -118,55 +118,55 @@ export const ReferralSection = ({ client, refreshData }: ReferralSectionProps) =
       const data = await response.json();
   
       if (!response.ok) {
-        let errorMessage: string;
-  
-        // Direct error property (handles self-referral)
+        let errorMessage = '';
+
+        // Case 1: Direct error message
         if (data.error) {
           errorMessage = data.error;
         }
-        // Errors array (handles invalid code and circular referral)
-        else if (data.errors?.[0]) {
-          const errorObj = data.errors[0];
-          
-          // Get the full exception string
-          const exception = errorObj.exception;
-          
-          // Split into lines and get the last few lines
-          const lines = exception.split('\n');
-          
-          // Extract the actual error message from the last line
-          const lastLine = lines[lines.length - 1];
-          
-          if (lastLine.includes('ValidationError:')) {
-            const match = lastLine.match(/ValidationError: (.+)/);
-            errorMessage = match ? match[1].trim() : lastLine;
-          } else {
-            // Look for the error message in quotes
-            const quoteMatch = exception.match(/ValidationError\(["'](.+?)["']\)/);
-            if (quoteMatch) {
-              errorMessage = quoteMatch[1];
-            } else {
-              // Final fallback - look for the last quoted string
-              const finalMatch = exception.match(/["']([^"']+)["']/);
-              errorMessage = finalMatch ? finalMatch[1] : lastLine;
-            }
-          }
-        } else {
-          errorMessage = 'An error occurred while processing your referral';
+        // Case 2: Frappe error format with _error_message
+        else if (data._error_message) {
+          errorMessage = data._error_message;
         }
-  
-  
-        // Map backend error messages to user-friendly messages
+        // Case 3: Errors array from Frappe
+        else if (data.errors && data.errors.length > 0) {
+          const error = data.errors[0];
+          if (error.message) {
+            // Extract the actual message from ValidationError
+            const match = error.message.match(/ValidationError: (.+)/);
+            errorMessage = match ? match[1] : error.message;
+          } else if (error.exception) {
+            // Handle full exception string
+            const lines = error.exception.split('\n');
+            const lastLine = lines[lines.length - 1];
+            const match = lastLine.match(/ValidationError: (.+)/);
+            errorMessage = match ? match[1] : lastLine;
+          }
+        }
+        // Case 4: Exception message
+        else if (data.exception) {
+          const match = data.exception.match(/ValidationError: (.+)/);
+          errorMessage = match ? match[1] : data.exception;
+        }
+
+        // Clean up the error message
+        errorMessage = errorMessage.trim();
+        if (errorMessage.startsWith('"') && errorMessage.endsWith('"')) {
+          errorMessage = errorMessage.slice(1, -1);
+        }
+        if (errorMessage.startsWith("'") && errorMessage.endsWith("'")) {
+          errorMessage = errorMessage.slice(1, -1);
+        }
+
+        // Map to user-friendly messages
         const errorMap: Record<string, string> = {
           'You cannot refer yourself.': 'You cannot use your own referral code',
           'Referral code does not exist.': 'This referral code is invalid',
-          'Circular referral detected.': 'You cannot refer someone who has already referred you'
+          'Circular referral detected.': 'You cannot refer someone who has already referred you',
+          'Referral code does not have an active membership.': 'This referral code is not eligible for rewards'
         };
-  
-        // Clean up the error message and ensure it ends with a period
-        const cleanedError = errorMessage.trim().replace(/\.?$/, '.');
-  
-        setReferralError(errorMap[cleanedError] || errorMessage);
+
+        setReferralError(errorMap[errorMessage] || errorMessage);
         setReferralSuccess(false);
       } else {
         setReferralSuccess(true);
@@ -270,7 +270,7 @@ export const ReferralSection = ({ client, refreshData }: ReferralSectionProps) =
             {/* Referred By Section - If applicable */}
             {client.referred_by && (
               <>
-                <Divider className="my-4" />
+                <Divider className="my-4 opacity-30" />
                 <div className="space-y-3">
                   <p className="text-sm font-medium">Referred By</p>
                   <Card className="bg-success-50/50 dark:bg-success-900/20 border-none">
@@ -311,7 +311,7 @@ export const ReferralSection = ({ client, refreshData }: ReferralSectionProps) =
             {/* Enter Friend's Code Section - Updated messaging */}
             {!client.referred_by && (
               <>
-                <Divider className="my-4" />
+                <Divider className="my-4 opacity-30" />
                 <div className="space-y-3">
                   <div>
                     <p className="text-sm font-medium">Have a friend's code?</p>
@@ -353,7 +353,7 @@ export const ReferralSection = ({ client, refreshData }: ReferralSectionProps) =
             {/* Referrals Section */}
             {!loadingReferrals && referrals.length > 0 && (
               <>
-                <Divider className="my-4" />
+                <Divider className="my-4 opacity-30" />
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

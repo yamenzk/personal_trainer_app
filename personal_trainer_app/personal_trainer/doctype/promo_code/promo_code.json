@@ -1,0 +1,164 @@
+{
+ "actions": [],
+ "allow_copy": 1,
+ "allow_rename": 1,
+ "autoname": "field:code",
+ "creation": "2024-11-13 14:10:48.680425",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "code",
+  "announce",
+  "title",
+  "column_break_uafu",
+  "start",
+  "end",
+  "enabled",
+  "column_break_wmwv",
+  "discount",
+  "duration",
+  "manual",
+  "column_break_tcls",
+  "additional_duration",
+  "discount_amount",
+  "fixed",
+  "percent"
+ ],
+ "fields": [
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Code",
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_uafu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start",
+   "fieldtype": "Date",
+   "label": "Start"
+  },
+  {
+   "fieldname": "end",
+   "fieldtype": "Date",
+   "label": "End"
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_wmwv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.duration",
+   "fieldname": "discount",
+   "fieldtype": "Check",
+   "label": "Discount",
+   "read_only_depends_on": "eval:doc.duration"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.discount",
+   "fieldname": "duration",
+   "fieldtype": "Check",
+   "label": "Duration",
+   "read_only_depends_on": "eval:doc.discount"
+  },
+  {
+   "fieldname": "column_break_tcls",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.duration",
+   "fieldname": "additional_duration",
+   "fieldtype": "Duration",
+   "label": "Additional Duration",
+   "mandatory_depends_on": "eval:doc.duration"
+  },
+  {
+   "depends_on": "eval:doc.discount",
+   "fieldname": "discount_amount",
+   "fieldtype": "Int",
+   "label": "Discount Amount"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.discount",
+   "fieldname": "fixed",
+   "fieldtype": "Check",
+   "label": "Fixed"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.discount",
+   "fieldname": "percent",
+   "fieldtype": "Check",
+   "label": "Percent"
+  },
+  {
+   "default": "0",
+   "fieldname": "manual",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Manual"
+  },
+  {
+   "depends_on": "eval:doc.announce",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "mandatory_depends_on": "eval:doc.announce"
+  },
+  {
+   "default": "0",
+   "fieldname": "announce",
+   "fieldtype": "Check",
+   "label": "Announce"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-11-13 17:15:19.166966",
+ "modified_by": "Administrator",
+ "module": "Personal Trainer",
+ "name": "Promo Code",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Coach",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
