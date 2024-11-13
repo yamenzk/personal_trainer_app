@@ -16,6 +16,7 @@ import { Ticket, Gift, Sparkles, CheckCircle } from 'lucide-react';
 interface PromoCode {
   name: string;
   title: string;
+  description: string;
 }
 
 interface PromoCodeModalProps {
@@ -106,6 +107,7 @@ export const PromoCodeModal = ({ isOpen, onClose, membershipId }: PromoCodeModal
       size="2xl"
       placement="center"
       hideCloseButton
+      backdrop='blur'
       classNames={{
         base: "bg-background",
         wrapper: "p-2 sm:p-6"
@@ -205,35 +207,44 @@ export const PromoCodeModal = ({ isOpen, onClose, membershipId }: PromoCodeModal
                 <Divider className="my-4" />
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-primary" />
+                    <div className="p-2 rounded-xl bg-secondary/10">
+                      <Sparkles className="w-4 h-4 text-secondary" />
+                    </div>
                     <h3 className="text-lg font-semibold">Available Promotions</h3>
                   </div>
                   
-                  <ScrollShadow className="max-h-64">
-                    <div className="grid gap-3">
+                  <ScrollShadow className="max-h-[280px]">
+                    <div className="grid gap-2">
                       {availableCodes.map((promo) => (
                         <button
                           key={promo.name}
                           onClick={() => handleRedeem(promo.name)}
-                          className="w-full p-4 rounded-xl bg-default-50 hover:bg-default-100 group transition-all duration-200 border-2 border-transparent hover:border-primary/20 text-left"
+                          className="w-full p-3 rounded-xl bg-content1 hover:bg-content2 group transition-all duration-200 border border-transparent hover:border-primary/20 text-left relative overflow-hidden"
                         >
-                          <div className="flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-lg group-hover:text-primary transition-colors">
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="relative flex items-center justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-base truncate group-hover:text-primary transition-colors">
                                 {promo.title}
-                              </span>
-                              <Chip
-                                variant="flat"
-                                color="primary"
-                                size="sm"
-                                className="font-mono bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors"
-                              >
-                                {promo.name}
-                              </Chip>
+                              </h4>
+                              <p className="text-sm text-foreground-300 -mt-0.5">
+                                {promo.description}
+                              </p>
+                              <p className="text-xs text-foreground-500 mt-0.5">
+                                Click to apply this promotion
+                              </p>
                             </div>
-                            <p className="text-sm text-foreground-500">
-                              Click to apply this promotion to your account
-                            </p>
+                            <Chip
+                              variant="flat"
+                              color="secondary"
+                              size="sm"
+                              classNames={{
+                                base: "bg-secondary/10 group-hover:bg-secondary transition-colors border-1 border-secondary/20",
+                                content: "font-mono text-[11px] font-medium px-1 group-hover:text-white transition-colors"
+                              }}
+                            >
+                              {promo.name}
+                            </Chip>
                           </div>
                         </button>
                       ))}

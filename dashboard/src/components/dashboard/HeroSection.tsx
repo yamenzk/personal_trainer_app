@@ -81,7 +81,7 @@ export const HeroSection = ({ client, currentDay, planProgress }: HeroSectionPro
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full blur-xl opacity-20" />
               <Avatar
                 src={client.image}
-                className="w-24 h-24 text-large ring-2 ring-offset-2 ring-offset-background ring-primary-500/30"
+                className="w-24 h-24 text-large ring-2 ring-offset-2 ring-offset-background ring-secondary-500 bg-gradient-to-br from-primary-500 to-secondary-500"
                 showFallback
                 name={client.client_name ?? ''}
                 classNames={{

@@ -6,18 +6,22 @@ import {
   DropdownMenu, 
   DropdownItem, 
   Avatar,
-  Button 
+  Button,
+  Chip
 } from "@nextui-org/react";
 import { useTheme } from '../../contexts/ThemeContext';
-import { Sun, Moon, LogOut, User, Settings } from 'lucide-react';
+import { Sun, Moon, LogOut, User, Gift } from 'lucide-react';
 import { useClientData } from '@/hooks/useClientData';
 import { useAuth } from '@/contexts/AuthContext';
+import { PromoCodeModal } from '@/components/shared/PromoCodeModal';
+import { useState } from 'react';
 
 const TopNavbar = () => {
   const { toggleTheme, theme } = useTheme();
   const navigate = useNavigate();
   const { client } = useClientData();
   const { logout } = useAuth();
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   
   const handleLogout = () => {
     logout();
@@ -33,12 +37,10 @@ const TopNavbar = () => {
         <div className="h-full flex items-center justify-between relative z-10">
           {/* Logo */}
           <Button
-            className="bg-transparent p-0 hover:bg-transparent"
+            className="bg-transparent p-0 min-w-0 h-auto hover:bg-transparent"
             onClick={() => navigate('/')}
           >
-            <span className="text-xl font-bold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
-              byShujaa
-            </span>
+            <img src="/logo.png" alt="Logo" className="h-12 w-auto" />
           </Button>
 
           {/* User Menu */}
@@ -47,8 +49,8 @@ const TopNavbar = () => {
               <Avatar
                 src={client?.image}
                 isBordered 
-                color="primary"
-                className="cursor-pointer transition-transform hover:scale-105"
+                color="secondary"
+                className="cursor-pointer transition-transform hover:scale-105 bg-gradient-to-br from-primary-500 to-secondary-500"
                 size="sm"
                 showFallback
                 name={client?.client_name || 'User'}
@@ -76,21 +78,34 @@ const TopNavbar = () => {
               </DropdownItem>
               
               <DropdownItem
-                key="settings"
-                startContent={<Settings size={16} />}
-                description="Manage preferences"
-                isDisabled
+                key="promo"
+                startContent={<Gift size={16} />}
+                description="Apply a promo code"
+                onPress={() => setIsPromoModalOpen(true)}
               >
-                Settings
+                Redeem Code
               </DropdownItem>
               
               <DropdownItem
                 key="theme"
                 startContent={theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-                onPress={toggleTheme}
                 description={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                isDisabled
               >
-                {theme === 'light' ? 'Dark mode' : 'Light mode'}
+                <div className="flex items-center gap-2">
+                  {theme === 'light' ? 'Dark mode' : 'Light mode'}
+                  <Chip 
+                    size="sm" 
+                    variant="flat" 
+                    color="warning" 
+                    classNames={{
+                      base: "h-4 px-1",
+                      content: "text-[10px] font-medium px-1"
+                    }}
+                  >
+                    Soon
+                  </Chip>
+                </div>
               </DropdownItem>
               
               <DropdownItem
@@ -103,10 +118,35 @@ const TopNavbar = () => {
               >
                 Logout
               </DropdownItem>
-            </DropdownMenu>
+
+              <DropdownItem
+                key="version"
+                className="h-6 text-[11px] opacity-50 border-t border-divider mt-1 pt-2 rounded-none"
+                isReadOnly
+              >
+                <div className="flex items-center gap-2 text-[9px] justify-center">
+                  App Version 2.1.3
+                  <Chip 
+                    size="sm" 
+                    variant="flat" 
+                    classNames={{
+                      base: "h-4 px-1",
+                      content: "text-[9px] font-medium px-1"
+                    }}
+                  >
+                    Beta
+                  </Chip>
+                </div>
+              </DropdownItem>
+              </DropdownMenu>
           </Dropdown>
         </div>
       </div>
+      <PromoCodeModal 
+        isOpen={isPromoModalOpen}
+        onClose={() => setIsPromoModalOpen(false)}
+        membershipId={client?.membership_id || ''}
+      />
     </nav>
   );
 };

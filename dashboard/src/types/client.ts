@@ -68,4 +68,5 @@ export interface Client {
   doctype: string;
   weight: Weight[];
   current_weight: number;
+  membership_id: string;
 }

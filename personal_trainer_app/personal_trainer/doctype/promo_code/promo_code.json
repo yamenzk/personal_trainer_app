@@ -10,6 +10,7 @@
   "code",
   "announce",
   "title",
+  "description",
   "column_break_uafu",
   "start",
   "end",
@@ -122,12 +123,17 @@
    "fieldname": "announce",
    "fieldtype": "Check",
    "label": "Announce"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-11-13 17:15:19.166966",
+ "modified": "2024-11-13 19:13:54.941914",
  "modified_by": "Administrator",
  "module": "Personal Trainer",
  "name": "Promo Code",

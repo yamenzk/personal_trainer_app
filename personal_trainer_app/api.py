@@ -495,7 +495,7 @@ def get_available_codes(membership):
         codes = frappe.get_all(
             "Promo Code",
             filters={"enabled": 1, "announce": 1},
-            fields=["name", "title"]
+            fields=["name", "title", "description"]
         )
         
         available_codes = []
