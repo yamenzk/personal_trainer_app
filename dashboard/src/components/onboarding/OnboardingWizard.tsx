@@ -1,4 +1,5 @@
 // src/components/onboarding/OnboardingWizard.tsx
+import { updateClient, getMembership } from '@/utils/api';
 import { useState } from 'react';
 import { Progress, Button, Card, CardBody, CardHeader } from "@nextui-org/react";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -23,7 +24,7 @@ import WorkoutsStep from './steps/WorkoutsStep';
 const StepComponents: Record<string, StepConfig> = {
   'Name': {
     component: NameStep,
-    title: '',
+    title: 'What is your name?',
     subtitle: '',
     field: 'client_name'
   },
@@ -136,41 +137,21 @@ export const OnboardingWizard = ({ clientData, onComplete, steps }: OnboardingWi
         key: step
       })));
 
-  const refreshClientData = async () => {
-    try {
-      const response = await fetch(
-        `/api/v2/method/personal_trainer_app.api.get_membership?membership=${clientData.name}`
-      );
-      if (!response.ok) throw new Error('Failed to fetch updated data');
-      const data = await response.json();
-      return data.data.client;
-    } catch (error) {
-      console.error('Error fetching updated client data:', error);
-      return null;
-    }
-  };
-
   const handleStepComplete = async (value: any) => {
     setLoading(true);
     try {
       const stepConfig = activeSteps[currentStep];
       setFormData(prev => ({ ...prev, [stepConfig.field]: value }));
 
-      const params = new URLSearchParams();
-      params.append('client_id', clientData.name);
-      params.append(stepConfig.field, value.toString());
-      
-      const response = await fetch(
-        `/api/v2/method/personal_trainer_app.api.update_client?${params.toString()}`
-      );
-      
-      if (!response.ok) throw new Error('Failed to update data');
+      await updateClient(clientData.name, {
+        [stepConfig.field]: value.toString()
+      });
 
       if (currentStep < activeSteps.length - 1) {
         setCurrentStep(prev => prev + 1);
         setIsStepValid(false);
       } else {
-        await refreshClientData();
+        // On final step completion, call onComplete directly
         onComplete();
       }
     } catch (error) {

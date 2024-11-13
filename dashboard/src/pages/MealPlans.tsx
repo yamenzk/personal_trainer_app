@@ -1,23 +1,13 @@
-
-
-
 // MealPlans.tsx
 
 import { useState, useEffect } from "react";
 import { Card, CardBody, Chip, cn, Progress } from "@nextui-org/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChefHat, Droplet, Waves, Lightbulb, ChevronDown } from "lucide-react";
-import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
 import { format } from "date-fns";
-
-// Updated imports from centralized types
-import { 
-  Food, 
-  FoodReference,
-  Client,
-  Plan 
-} from '@/types';
+import { useClientStore } from '@/stores/clientStore';
+import { Food, FoodReference, Client, Plan } from '@/types';
 
 // Component imports
 import { MealPlanHero } from "@/components/meal/MealPlanHero";
@@ -397,12 +387,16 @@ const WaterTargetCard = ({ waterTarget }: { waterTarget: string }) => {
 
 // Main export remains the same
 export default function MealPlans() {
-  const { loading, error, client, plans, references } = useClientData();
+  const client = useClientStore(state => state.client);
+  const plans = useClientStore(state => state.plans);
+  const references = useClientStore(state => state.references);
+  const isLoading = useClientStore(state => state.isLoading);
+  const error = useClientStore(state => state.error);
   const { currentDay } = usePlans(plans ?? []);
 
   return (
     <PageTransition
-      loading={loading}
+      loading={isLoading}
       error={error}
       skeleton={<MealPlanSkeleton />}
     >

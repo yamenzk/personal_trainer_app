@@ -1,3 +1,4 @@
+import { updateClient } from '@/utils/api';
 import { useState } from 'react';
 import { 
   Card,
@@ -19,12 +20,11 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useReferrals } from '@/hooks/useReferrals';
-import { ReferralSectionProps } from '@/types';
+import { Client } from '@/types';
+import { useClientStore } from '@/stores/clientStore';
 
-
-
-
-export const ReferralSection = ({ client, refreshData }: ReferralSectionProps) => {
+export const ReferralSection = ({ client }: { client: Client }) => {
+  const refresh = useClientStore(state => state.fetch);
   const [referralCode, setReferralCode] = useState('');
   const [referralError, setReferralError] = useState('');
   const [referralSuccess, setReferralSuccess] = useState(false);
@@ -55,71 +55,40 @@ export const ReferralSection = ({ client, refreshData }: ReferralSectionProps) =
     setIsSubmitting(true);
   
     try {
-      const response = await fetch(
-        `/api/v2/method/personal_trainer_app.api.update_client?client_id=${client.name}&referred_by=${referralCode}`
-      );
+      await updateClient(client.name, {
+        referred_by: referralCode
+      });
       
-      const data = await response.json();
-  
-      if (!response.ok) {
-        let errorMessage = '';
+      setReferralSuccess(true);
+      setReferralError('');
+      await refresh();
+    } catch (error: any) {
+      let errorMessage = '';
 
-        // Case 1: Direct error message
-        if (data.error) {
-          errorMessage = data.error;
-        }
-        // Case 2: Frappe error format with _error_message
-        else if (data._error_message) {
-          errorMessage = data._error_message;
-        }
-        // Case 3: Errors array from Frappe
-        else if (data.errors && data.errors.length > 0) {
-          const error = data.errors[0];
-          if (error.message) {
-            // Extract the actual message from ValidationError
-            const match = error.message.match(/ValidationError: (.+)/);
-            errorMessage = match ? match[1] : error.message;
-          } else if (error.exception) {
-            // Handle full exception string
-            const lines = error.exception.split('\n');
-            const lastLine = lines[lines.length - 1];
-            const match = lastLine.match(/ValidationError: (.+)/);
-            errorMessage = match ? match[1] : lastLine;
-          }
-        }
-        // Case 4: Exception message
-        else if (data.exception) {
-          const match = data.exception.match(/ValidationError: (.+)/);
-          errorMessage = match ? match[1] : data.exception;
-        }
-
-        // Clean up the error message
-        errorMessage = errorMessage.trim();
-        if (errorMessage.startsWith('"') && errorMessage.endsWith('"')) {
-          errorMessage = errorMessage.slice(1, -1);
-        }
-        if (errorMessage.startsWith("'") && errorMessage.endsWith("'")) {
-          errorMessage = errorMessage.slice(1, -1);
-        }
-
-        // Map to user-friendly messages
-        const errorMap: Record<string, string> = {
-          'You cannot refer yourself.': 'You cannot use your own referral code',
-          'Referral code does not exist.': 'This referral code is invalid',
-          'Circular referral detected.': 'You cannot refer someone who has already referred you',
-          'Referral code does not have an active membership.': 'This referral code is not eligible for rewards'
-        };
-
-        setReferralError(errorMap[errorMessage] || errorMessage);
-        setReferralSuccess(false);
-      } else {
-        setReferralSuccess(true);
-        setReferralError('');
-        await refreshData();
+      // Extract error message from various possible formats
+      if (error.message) {
+        const match = error.message.match(/ValidationError: (.+)/);
+        errorMessage = match ? match[1] : error.message;
       }
-    } catch (err) {
-      console.error('Failed to update referral:', err);
-      setReferralError('Failed to update referral. Please try again.');
+
+      // Clean up the error message
+      errorMessage = errorMessage.trim();
+      if (errorMessage.startsWith('"') && errorMessage.endsWith('"')) {
+        errorMessage = errorMessage.slice(1, -1);
+      }
+      if (errorMessage.startsWith("'") && errorMessage.endsWith("'")) {
+        errorMessage = errorMessage.slice(1, -1);
+      }
+
+      // Map to user-friendly messages
+      const errorMap: Record<string, string> = {
+        'You cannot refer yourself.': 'You cannot use your own referral code',
+        'Referral code does not exist.': 'This referral code is invalid',
+        'Circular referral detected.': 'You cannot refer someone who has already referred you',
+        'Referral code does not have an active membership.': 'This referral code is not eligible for rewards'
+      };
+
+      setReferralError(errorMap[errorMessage] || errorMessage);
       setReferralSuccess(false);
     } finally {
       setIsSubmitting(false);

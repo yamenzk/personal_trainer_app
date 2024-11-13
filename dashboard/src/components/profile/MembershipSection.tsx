@@ -1,11 +1,25 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import { Button, Progress, Card, CardBody, Chip } from "@nextui-org/react";
 import { ArrowRight, Crown, Trophy, Calendar, Clock, Sparkles } from 'lucide-react';
-import { MembershipSectionProps } from '@/types';
+import { useClientStore } from '@/stores/clientStore';
+import { useEffect } from 'react';
 
+export const MembershipSection = () => {
+  const { membership, fetch } = useClientStore();
+  
+  // Add an effect to keep membership data fresh
+  useEffect(() => {
+    if (membership) {
+      const refreshInterval = setInterval(() => {
+        fetch();
+      }, 60000); // Refresh every minute
+      
+      return () => clearInterval(refreshInterval);
+    }
+  }, [membership, fetch]);
 
+  if (!membership) return null;
 
-export const MembershipSection = ({ membership }: MembershipSectionProps) => {
   // Calculate membership progress
   const startDate = new Date(membership.start);
   const endDate = new Date(membership.end);

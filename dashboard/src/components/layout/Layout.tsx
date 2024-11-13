@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import TopNavbar from './TopNavbar';
 import BottomNavbar from './BottomNavbar';
 import { useLocation } from 'react-router-dom';
+import { getAnnouncement } from '@/utils/api';
 import { cn } from '@nextui-org/react';
 
 interface AnnouncementData {
@@ -29,8 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
   useEffect(() => {
     const fetchAnnouncement = async () => {
       try {
-        const response = await fetch('/api/v2/method/personal_trainer_app.api.get_announcement');
-        const result = await response.json();
+        const result = await getAnnouncement();
         if (result.data) {
           const isDismissed = localStorage.getItem(`announcement-${result.data.modified}`) === 'dismissed';
           setIsAnnouncementDismissed(isDismissed);

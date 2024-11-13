@@ -2,15 +2,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardBody, Skeleton } from "@nextui-org/react";
-import { useClientData } from '../hooks/useClientData';
 import { usePlans } from '../hooks/usePlans';
 import { calculatePlanProgress } from '../utils/api';
-
-// Updated imports from centralized types
-import { 
-  Client, 
-  Plan, 
-} from '@/types';
+import { useClientStore } from '@/stores/clientStore';
+import { Client, Plan } from '@/types';
 
 // Component imports
 import { HeroSection } from '../components/dashboard/HeroSection';
@@ -146,22 +141,7 @@ const DashboardContent = ({
 }) => {
   const { activePlan, completedPlans, currentDay } = usePlans(plans);
   const [showWeightModal, setShowWeightModal] = useState(false);
-  const { references = { exercises: {} } } = useClientData(); // Add default value
-
-  // Check for onboarding needs
-  const needsOnboarding = !client.date_of_birth || !client.gender || !client.email ||
-    !client.nationality || !client.meals || !client.workouts || !client.activity_level ||
-    !client.equipment || !client.height || !client.weight.length || !client.target_weight ||
-    !client.goal || !client.client_name;
-
-  if (needsOnboarding) {
-    return (
-      <OnboardingWizard 
-        clientData={client} 
-        onComplete={refreshData}
-      />
-    );
-  }
+  const references = useClientStore(state => state.references);
 
   const planProgress = activePlan ? calculatePlanProgress(activePlan) : 0;
 
@@ -262,11 +242,15 @@ const DashboardContent = ({
 
 // Main Component
 export default function Dashboard() {
-  const { loading, error, client, plans, refreshData } = useClientData();
+  const client = useClientStore(state => state.client);
+  const plans = useClientStore(state => state.plans);
+  const isLoading = useClientStore(state => state.isLoading);
+  const error = useClientStore(state => state.error);
+  const fetch = useClientStore(state => state.fetch);
 
   return (
     <PageTransition
-      loading={loading}
+      loading={isLoading}
       error={error}
       skeleton={<DashboardSkeleton />}
     >
@@ -274,7 +258,7 @@ export default function Dashboard() {
         <DashboardContent
           client={client}
           plans={plans ?? []}
-          refreshData={refreshData}
+          refreshData={fetch}
         />
       )}
     </PageTransition>

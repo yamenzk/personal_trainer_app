@@ -5,9 +5,7 @@ import { PromoCodeModal } from "./PromoCodeModal";
 import { motion } from 'framer-motion';
 import { PromoCodeButtonProps } from "@/types";
 
-
-
-export const PromoCodeButton = ({ membershipId, variant = "flat", className }: PromoCodeButtonProps) => {
+export const PromoCodeButton = ({ variant = "flat", className }: PromoCodeButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -34,7 +32,6 @@ export const PromoCodeButton = ({ membershipId, variant = "flat", className }: P
       <PromoCodeModal 
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        membershipId={membershipId}
       />
     </>
   );

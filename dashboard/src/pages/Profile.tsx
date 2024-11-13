@@ -10,13 +10,11 @@ import { PersonalInfoSection } from '@/components/profile/PersonalInfoSection';
 import { ReferralSection } from '@/components/profile/ReferralSection';
 import { HeroSection } from '@/components/profile/HeroSection';
 import { FitnessPreferencesSection } from '@/components/profile/FitnessPreferencesSection';
-
-// Hook imports
-import { useClientData } from '../hooks/useClientData';
+import { useClientStore } from '@/stores/clientStore';
 
 // Main Profile component
 export default function Profile() {
-  const { loading, error, client, membership, refreshData } = useClientData();
+  const { client, membership, isLoading: loading, error, fetch: refreshData } = useClientStore();
   const [showWeightModal, setShowWeightModal] = useState(false);
   const { logout } = useAuth();
   const runPreferencesUpdate = usePreferencesUpdate(); // Changed this line
@@ -31,14 +29,14 @@ export default function Profile() {
         <div className="min-h-screen w-full">
           <div className="container mx-auto space-y-12">
             <HeroSection client={client} onLogout={logout} membership={membership} />
-            <MembershipSection membership={membership} />
+            <MembershipSection />
             <PersonalInfoSection client={client} />
             <FitnessPreferencesSection 
               client={client} 
               updatePreferences={() => runPreferencesUpdate(PREFERENCE_STEPS)}
-              refreshData={refreshData}  // Add this prop
+              refreshData={refreshData}  // This is the store's fetch method
             />
-            <ReferralSection client={client} refreshData={refreshData} />
+            <ReferralSection client={client} /> {/* Remove refreshData prop */}
 
             {/* Weight Modal */}
             <AnimatePresence>
@@ -46,7 +44,7 @@ export default function Profile() {
                 <WeightModal
                   isOpen={showWeightModal}
                   onClose={() => setShowWeightModal(false)}
-                  onWeightLogged={refreshData}
+                  onWeightLogged={refreshData} // And this
                   clientId={client.name}
                   currentWeight={client.current_weight}
                   weightGoal={client.goal}

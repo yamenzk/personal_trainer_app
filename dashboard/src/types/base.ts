@@ -56,11 +56,9 @@ export interface PromoCode {
 export interface PromoCodeModalProps {
     isOpen: boolean;
     onClose: () => void;
-    membershipId: string;
 }
 
 export interface PromoCodeButtonProps {
-  membershipId: string;
   variant?: "flat" | "solid" | "bordered" | "light" | "ghost" | "shadow" | "faded";
   className?: string;
 }

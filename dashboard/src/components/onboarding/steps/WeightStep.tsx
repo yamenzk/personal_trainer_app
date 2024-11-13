@@ -116,6 +116,7 @@ const WeightStep = ({
             KG
           </span>
           <Switch
+            isDisabled
             isSelected={isLbs}
             size="lg"
             color="primary"

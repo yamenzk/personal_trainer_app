@@ -3,6 +3,7 @@ import { Plan } from "./plan";
 import { ExerciseReference } from "./workout";
 import { FoodReference } from "./nutrition";
 import { Client, Membership } from "./client";
+import { PerformanceEntry } from './index';
 
 export interface ApiResponse<T> {
   data: {
@@ -19,13 +20,7 @@ export interface ApiResponse<T> {
     references: {
       exercises: { [key: string]: ExerciseReference };
       foods: { [key: string]: FoodReference };
-      performance: {
-        [key: string]: Array<{
-          weight: number;
-          reps: number;
-          date: string;
-        }>;
-      };
+      performance: { [key: string]: Array<PerformanceEntry> };
     };
   };
 }

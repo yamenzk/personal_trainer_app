@@ -12,14 +12,12 @@ import WorkoutPlans from "./pages/WorkoutPlans";
 import MealPlans from "./pages/MealPlans";
 import Profile from "./pages/Profile";
 import { getSiteName } from './utils/frappe';
-import { useClientData } from './hooks/useClientData';
 import OnboardingWizard from './components/onboarding/OnboardingWizard';
 import { AnimatePresence } from "framer-motion";
 import { NavigationProvider } from './contexts/NavigationContext';
 import dayjs from 'dayjs';
-
-// Updated imports from centralized types
-import { Client, WithPreferencesUpdate } from '@/types';
+import { useClientStore } from '@/stores/clientStore';
+import { Client } from '@/types';
 
 const getMissingSteps = (client: Client | null): string[] => {
   if (!client) return [];
@@ -85,43 +83,32 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  const { loading, client, refreshData } = useClientData();
+  const client = useClientStore(state => state.client);
+  const isLoading = useClientStore(state => state.isLoading);
+  const fetch = useClientStore(state => state.fetch);
+  
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingMode, setOnboardingMode] = useState<'full' | 'preferences'>('full');
   const [activeSteps, setActiveSteps] = useState<string[]>([]);
-  const [onboardingJustCompleted, setOnboardingJustCompleted] = useState(false);
 
-  // Effect for handling initial onboarding check
+  // Simplified state management - remove onboardingMode and onboardingJustCompleted
+  
+  // Single effect to handle onboarding state
   useEffect(() => {
-    if (!loading && client && !onboardingJustCompleted) {
+    if (!isLoading && client) {
       const missingSteps = getMissingSteps(client);
-      if (missingSteps.length > 0) {
-        setActiveSteps(missingSteps);
-        setShowOnboarding(true);
-        setOnboardingMode('full');
-      }
+      setShowOnboarding(missingSteps.length > 0);
+      setActiveSteps(missingSteps);
     }
-  }, [loading, client, onboardingJustCompleted]);
+  }, [isLoading, client]);
 
-  // Add a new effect to handle data refresh after onboarding
-  useEffect(() => {
-    if (onboardingJustCompleted) {
-      const checkCompleteness = async () => {
-        await refreshData();
-        // After refreshing, verify that all required fields are complete
-        const missingSteps = getMissingSteps(client);
-        if (missingSteps.length === 0) {
-          // Only reset if everything is complete
-          setOnboardingJustCompleted(false);
-        }
-      };
-      checkCompleteness();
-    }
-  }, [onboardingJustCompleted]);
+  // Modified onboarding completion handler
+  const handleOnboardingComplete = async () => {
+    setShowOnboarding(false); // Hide onboarding immediately
+    await fetch(); // Refresh client data
+  };
 
   const handlePreferencesUpdate = (steps: string[]) => {
     setActiveSteps(steps);
-    setOnboardingMode('preferences');
     setShowOnboarding(true);
   };
 
@@ -129,7 +116,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="relative flex flex-col items-center gap-4">
@@ -147,23 +134,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     <>
       <Layout hideNavigation={showOnboarding}>
         <WithPreferencesProvider value={handlePreferencesUpdate}>
-          {children}
-        </WithPreferencesProvider>
+          {!showOnboarding && children}
 
-        <AnimatePresence>
-          {showOnboarding && client && (
-            <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-lg">
-              <OnboardingWizard
-                clientData={client}
-                steps={activeSteps}
-                onComplete={() => {
-                  setShowOnboarding(false);
-                  setOnboardingJustCompleted(true);
-                }}
-              />
-            </div>
-          )}
-        </AnimatePresence>
+          <AnimatePresence>
+            {showOnboarding && client && (
+              <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-lg">
+                <OnboardingWizard
+                  clientData={client}
+                  steps={activeSteps}
+                  onComplete={handleOnboardingComplete}
+                />
+              </div>
+            )}
+          </AnimatePresence>
+        </WithPreferencesProvider>
       </Layout>
     </>
   );
@@ -187,6 +171,15 @@ export const usePreferencesUpdate = () => {
 };
 
 function App() {
+  const { fetch, needsRefresh } = useClientStore();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && needsRefresh()) {
+      fetch();
+    }
+  }, [isAuthenticated, fetch, needsRefresh]);
+
   return (
     <FrappeProvider
       socketPort={import.meta.env.VITE_SOCKET_PORT ?? '9000'}

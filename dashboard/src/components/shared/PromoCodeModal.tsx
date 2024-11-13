@@ -1,3 +1,4 @@
+import { getAvailablePromoCodes, redeemPromoCode } from '@/utils/api';
 import { useState, useEffect } from 'react';
 import { 
   Modal, ModalContent, Button, Input, Chip, Card, CardBody,
@@ -6,6 +7,7 @@ import {
 } from "@nextui-org/react";
 import { Ticket, Gift, Sparkles, CheckCircle } from 'lucide-react';
 import { PromoCode, PromoCodeModalProps } from '@/types';
+import { useClientStore } from '@/stores/clientStore';
 
 const getFriendlyErrorMessage = (error: string) => {
   const errorMap: Record<string, string> = {
@@ -26,7 +28,9 @@ const getFriendlyErrorMessage = (error: string) => {
   return errorMap.default;
 };
 
-export const PromoCodeModal = ({ isOpen, onClose, membershipId }: PromoCodeModalProps) => {
+export const PromoCodeModal = ({ isOpen, onClose }: PromoCodeModalProps) => {
+  const membership = useClientStore(state => state.membership);
+  const fetch = useClientStore(state => state.fetch);
   const [code, setCode] = useState('');
   const [availableCodes, setAvailableCodes] = useState<PromoCode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,39 +47,45 @@ export const PromoCodeModal = ({ isOpen, onClose, membershipId }: PromoCodeModal
 
   const fetchAvailableCodes = async () => {
     try {
-      const response = await fetch('/api/v2/method/personal_trainer_app.api.get_available_codes?membership=' + membershipId);
-      const { data } = await response.json();
-      setAvailableCodes(data);
+      const response = await getAvailablePromoCodes(membership?.name || '');
+      setAvailableCodes(response.data);
     } catch (error) {
       console.error('Error fetching promo codes:', error);
     }
   };
 
   const handleRedeem = async (promoCode: string) => {
+    if (!membership?.name) return;
+    
     setIsLoading(true);
     setStatus({ type: null, message: '' });
     setCode(promoCode);
     
     try {
-      const response = await fetch(`/api/v2/method/personal_trainer_app.api.redeem_code?membership=${membershipId}&code=${promoCode}`);
-      const { data } = await response.json();
+      const response = await redeemPromoCode(membership.name, promoCode);
       
-      if (data.status === 'success') {
+      if (response.data.status === 'success') {
         setStatus({ 
           type: 'success', 
           message: 'Great! Your discount has been applied to your account.' 
         });
-        setTimeout(() => onClose(), 2000);
+        // Immediately fetch fresh data
+        await fetch();
+        // Close modal after a brief delay to show success message
+        setTimeout(() => {
+          onClose();
+          setStatus({ type: null, message: '' });
+        }, 800); // Increased delay slightly to ensure data is updated
       } else {
         setStatus({ 
           type: 'error', 
-          message: getFriendlyErrorMessage(data.message)
+          message: getFriendlyErrorMessage(response.data.message)
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       setStatus({ 
         type: 'error', 
-        message: "We're having trouble connecting. Please try again in a moment." 
+        message: getFriendlyErrorMessage(error.message)
       });
     } finally {
       setIsLoading(false);

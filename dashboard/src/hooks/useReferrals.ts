@@ -1,6 +1,7 @@
 // useReferrals.ts
 
 import { useState, useEffect } from 'react';
+import { getReferrals } from '@/utils/api';
 import { Referral } from '@/types';
 
 export const useReferrals = (clientId: string) => {
@@ -10,9 +11,8 @@ export const useReferrals = (clientId: string) => {
   useEffect(() => {
     const fetchReferrals = async () => {
       try {
-        const response = await fetch(`/api/v2/method/personal_trainer_app.api.get_referrals?client_id=${clientId}`);
-        const data = await response.json();
-        setReferrals(data.data || []);
+        const response = await getReferrals(clientId);
+        setReferrals(response.data || []);
       } catch (error) {
         console.error('Failed to fetch referrals:', error);
       } finally {

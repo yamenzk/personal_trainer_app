@@ -13,7 +13,6 @@ import {
 } from '@/types';
 
 // Utility imports
-import { useClientData } from "../hooks/useClientData";
 import { usePlans } from "../hooks/usePlans";
 import {
   logPerformance,
@@ -29,6 +28,7 @@ import { ExerciseDetailsModal } from "../components/workout/ExerciseDetailsModal
 import { PerformanceModal } from "../components/workout/PerformanceModal";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { insertWorkoutTips, TipCard } from "@/components/workout/WorkoutTips";
+import { useClientStore } from "@/stores/clientStore";
 
 // Skeleton Component
 const WorkoutPlanSkeleton = () => {
@@ -359,8 +359,7 @@ const WorkoutPlansContent = ({
 
 // Main Component
 export default function WorkoutPlans() {
-  const { loading, error, client, plans, references, refreshData } =
-    useClientData();
+  const { client, plans, references, isLoading: loading, error, fetch: refreshData } = useClientStore();
   const { currentDay } = usePlans(plans ?? []);
 
   return (

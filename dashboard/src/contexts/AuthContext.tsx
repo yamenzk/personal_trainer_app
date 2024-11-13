@@ -1,8 +1,9 @@
 // src/contexts/AuthContext.tsx
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMembership } from '../utils/api';
+import { getMembership } from '@/utils/api';
 import { AuthContextType } from '@/types';
+import { useClientStore } from '@/stores/clientStore';
 
 
 const AuthContext = createContext<AuthContextType>({
@@ -18,6 +19,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const fetch = useClientStore(state => state.fetch);
+  const clearClientStore = useClientStore(state => state.clear); // Move this up
 
   // Check for existing session on mount
   useEffect(() => {
@@ -27,8 +30,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           await getMembership(membershipId);
           setIsAuthenticated(true);
+          // Fetch client data immediately after confirming auth
+          await fetch();
         } catch (error) {
           localStorage.removeItem('membershipId');
+          clearClientStore();
           navigate('/login', { replace: true });
         }
       }
@@ -36,22 +42,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     checkAuth();
-  }, [navigate]);
+  }, [navigate, fetch, clearClientStore]);
 
   const login = async (membershipId: string) => {
     try {
-      await getMembership(membershipId);
+      const response = await getMembership(membershipId);
+      
+      if (!response.data?.membership?.active) {
+        throw new Error('This membership is not active');
+      }
+
       localStorage.setItem('membershipId', membershipId);
+      await fetch();
       setIsAuthenticated(true);
       navigate('/', { replace: true });
     } catch (error) {
-      throw new Error('Invalid membership ID');
+      // Don't navigate on error, just throw it to be handled by Login component
+      throw new Error(error instanceof Error ? error.message : 'Invalid membership ID');
     }
   };
 
   const logout = () => {
     localStorage.removeItem('membershipId');
     setIsAuthenticated(false);
+    clearClientStore(); // Clear the store on logout
     navigate('/login', { replace: true });
   };
 

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { Client } from '@/types/client';
 import { Plan } from '@/types/plan';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface HeroSectionProps {
   client: Client;

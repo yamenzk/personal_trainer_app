@@ -11,15 +11,15 @@ import {
 } from "@nextui-org/react";
 import { useTheme } from '../../contexts/ThemeContext';
 import { Sun, Moon, LogOut, User, Gift } from 'lucide-react';
-import { useClientData } from '@/hooks/useClientData';
 import { useAuth } from '@/contexts/AuthContext';
 import { PromoCodeModal } from '@/components/shared/PromoCodeModal';
 import { useState } from 'react';
+import { useClientStore } from '@/stores/clientStore';
 
 const TopNavbar = () => {
-  const { toggleTheme, theme } = useTheme();
+  const { theme } = useTheme();
   const navigate = useNavigate();
-  const { client } = useClientData();
+  const client = useClientStore(state => state.client);
   const { logout } = useAuth();
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   
@@ -145,7 +145,6 @@ const TopNavbar = () => {
       <PromoCodeModal 
         isOpen={isPromoModalOpen}
         onClose={() => setIsPromoModalOpen(false)}
-        membershipId={client?.membership_id || ''}
       />
     </nav>
   );
