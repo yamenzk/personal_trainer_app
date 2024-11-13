@@ -98,7 +98,7 @@ const Login = () => {
         {/* Content */}
         <div className="relative h-full flex flex-col items-center justify-center p-4 text-white w-full">
           <motion.img
-            src="/logo.png"
+            src="/assets/personal_trainer_app/dashboard/logo.png"
             alt="byShujaa"
             className="w-64 h-32 object-contain mb-2"
             initial={{ scale: 0.5, opacity: 0 }}
@@ -129,7 +129,7 @@ const Login = () => {
         {/* For mobile */}
         <div className="md:hidden">
           <img 
-            src="/snow.png" 
+            src="/assets/personal_trainer_app/dashboard/snow.png" 
             alt=""
             className="absolute top-[270px] left-0 w-full h-24 object-cover"
           />

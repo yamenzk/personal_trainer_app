@@ -40,7 +40,7 @@ const TopNavbar = () => {
             className="bg-transparent p-0 min-w-0 h-auto hover:bg-transparent"
             onClick={() => navigate('/')}
           >
-            <img src="/logo.png" alt="Logo" className="h-12 w-auto" />
+            <img src="/assets/personal_trainer_app/dashboard/logo.png" alt="Logo" className="h-12 w-auto" />
           </Button>
 
           {/* User Menu */}
