@@ -41,21 +41,26 @@ export const useClientStore = create<ClientState>((set, get) => ({
     const state = get();
     const newImages = { ...state.mediaCache.images };
     
-    urls.forEach(url => {
+    // Guard against undefined/null urls
+    if (!urls || !Array.isArray(urls)) return;
+    
+    urls.filter(url => url && typeof url === 'string').forEach(url => {
       if (!newImages[url]) {
         const img = new Image();
         img.src = url;
         img.onload = () => {
-          set(state => ({
-            ...state,
-            mediaCache: {
-              ...state.mediaCache,
-              images: {
-                ...state.mediaCache.images,
-                [url]: url
+          if (img.width > 0) { // Verify image loaded successfully
+            set(state => ({
+              ...state,
+              mediaCache: {
+                ...state.mediaCache,
+                images: {
+                  ...state.mediaCache.images,
+                  [url]: url
+                }
               }
-            }
-          }));
+            }));
+          }
         };
       }
     });
@@ -136,16 +141,19 @@ export const useClientStore = create<ClientState>((set, get) => ({
         }
       });
 
-      // Gather all image URLs first
+      // Gather all image URLs first - with defensive checks
       const imageUrls = new Set<string>();
-      Object.values(response.data.references.exercises).forEach((exercise: any) => {
-        if (exercise.thumbnail) imageUrls.add(exercise.thumbnail);
-        if (exercise.starting) imageUrls.add(exercise.starting);
-        if (exercise.ending) imageUrls.add(exercise.ending);
+      Object.values(response.data.references?.exercises || {}).forEach((exercise: any) => {
+        if (exercise?.thumbnail) imageUrls.add(exercise.thumbnail);
+        if (exercise?.starting) imageUrls.add(exercise.starting);
+        if (exercise?.ending) imageUrls.add(exercise.ending);
       });
 
-      // Start preloading immediately
-      get().preloadImages(Array.from(imageUrls));
+      // Only preload if we have valid URLs
+      const validUrls = Array.from(imageUrls).filter(Boolean);
+      if (validUrls.length > 0) {
+        get().preloadImages(validUrls);
+      }
 
       // Use separate state updates to reduce re-renders
       set((state) => ({

@@ -13,7 +13,7 @@ import { ExerciseDetailsModal } from "../components/workout/ExerciseDetailsModal
 import { PerformanceModal } from "../components/workout/PerformanceModal";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { WorkoutErrorBoundary } from "@/components/shared/WorkoutErrorBoundary";
-import { insertWorkoutTips, TipCard } from "@/components/workout/WorkoutTips";
+import { insertWorkoutTips, TipCard, workoutTips } from "@/components/workout/WorkoutTips";
 import { NoActivePlan } from "@/components/shared/NoActivePlan";
 
 // Hooks and Utils
@@ -27,7 +27,8 @@ import {
   ExerciseReference,
   Client,
   Plan,
-  Exercise
+  Exercise,
+  WorkoutTip
 } from '@/types';
 
 interface ExerciseItem {
@@ -113,6 +114,63 @@ const getItemKey = (item: ExerciseItem, index: number): string => {
   return `superset-${index}`;
 };
 
+// Move tip handling to the top level
+const useTipHandler = () => {
+  const [sessionUsedTips] = useState(() => new Set<string>());
+
+  const insertTips = useCallback((exercises: Exercise[]) => {
+    if (!exercises?.length || exercises.length <= 1) return exercises;
+
+    // Reset tips if needed
+    if (sessionUsedTips.size > (workoutTips.length * 0.75)) {
+      sessionUsedTips.clear();
+    }
+
+    const maxTips = Math.min(3, exercises.length - 1);
+    const numberOfTips = Math.floor(Math.random() * maxTips) + 1;
+    
+    const availablePositions = exercises.reduce<number[]>((acc, _, index) => {
+      if (index > 0 && !acc.includes(index - 1) && !acc.includes(index + 1)) {
+        acc.push(index);
+      }
+      return acc;
+    }, []);
+
+    const tipPositions = new Set(
+      availablePositions
+        .sort(() => Math.random() - 0.5)
+        .slice(0, numberOfTips)
+    );
+
+    const availableTips = workoutTips.filter(tip => 
+      !sessionUsedTips.has(tip.title)
+    );
+    
+    const result: (Exercise | { type: 'tip', content: WorkoutTip })[] = [];
+    let tipIndex = 0;
+
+    exercises.forEach((exercise, index) => {
+      result.push(exercise);
+      
+      if (tipPositions.has(index + 1) && tipIndex < availableTips.length) {
+        const selectedTip = availableTips[tipIndex];
+        sessionUsedTips.add(selectedTip.title);
+        
+        result.push({
+          type: 'tip',
+          content: selectedTip
+        });
+        
+        tipIndex++;
+      }
+    });
+
+    return result;
+  }, []);
+
+  return { insertTips };
+};
+
 // WorkoutPlansContent Component
 const WorkoutPlansContent = ({
   client,
@@ -166,9 +224,13 @@ const WorkoutPlansContent = ({
     };
   }, [currentPlan, dayKey]);
 
+  // Add tip handler hook
+  const { insertTips } = useTipHandler();
+
+  // Update exercisesWithTips to use our new hook
   const exercisesWithTips = useMemo(() => 
-    insertWorkoutTips(exercises),
-    [exercises]
+    insertTips(exercises),
+    [exercises, insertTips]
   );
 
   // Callbacks

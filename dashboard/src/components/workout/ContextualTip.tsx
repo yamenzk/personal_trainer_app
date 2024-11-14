@@ -153,8 +153,6 @@ export const ContextualTip: React.FC<ContextualTipProps> = React.memo(({
         <div className={cn(
           "flex items-center gap-2 justify-center",
           "py-2 px-3 rounded-full",
-          "shadow-sm backdrop-blur-sm",
-          "bg-content/5 border border-content/10"
         )}>
           {/* Animated Icon */}
           <motion.div
