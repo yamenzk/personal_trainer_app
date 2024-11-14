@@ -368,7 +368,6 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
         {!hasLoggedWeightToday() && (
           <div className="relative overflow-hidden rounded-xl">
             <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700" />
-            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10" />
             <div className="relative py-3 px-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

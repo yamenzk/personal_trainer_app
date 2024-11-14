@@ -90,6 +90,7 @@ export interface GroceryListModalProps {
     historicalPlanIndex: number;
     onHistoricalPlanSelect: (index: number) => void;
     foodRefs: Record<string, any>; // Add this new prop
+    isChangingPlan?: boolean;
   }
 
   export interface NutritionTipProps {

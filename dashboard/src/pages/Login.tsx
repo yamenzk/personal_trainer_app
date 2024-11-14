@@ -92,7 +92,6 @@ const Login = () => {
         <Snow />
         
         {/* Existing background layers */}
-        {/* <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] pointer-events-none" /> */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-secondary-500/10" />
 
         {/* Content */}

@@ -126,7 +126,6 @@ export const WorkoutProgress = ({
               ? "from-blue-900 via-indigo-900 to-violet-900" 
               : "from-secondary-500 via-secondary-600 to-secondary-700"
           )} />
-          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10" />
           
           {/* Stars animation for rest day */}
           {isRestDay && (

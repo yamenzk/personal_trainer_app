@@ -1,6 +1,6 @@
 // MealPlans.tsx
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardBody, Chip, cn, Progress } from "@nextui-org/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChefHat, Droplet, Waves, Lightbulb, ChevronDown } from "lucide-react";
@@ -19,6 +19,7 @@ import { FoodDetailsModal } from "@/components/meal/FoodDetailsModal";
 import { MealPlanSkeleton } from "@/components/meal/MealPlanSkeleton";
 import { insertNutritionTips, mealTimes } from "@/components/meal/utils";
 import { MealContextualTip } from "@/components/meal/MealContextualTip";
+import { NoActivePlan } from "@/components/shared/NoActivePlan";
 
 
 
@@ -43,6 +44,82 @@ const MealPlansContent = ({
     foodRef: FoodReference;
     meal: string;
   } | null>(null);
+  const [isChangingPlan, setIsChangingPlan] = useState(false);
+
+  // Enhanced plan switching with better visual feedback
+  const handlePlanTypeChange = useCallback((key: "active" | "history") => {
+    setIsChangingPlan(true);
+    
+    // Fade out current content
+    const content = document.querySelector('.meal-content');
+    if (content) {
+      content.classList.add('opacity-0');
+      content.classList.add('scale-95');
+    }
+
+    // Clear selected food and modals with delay
+    setTimeout(() => {
+      setSelectedFood(null);
+      setSelectedPlan(key);
+      
+      // Start fading in new content
+      setTimeout(() => {
+        if (content) {
+          content.classList.remove('opacity-0');
+          content.classList.remove('scale-95');
+        }
+        setIsChangingPlan(false);
+      }, 300);
+    }, 300);
+  }, []);
+
+  // Enhanced debounced loading effects
+  const handleDaySelect = useCallback((day: number) => {
+    setIsChangingPlan(true);
+    setSelectedFood(null);
+    
+    // Add visual feedback immediately
+    const content = document.querySelector('.meal-content');
+    if (content) {
+      content.classList.add('opacity-0');
+      content.classList.add('scale-95');
+    }
+    
+    setTimeout(() => {
+      setSelectedDay(day);
+      
+      // Add a small delay before removing loading state for smoother transition
+      setTimeout(() => {
+        if (content) {
+          content.classList.remove('opacity-0');
+          content.classList.remove('scale-95');
+        }
+        setIsChangingPlan(false);
+      }, 300);
+    }, 150); // Shorter initial delay for better responsiveness
+  }, []);
+
+  // Add cleanup for plan changes
+  useEffect(() => {
+    return () => {
+      setSelectedFood(null);
+      setIsChangingPlan(false);
+    };
+  }, [selectedPlan, selectedDay]);
+
+  // Clean up everything on unmount
+  useEffect(() => {
+    return () => {
+      setSelectedFood(null);
+      setIsChangingPlan(false);
+      
+      // Clear all cached images
+      useClientStore.setState(state => ({
+        ...state,
+        mediaCache: { images: {}, videos: {} }
+      }));
+    };
+  }, []);
 
   useEffect(() => {
     if (selectedDay === null && currentDay) {
@@ -51,7 +128,49 @@ const MealPlansContent = ({
   }, [currentDay, selectedDay]);
 
   const currentPlan = selectedPlan === 'active' ? activePlan : completedPlans[historicalPlanIndex];
-  if (!currentPlan) return null;
+  
+  // Check for no active plan scenario
+  if (!activePlan && selectedPlan === 'active') {
+    return (
+      <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
+        <div className="container mx-auto">
+          <div className="flex flex-col gap-4">
+            <MealPlanHero
+              plan={completedPlans[0] ?? null} // Add null fallback
+              selectedDay={selectedDay || 1}
+              onDaySelect={handleDaySelect}
+              selectedPlan={selectedPlan}
+              onPlanTypeChange={handlePlanTypeChange}
+              completedPlansCount={completedPlans.length}
+              completedPlans={completedPlans}
+              historicalPlanIndex={historicalPlanIndex}
+              onHistoricalPlanSelect={setHistoricalPlanIndex}
+              foodRefs={references.foods}
+              isChangingPlan={isChangingPlan}
+            />
+            <NoActivePlan 
+              type="meal"
+              hasHistory={completedPlans.length > 0}
+              onViewHistory={() => handlePlanTypeChange('history')}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Add check for current plan being null
+  if (!currentPlan) {
+    return (
+      <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
+        <NoActivePlan 
+          type="meal"
+          hasHistory={completedPlans.length > 0}
+          onViewHistory={() => handlePlanTypeChange('history')}
+        />
+      </div>
+    );
+  }
 
   const dayKey = `day_${selectedDay}`;
   const dayPlan = currentPlan?.days[dayKey];
@@ -69,20 +188,28 @@ const MealPlansContent = ({
 
   return (
     <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
+      {/* Add loading overlay when changing plans */}
+      {isChangingPlan && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
+          <div className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
+        </div>
+      )}
+      
       <div className="container mx-auto">
         {/* Hero Section - Full Width */}
         <div className="flex flex-col gap-4">
           <MealPlanHero
             plan={currentPlan}
             selectedDay={selectedDay || 1}
-            onDaySelect={setSelectedDay}
+            onDaySelect={handleDaySelect}
             selectedPlan={selectedPlan}
-            onPlanTypeChange={setSelectedPlan}
+            onPlanTypeChange={handlePlanTypeChange}
             completedPlansCount={completedPlans.length}
             completedPlans={completedPlans}
             historicalPlanIndex={historicalPlanIndex}
             onHistoricalPlanSelect={setHistoricalPlanIndex}
             foodRefs={references.foods} // Add this new prop
+            isChangingPlan={isChangingPlan}
           />
           <MealContextualTip
             plan={currentPlan}
@@ -91,7 +218,15 @@ const MealPlansContent = ({
         </div>
 
         {/* Centered Content Container */}
-        <div className="flex justify-center">
+        <motion.div 
+          className={cn(
+            "meal-content transition-all duration-300 ease-in-out",
+            isChangingPlan && "opacity-0 scale-95"
+          )}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+        >
           <div className="w-full max-w-3xl">
             <div className="px-4 mb-6">
               <WaterTargetCard waterTarget={currentPlan.targets.water} />
@@ -145,6 +280,7 @@ const MealPlansContent = ({
                                     meal: item.content[0]
                                   });
                                 }}
+                                isChangingPlan={isChangingPlan} // Add this prop
                               />
                             </div>
                           )}
@@ -166,7 +302,7 @@ const MealPlansContent = ({
               </AnimatePresence>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Food Details Modal */}
         {selectedFood && (

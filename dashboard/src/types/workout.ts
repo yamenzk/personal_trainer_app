@@ -75,6 +75,7 @@ export interface ExerciseCardProps {
   onViewDetails: () => void;
   selectedPlan: 'active' | 'history';
   exerciseNumber?: number;
+  isChangingPlan?: boolean;
 }
 
 export type TipType = 'hydration' | 'form' | 'etiquette' | 'mindset' | 'recovery' | 'nutrition' | 'safety';

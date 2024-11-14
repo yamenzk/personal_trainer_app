@@ -165,6 +165,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
   },
 
   clear: () => {
+    // Enhanced clear to include media cache
     set({
       client: null,
       membership: null,
@@ -172,7 +173,11 @@ export const useClientStore = create<ClientState>((set, get) => ({
       references: null,
       isLoading: false,
       error: null,
-      lastFetched: null
+      lastFetched: null,
+      mediaCache: {
+        images: {},
+        videos: {}
+      }
     });
   },
 

@@ -101,7 +101,6 @@ export const ReferralSection = ({ client }: { client: Client }) => {
         <CardBody className="p-0">
           {/* Hero Section - Updated with warning colors */}
           <div className="relative overflow-hidden rounded-t-xl bg-gradient-to-br from-orange-500 to-orange-800 p-6">
-            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10" />
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-300 rounded-full blur-3xl opacity-20 -mr-48 -mt-48" />
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-warning-300 rounded-full blur-3xl opacity-20 -ml-48 -mb-48" />
             

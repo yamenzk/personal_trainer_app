@@ -64,6 +64,7 @@ export interface PlanHeroProps {
   completedPlans: Plan[];
   historicalPlanIndex: number;
   onHistoricalPlanSelect: (index: number) => void;
+  isChangingPlan?: boolean;
 }
 
 export interface UsePlansReturn {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Modal,
   ModalContent,
@@ -31,6 +31,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/utils/cn";
 import { MicrosResponse, FoodDetailsModalProps } from "@/types";
+import { useClientStore } from "@/stores/clientStore";
+import React from "react";
 
 // Add categories for grouping micronutrients
 const microCategories = {
@@ -87,7 +89,7 @@ const microCategories = {
   ],
 };
 
-export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = ({
+export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = React.memo(({
   isOpen,
   onClose,
   food,
@@ -101,6 +103,47 @@ export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = ({
   const [expandedNames, setExpandedNames] = useState<Record<string, boolean>>(
     {}
   );
+  const { mediaCache } = useClientStore();
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  // Use cached image if available
+  const imageUrl = useMemo(() => {
+    return mediaCache.images[foodRef.image] || foodRef.image;
+  }, [foodRef.image, mediaCache.images]);
+
+  // Cleanup when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      if (imageRef.current) {
+        imageRef.current.src = '';
+        imageRef.current.removeAttribute('src');
+        URL.revokeObjectURL(imageRef.current.src);
+      }
+      setSelectedTab("overview");
+      setMicros(null);
+      setIsLoadingMicros(false);
+    }
+  }, [isOpen]);
+
+  // Preload image when modal opens
+  useEffect(() => {
+    if (isOpen && imageUrl && !mediaCache.images[imageUrl]) {
+      const img = new Image();
+      img.src = imageUrl;
+      img.onload = () => {
+        useClientStore.setState(state => ({
+          ...state,
+          mediaCache: {
+            ...state.mediaCache,
+            images: {
+              ...state.mediaCache.images,
+              [imageUrl]: imageUrl
+            }
+          }
+        }));
+      };
+    }
+  }, [isOpen, imageUrl, mediaCache.images]);
 
   // Fetch micronutrients data when tab is selected
   useEffect(() => {
@@ -184,7 +227,7 @@ export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = ({
                   <Avatar
                     isBordered
                     color="secondary"
-                    src={foodRef.image}
+                    src={imageUrl}
                     className="w-14 h-14"
                     classNames={{
                       img: "object-cover opacity-90 hover:opacity-100 transition-opacity",
@@ -280,7 +323,7 @@ export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = ({
                   <Card className="border-none overflow-hidden bg-gradient-to-b from-content2/50 to-content2/100">
                     <div className="relative aspect-video">
                       <img
-                        src={foodRef.image}
+                        src={imageUrl}
                         alt={foodRef.title}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                       />
@@ -778,4 +821,4 @@ export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = ({
       </ModalContent>
     </Modal>
   );
-};
+});

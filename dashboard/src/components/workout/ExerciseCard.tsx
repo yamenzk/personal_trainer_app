@@ -26,7 +26,8 @@ export const ExerciseCard = React.memo(({
   onLogSet,
   onViewDetails,
   selectedPlan,
-  exerciseNumber
+  exerciseNumber,
+  isChangingPlan,
 }: ExerciseCardProps) => {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -47,6 +48,21 @@ export const ExerciseCard = React.memo(({
       }
     };
   }, []);
+
+  // Cleanup resources when unmounting or changing exercises
+  useEffect(() => {
+    const currentImageRef = imageRef.current;
+    const cleanup = () => {
+      if (currentImageRef) {
+        currentImageRef.src = '';
+        currentImageRef.removeAttribute('src');
+        URL.revokeObjectURL(currentImageRef.src); // Clean up any object URLs
+      }
+      setIsImageLoading(true);
+    };
+
+    return cleanup;
+  }, [exercise.ref]); // Add dependency on exercise.ref
 
   // Modified lazy loading with cache check
   useEffect(() => {
@@ -87,8 +103,21 @@ export const ExerciseCard = React.memo(({
     : null;
 
   return (
-    <div onClick={onViewDetails} className="cursor-pointer">
-      <Card className="relative w-full h-[300px] border-none group overflow-hidden">
+    <motion.div
+      onClick={onViewDetails}
+      className="cursor-pointer"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card 
+        className={cn(
+          "relative w-full h-[300px] border-none group overflow-hidden",
+          "transition-opacity duration-300",
+          isChangingPlan && "opacity-50 pointer-events-none"
+        )}
+      >
         {/* Remove the gradient overlay div and modify the image container */}
         <div className="absolute inset-0">
           {isImageLoading && (
@@ -246,6 +275,6 @@ export const ExerciseCard = React.memo(({
           </div>
         </div>
       </Card>
-    </div>
+    </motion.div>
   );
 });

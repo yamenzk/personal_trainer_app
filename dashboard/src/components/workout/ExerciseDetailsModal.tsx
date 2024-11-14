@@ -45,6 +45,12 @@ export const ExerciseDetailsModal = React.memo(({
       setIsVideoLoaded(false);
       setShowVideo(false);
       setSelectedTab("overview");
+      
+      // Clean up video iframes
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(iframe => {
+        iframe.src = '';
+      });
     }
   }, [isOpen]);
 

@@ -178,6 +178,7 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
   completedPlans,
   historicalPlanIndex,
   onHistoricalPlanSelect,
+  isChangingPlan,
 }: PlanHeroProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -254,7 +255,19 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
 
   return (
     <LayoutGroup>
-      <Card className="border-none bg-content2 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] rounded-b-4xl overflow-visible">
+      <Card 
+        className={cn(
+          "border-none bg-content2 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] rounded-b-4xl overflow-visible",
+          "transition-opacity duration-300 ease-in-out", // Add transition
+          isChangingPlan && "opacity-50" // Fade opacity when changing
+        )}
+      >
+        {/* Add loading overlay when changing plan */}
+        {isChangingPlan && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm rounded-b-4xl">
+            <div className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
+          </div>
+        )}
         <div className="p-6 space-y-4">
           {/* Top Row: Week Indicator and Mode Switch */}
           <div className="flex items-center justify-between">
@@ -325,7 +338,7 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-primary-500" />
                 <h2 className="text-xl font-bold tracking-tight">
-                {format(new Date(plan.start), 'MMMM d')} - {format(addDays(new Date(plan.start), 6), 'MMMM d')}
+                {format(new Date(plan.start), 'MMM d')} - {format(addDays(new Date(plan.start), 6), 'MMM d')}
                 </h2>
               </div>
               <div className="flex items-center gap-6">

@@ -1,9 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardBody, Button, Chip, Avatar, AvatarGroup } from "@nextui-org/react";
 import { Coffee, UtensilsCrossed, Cookie, Apple, Moon, ChevronDown, Flame, Beef, Wheat, Droplet, Clock, LucideIcon, Dumbbell, Zap, Pill, Weight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Food, FoodReference } from "@/types";
+import React from "react";
+import { useClientStore } from "@/stores/clientStore";
 
 // Helper function to generate random emoji pattern
 const generateEmojiPattern = (emojis: string[]) => {
@@ -105,17 +107,22 @@ interface MealCardProps {
   foodRefs: Record<string, FoodReference>;
   mealTime: string;
   onFoodClick: (food: Food) => void;
+  isChangingPlan: boolean;
 }
 
-export const MealCard: React.FC<MealCardProps> = ({
+export const MealCard: React.FC<MealCardProps> = React.memo(({
   meal,
   foods,
   foodRefs,
   mealTime,
-  onFoodClick
+  onFoodClick,
+  isChangingPlan
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const style = mealStyles[meal] || mealStyles['Snack 1']; // Default fallback
+  const [isImageLoading, setIsImageLoading] = useState(true);
+  const imageRefs = useRef<Record<string, HTMLImageElement>>({});
+  const { mediaCache } = useClientStore();
   
   // Generate emoji pattern once using useMemo
   const emojiElements = useMemo(() => 
@@ -129,6 +136,66 @@ export const MealCard: React.FC<MealCardProps> = ({
     carbs: acc.carbs + food.nutrition.carbs.value,
     fat: acc.fat + food.nutrition.fat.value
   }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+
+  // Use cached images if available
+  const imageUrls = useMemo(() => {
+    return foods.map(food => {
+      const ref = foodRefs[food.ref];
+      const url = ref.image;
+      return mediaCache.images[url] || url;
+    });
+  }, [foods, foodRefs, mediaCache.images]);
+
+  // Cleanup image references when unmounting or changing meals
+  useEffect(() => {
+    return () => {
+      Object.values(imageRefs.current).forEach(img => {
+        if (img) {
+          img.src = '';
+          img.removeAttribute('src');
+          URL.revokeObjectURL(img.src);
+        }
+      });
+      setIsImageLoading(true);
+    };
+  }, [foods]); 
+
+  // Modified lazy loading with cache check
+  useEffect(() => {
+    foods.forEach(food => {
+      const ref = foodRefs[food.ref];
+      if (!ref || !ref.image) return;
+
+      // If image is in cache, load immediately
+      if (mediaCache.images[ref.image]) {
+        if (imageRefs.current[food.ref]) {
+          imageRefs.current[food.ref].src = ref.image;
+          setIsImageLoading(false);
+        }
+        return;
+      }
+
+      // Otherwise, use intersection observer
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target as HTMLImageElement;
+            img.src = ref.image;
+            observer.unobserve(img);
+          }
+        });
+      }, { 
+        rootMargin: '50px',
+        threshold: 0.1
+      });
+
+      if (imageRefs.current[food.ref]) {
+        observer.observe(imageRefs.current[food.ref]);
+      }
+
+      return () => observer.disconnect();
+    });
+  }, [foods, foodRefs, mediaCache.images]);
 
   // Helper function for consistent macro chips
   const MacroChip = ({ 
@@ -180,7 +247,9 @@ export const MealCard: React.FC<MealCardProps> = ({
     <Card
       className={cn(
         "border-none overflow-hidden transition-all duration-300 w-full relative group",
-        "bg-content-secondary/5 backdrop-blur-sm hover:bg-content-secondary/10"
+        "bg-content-secondary/5 backdrop-blur-sm hover:bg-content-secondary/10",
+        "transition-opacity duration-300",
+        isChangingPlan && "opacity-50 pointer-events-none"
       )}
     >
       {/* Enhanced gradient background with animation */}
@@ -413,7 +482,7 @@ export const MealCard: React.FC<MealCardProps> = ({
       </CardBody>
     </Card>
   );
-};
+});
 
 export const mealIcons: Record<string, LucideIcon> = {
   'Breakfast': Coffee,

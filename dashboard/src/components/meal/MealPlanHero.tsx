@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { cn } from "@/utils/cn";
 import type { MealPlanHeroProps } from "@/types";
 import { GroceryListModal } from "./GroceryListModal";
+import React from "react";
 
 
 // Replace MacroCard with MacroStat inline component
@@ -54,7 +55,7 @@ const DayCard = ({ dayIndex, date, isSelected, onSelect }: any) => (
   </motion.div>
 );
 
-export const MealPlanHero: React.FC<MealPlanHeroProps> = ({
+export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
   plan,
   selectedDay,
   onDaySelect,
@@ -65,6 +66,7 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = ({
   historicalPlanIndex,
   onHistoricalPlanSelect,
   foodRefs,
+  isChangingPlan,
 }) => {
   const [showGroceryList, setShowGroceryList] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -117,9 +119,24 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = ({
     }
   }, [plan?.start]);
 
+  // Add null check for plan
+  if (!plan) return null;
+
   return (
     <LayoutGroup>
-      <Card className="border-none bg-content2 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] rounded-b-4xl overflow-visible">
+      <Card 
+        className={cn(
+          "border-none bg-content2 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] rounded-b-4xl overflow-visible",
+          "transition-all duration-300 ease-in-out", // Add transition
+          isChangingPlan && "opacity-50 pointer-events-none" // Fade when loading
+        )}
+      >
+        {/* Add loading overlay when changing plan */}
+        {isChangingPlan && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm rounded-b-4xl">
+            <div className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
+          </div>
+        )}
         <div className="p-6 space-y-4">
           {/* Top Row: Week Indicator, Grocery List, and Mode Switch */}
           <div className="flex items-center justify-between">
@@ -274,4 +291,4 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = ({
       />
     </LayoutGroup>
   );
-};
+});
