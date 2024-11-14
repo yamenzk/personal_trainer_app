@@ -18,9 +18,11 @@ interface ClientState {
     videos: Record<string, string>;
   };
   preloadImages: (urls: string[]) => void;
+  clearMediaCache: () => void;
 }
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+const IMAGE_CACHE_LIMIT = 100;
 
 export const useClientStore = create<ClientState>((set, get) => ({
   client: null,
@@ -57,6 +59,14 @@ export const useClientStore = create<ClientState>((set, get) => ({
         };
       }
     });
+  },
+  
+  // Add this helper
+  clearMediaCache: () => {
+    set(state => ({
+      ...state,
+      mediaCache: { images: {}, videos: {} }
+    }));
   },
 
   fetch: async () => {

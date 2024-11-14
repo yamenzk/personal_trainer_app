@@ -1,3 +1,4 @@
+import React, { useMemo, useCallback, useState, useEffect } from "react";
 import { Card } from "@nextui-org/react";
 import { 
   Moon, 
@@ -22,10 +23,28 @@ import {
   Brush,
   Footprints
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/utils/cn";
 
-// Different categories of rest day messages
+interface RestMessage {
+  message: string;
+  time: 'morning' | 'afternoon' | 'evening';
+}
+
+interface RecoveryActivity {
+  emoji: string;
+  text: string;
+  icon: typeof Gamepad2;
+}
+
+interface RestBenefit {
+  icon: typeof Heart;
+  title: string;
+  description: string;
+  color: 'danger' | 'warning' | 'success';
+}
+
+// Rest messages with proper typing
 const restMessages = {
   morning: [
     "Rise and rest! Today's workout is called 'The Professional Napper' 🛏️",
@@ -45,9 +64,9 @@ const restMessages = {
     "Rest mode: Activated 🌙",
     "Time for some horizontal cardio (sleeping) 💤",
   ]
-};
+} as const;
 
-// Different categories of recovery activities
+// Recovery activities with proper typing
 const recoveryActivities = {
   relaxation: [
     { emoji: "🎮", text: "Play your favorite game", icon: Gamepad2 },
@@ -74,10 +93,10 @@ const recoveryActivities = {
     { emoji: "🐱", text: "Cat cuddle therapy", icon: Cat },
     { emoji: "🐕", text: "Dog walking meditation", icon: Dog },
   ]
-};
+} as const;
 
-// Different rest benefits
-const restBenefits = [
+// Rest benefits with proper typing
+const restBenefits: RestBenefit[] = [
   {
     icon: Heart,
     title: "Rest = Gains",
@@ -116,161 +135,203 @@ const restBenefits = [
   }
 ];
 
-export const RestDayCard: React.FC = () => {
-  
-  // Get time-appropriate message
-  const getTimeBasedMessage = () => {
+export const RestDayCard: React.FC = React.memo(() => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Get time-appropriate message with proper memoization
+  const timeBasedMessage = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return restMessages.morning;
     if (hour < 18) return restMessages.afternoon;
     return restMessages.evening;
-  };
+  }, []);
 
-  // Randomly select message based on time of day
-  const timeMessages = getTimeBasedMessage();
-  const randomMessage = timeMessages[Math.floor(Math.random() * timeMessages.length)];
+  // Memoize random selections to prevent re-renders
+  const randomMessage = useMemo(() => 
+    timeBasedMessage[Math.floor(Math.random() * timeBasedMessage.length)],
+    [timeBasedMessage]
+  );
 
-  // Randomly select 3 unique benefits
-  const selectedBenefits = [...restBenefits]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 3);
+  const selectedBenefits = useMemo(() => 
+    [...restBenefits]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3),
+    []
+  );
 
-  // Select random activities for the recovery menu
-  const getRandomActivities = () => {
+  // Memoize activity selection
+  const selectedActivities = useMemo(() => {
     const categories = Object.keys(recoveryActivities) as Array<keyof typeof recoveryActivities>;
-    const selectedActivities: any[] = [];
+    const activities: RecoveryActivity[] = [];
     
-    // Get one from each category randomly
     categories.forEach(category => {
       const categoryActivities = recoveryActivities[category];
-      const randomActivity = categoryActivities[Math.floor(Math.random() * categoryActivities.length)];
-      selectedActivities.push(randomActivity);
+      const randomActivity = categoryActivities[
+        Math.floor(Math.random() * categoryActivities.length)
+      ];
+      activities.push(randomActivity);
     });
 
-    // Shuffle and take first 4
-    return selectedActivities
+    return activities
       .sort(() => Math.random() - 0.5)
       .slice(0, 4);
-  };
+  }, []);
 
-  const selectedActivities = getRandomActivities();
+  // Show component after mount for animations
+  useEffect(() => {
+    const timeout = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  // Render nothing until ready
+  if (!isVisible) return null;
 
   return (
-    <Card
-      className="p-6 space-y-6 mt-6 overflow-hidden relative border-none"
-      style={{
-        background: "linear-gradient(to bottom right, #1a237e, #283593, #303f9f)",
-      }}
-    >
-      {/* Stars background */}
-      <div className="absolute inset-0">
-        {[...Array(5)].map((_, i) => (
-          <div 
-            key={i}
-            className="absolute h-1 w-1 bg-white/30 rounded-full"
-            style={{ 
-              top: `${10 + (i * 20)}%`,
-              left: `${15 + (i * 20)}%`,
-              animation: `twinkle ${2 + i}s ease-in-out infinite`
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="relative">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative">
-            <div className="p-3 rounded-xl bg-white/10">
-              <Moon className="w-6 h-6 text-white" />
-            </div>
-            {[...Array(3)].map((_, i) => (
-              <motion.div
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card
+          className="p-6 space-y-6 mt-6 overflow-hidden relative border-none"
+          style={{
+            background: "linear-gradient(to bottom right, #1a237e, #283593, #303f9f)",
+          }}
+        >
+          {/* Stars background */}
+          <div className="absolute inset-0 pointer-events-none">
+            {[...Array(5)].map((_, i) => (
+              <motion.div 
                 key={i}
-                className={cn(
-                  "absolute text-xs font-bold text-white",
-                  "-right-2",
-                  i === 0 && "-top-1",
-                  i === 1 && "-top-3",
-                  i === 2 && "-top-5"
-                )}
-                animate={{ 
-                  opacity: [0, 1, 0],
-                  y: -5,
-                  x: i * 2
+                className="absolute h-1 w-1 bg-white/30 rounded-full"
+                style={{ 
+                  top: `${10 + (i * 20)}%`,
+                  left: `${15 + (i * 20)}%`,
                 }}
-                transition={{ 
-                  duration: 2,
-                  delay: i * 0.5,
+                animate={{ 
+                  opacity: [0.2, 0.5, 0.2],
+                  scale: [1, 1.2, 1]
+                }}
+                transition={{
+                  duration: 2 + i,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
-              >
-                z
-              </motion.div>
+              />
             ))}
           </div>
-          <div>
-            <motion.p
-              className="text-lg font-semibold text-white mb-1"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              {randomMessage}
-            </motion.p>
-            <p className="text-white/70 text-sm">Your daily dose of recovery</p>
-          </div>
-        </div>
 
-        {/* Recovery Cards */}
-        <div className="space-y-3">
-          {selectedBenefits.map((benefit, index) => (
+          {/* Content */}
+          <div className="relative z-10">
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative">
+                <motion.div 
+                  className="p-3 rounded-xl bg-white/10"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <Moon className="w-6 h-6 text-white" />
+                </motion.div>
+                {[...Array(3)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className={cn(
+                      "absolute text-xs font-bold text-white",
+                      "-right-2",
+                      i === 0 && "-top-1",
+                      i === 1 && "-top-3",
+                      i === 2 && "-top-5"
+                    )}
+                    animate={{ 
+                      opacity: [0, 1, 0],
+                      y: -5,
+                      x: i * 2
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      delay: i * 0.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    z
+                  </motion.div>
+                ))}
+              </div>
+              <div>
+                <motion.p
+                  className="text-lg font-semibold text-white mb-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {randomMessage}
+                </motion.p>
+                <p className="text-white/70 text-sm">Your daily dose of recovery</p>
+              </div>
+            </div>
+
+            {/* Recovery Cards */}
+            <div className="space-y-3">
+              {selectedBenefits.map((benefit, index) => (
+                <motion.div
+                  key={benefit.title}
+                  className="p-4 rounded-xl bg-white/5 border border-white/10"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg bg-${benefit.color}-500/20`}>
+                      <benefit.icon className={`w-4 h-4 text-${benefit.color}-500`} />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{benefit.title}</p>
+                      <p className="text-white/60 text-sm">{benefit.description}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Recovery Menu */}
             <motion.div
-              key={index}
-              className="p-4 rounded-xl bg-white/5 border border-white/10"
+              className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+              whileHover={{ scale: 1.02 }}
             >
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-${benefit.color}-500/20`}>
-                  <benefit.icon className={`w-4 h-4 text-${benefit.color}-500`} />
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-primary-500/20">
+                  <CloudMoon className="w-4 h-4 text-primary-500" />
                 </div>
                 <div>
-                  <p className="text-white font-medium">{benefit.title}</p>
-                  <p className="text-white/60 text-sm">{benefit.description}</p>
+                  <p className="text-white font-medium mb-2">Today's Recovery Menu:</p>
+                  <ul className="text-sm text-white/60 space-y-1.5">
+                    {selectedActivities.map((activity, index) => (
+                      <motion.li 
+                        key={activity.text}
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <span>{activity.emoji}</span> {activity.text}
+                      </motion.li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </motion.div>
-          ))}
-        </div>
-
-        {/* Recovery Menu */}
-        <motion.div
-          className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-primary-500/20">
-              <CloudMoon className="w-4 h-4 text-primary-500" />
-            </div>
-            <div>
-              <p className="text-white font-medium mb-2">Today's Recovery Menu:</p>
-              <ul className="text-sm text-white/60 space-y-1.5">
-                {selectedActivities.map((activity, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <span>{activity.emoji}</span> {activity.text}
-                  </li>
-                ))}
-              </ul>
-            </div>
           </div>
-        </motion.div>
-      </div>
-    </Card>
+        </Card>
+      </motion.div>
+    </AnimatePresence>
   );
-};
+});
+
+RestDayCard.displayName = 'RestDayCard';

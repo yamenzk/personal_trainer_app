@@ -168,6 +168,7 @@ const DayButton = React.memo(({
 });
 
 // Optimize the scroll effect
+// Optimize the scroll effect
 export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
   plan,
   selectedDay,
@@ -182,7 +183,6 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
 }: PlanHeroProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Debounce scroll handling
   useEffect(() => {
     if (!selectedDay || !scrollRef.current) return;
 
@@ -191,7 +191,6 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
     
     if (!selectedElement) return;
 
-    // Use requestAnimationFrame for smoother scrolling
     requestAnimationFrame(() => {
       const containerWidth = scrollContainer.clientWidth;
       const elementWidth = selectedElement.offsetWidth;
@@ -204,41 +203,51 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
     });
   }, [selectedDay]);
 
-  // Memoize stats calculations
-  const stats = useMemo(() => ({
-    total: {
-      workouts: Object.values(plan.days).reduce((total: number, day: any) =>
-        total + (day.exercises?.length > 0 ? 1 : 0), 0),
-      exercises: Object.values(plan.days).reduce((total: number, day: any) =>
-        total + (day.exercises?.length || 0), 0),
-    },
-    completed: {
-      workouts: Object.values(plan.days).filter((day: any) =>
-        day.exercises?.length > 0 && day.exercises.every((e: any) =>
-          e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
-        )
-      ).length,
-      exercises: Object.values(plan.days).reduce((total: number, day: any) =>
-        total + (day.exercises?.filter((e: any) =>
-          e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
-        ).length || 0), 0),
-    }
-  }), [plan]);
+  // Memoize stats calculations with null checks
+  const stats = useMemo(() => {
+    if (!plan) return {
+      total: { workouts: 0, exercises: 0 },
+      completed: { workouts: 0, exercises: 0 }
+    };
 
-  // Calculate streak
+    return {
+      total: {
+        workouts: Object.values(plan.days || {}).reduce((total: number, day: any) =>
+          total + (day.exercises?.length > 0 ? 1 : 0), 0),
+        exercises: Object.values(plan.days || {}).reduce((total: number, day: any) =>
+          total + (day.exercises?.length || 0), 0),
+      },
+      completed: {
+        workouts: Object.values(plan.days || {}).filter((day: any) =>
+          day.exercises?.length > 0 && day.exercises.every((e: any) =>
+            e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
+          )
+        ).length,
+        exercises: Object.values(plan.days || {}).reduce((total: number, day: any) =>
+          total + (day.exercises?.filter((e: any) =>
+            e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
+          ).length || 0), 0),
+      }
+    };
+  }, [plan]);
+
+  // Calculate streak with null checks
   const calculateStreak = () => {
+    if (!completedPlans?.length) return 0;
+    
     let streak = 0;
     let currentStreak = 0;
     const today = new Date();
 
     for (let i = 0; i < completedPlans.length; i++) {
       const plan = completedPlans[i];
+      if (!plan?.end) continue;
+      
       const planEnd = new Date(plan.end);
 
-      // Only count streaks up to today
       if (differenceInDays(planEnd, today) > 0) continue;
 
-      Object.values(plan.days).forEach((day: any) => {
+      Object.values(plan.days || {}).forEach((day: any) => {
         if (day.exercises?.length > 0 &&
           day.exercises.every((e: any) =>
             e.type === 'regular' ? e.exercise.logged : e.exercises.every((ex: any) => ex.logged)
@@ -253,16 +262,20 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
     return streak;
   };
 
+  // Return early if no plan
+  if (!plan) {
+    return null;
+  }
+
   return (
     <LayoutGroup>
       <Card 
         className={cn(
           "border-none bg-content2 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] rounded-b-4xl overflow-visible",
-          "transition-opacity duration-300 ease-in-out", // Add transition
-          isChangingPlan && "opacity-50" // Fade opacity when changing
+          "transition-opacity duration-300 ease-in-out",
+          isChangingPlan && "opacity-50"
         )}
       >
-        {/* Add loading overlay when changing plan */}
         {isChangingPlan && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm rounded-b-4xl">
             <div className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
@@ -278,7 +291,7 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
                     isIconOnly
                     size="sm"
                     variant="flat"
-                    isDisabled={historicalPlanIndex === completedPlans.length - 1}
+                    isDisabled={historicalPlanIndex === completedPlans?.length - 1}
                     onPress={() => onHistoricalPlanSelect(historicalPlanIndex + 1)}
                     className="bg-content/5"
                   >
@@ -286,7 +299,7 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
                   </Button>
 
                   <Chip size="sm" className="bg-content/10 border border-content/20">
-                    Week {completedPlans.length - historicalPlanIndex}
+                    Week {(completedPlans?.length ?? 0) - historicalPlanIndex}
                   </Chip>
 
                   <Button
@@ -324,7 +337,7 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
               endContent={<Zap className="w-3 h-3" />}
               isSelected={selectedPlan === 'history'}
               onValueChange={(isSelected) => onPlanTypeChange(isSelected ? 'history' : 'active')}
-              isDisabled={completedPlansCount === 0}
+              isDisabled={!completedPlansCount}
             >
               <span className="text-sm font-medium">
                 {selectedPlan === 'history' ? 'History' : 'Current'}
@@ -338,11 +351,10 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-primary-500" />
                 <h2 className="text-xl font-bold tracking-tight">
-                {format(new Date(plan.start), 'MMM d')} - {format(addDays(new Date(plan.start), 6), 'MMM d')}
+                  {format(new Date(plan.start), 'MMM d')} - {format(addDays(new Date(plan.start), 6), 'MMM d')}
                 </h2>
               </div>
               <div className="flex items-center gap-6">
-                {/* Stats and Progress */}
                 <div className="flex items-center gap-4 text-sm text-foreground/60">
                   <span className="flex items-center gap-1.5">
                     <Target className="w-4 h-4 text-secondary-500" />
@@ -352,7 +364,6 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
                     <Flame className="w-4 h-4 text-warning-500" />
                     <span>{calculateStreak()} day streak</span>
                   </span>
-                  {/* Inline Progress Bar */}
                   <div className="w-32 h-1.5">
                     <WeekProgress
                       completed={stats.completed.exercises}
@@ -387,12 +398,12 @@ export const PlanHero: React.FC<PlanHeroProps> = React.memo(({
         </div>
       </Card>
       <ContextualTip
-          plan={plan}
-          selectedDay={selectedDay}
-          completedWorkouts={stats.completed.workouts}
-          totalWorkouts={stats.total.workouts}
-          streak={calculateStreak()}
-        />
+        plan={plan}
+        selectedDay={selectedDay}
+        completedWorkouts={stats.completed.workouts}
+        totalWorkouts={stats.total.workouts}
+        streak={calculateStreak()}
+      />
     </LayoutGroup>
   );
 });

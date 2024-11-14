@@ -1,4 +1,4 @@
-import { Card, Chip, Button, Image, Skeleton } from "@nextui-org/react";
+import { Card, Chip, Button, Skeleton } from "@nextui-org/react";
 import { 
   Dumbbell, 
   Clock, 
@@ -9,13 +9,16 @@ import {
   ArrowUpRight,
   Target,
   BarChart,
+  AlertTriangle,
+  RefreshCcw,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/utils/cn";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { ExercisePerformance, ExerciseCardProps } from "@/types";
 import React from "react";
-import { useClientStore } from "@/stores/clientStore"; // Add this line
+import { useClientStore } from "@/stores/clientStore";
+import { useSafeImageLoading } from '@/hooks/useSafeImageLoading';
 
 export const ExerciseCard = React.memo(({
   exercise,
@@ -29,87 +32,118 @@ export const ExerciseCard = React.memo(({
   exerciseNumber,
   isChangingPlan,
 }: ExerciseCardProps) => {
-  const [isImageLoading, setIsImageLoading] = useState(true);
-  const imageRef = useRef<HTMLImageElement>(null);
   const details = references[exercise.ref];
-  const { mediaCache } = useClientStore(); // Add this line
+  const { mediaCache } = useClientStore();
+  const isMounted = useRef(true);
 
-  // Use cached image if available
+  // Use memoized image URL
   const imageUrl = useMemo(() => {
-    const targetUrl = details.thumbnail || details.starting;
+    const targetUrl = details?.thumbnail || details?.starting;
     return mediaCache.images[targetUrl] || targetUrl;
   }, [details, mediaCache.images]);
 
-  // Cleanup image references when unmounting
+  // Use our custom hook for safe image loading
+  const { isLoading: isImageLoading, error: imageError } = useSafeImageLoading(imageUrl);
+
   useEffect(() => {
+    isMounted.current = true;
     return () => {
-      if (imageRef.current) {
-        imageRef.current.src = '';
-      }
+      isMounted.current = false;
     };
   }, []);
 
-  // Cleanup resources when unmounting or changing exercises
-  useEffect(() => {
-    const currentImageRef = imageRef.current;
-    const cleanup = () => {
-      if (currentImageRef) {
-        currentImageRef.src = '';
-        currentImageRef.removeAttribute('src');
-        URL.revokeObjectURL(currentImageRef.src); // Clean up any object URLs
-      }
-      setIsImageLoading(true);
-    };
+  // Memoize exercise performance calculations
+  const [personalBest, lastPerformance] = useMemo(() => {
+    const exercisePerformance = performance?.[exercise.ref] || [];
+    
+    const best = exercisePerformance.reduce((best, current) => {
+      return (!best || current.weight > best.weight) ? current : best;
+    }, null as ExercisePerformance | null);
 
-    return cleanup;
-  }, [exercise.ref]); // Add dependency on exercise.ref
+    const last = exercisePerformance.length > 0
+      ? exercisePerformance[exercisePerformance.length - 1]
+      : null;
 
-  // Modified lazy loading with cache check
-  useEffect(() => {
-    if (!imageRef.current || !details) return;
+    return [best, last];
+  }, [performance, exercise.ref]);
 
-    // If image is in cache, load immediately
-    if (mediaCache.images[imageUrl]) {
-      imageRef.current.src = imageUrl;
-      setIsImageLoading(false);
-      return;
+  // Safe event handlers
+  const handleClick = () => {
+    if (!isChangingPlan && isMounted.current) {
+      onViewDetails();
     }
+  };
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target as HTMLImageElement;
-          img.src = imageUrl;
-          observer.unobserve(img);
-        }
-      });
-    }, { 
-      rootMargin: '50px',
-      threshold: 0.1 // Lower threshold for earlier loading
-    });
-
-    observer.observe(imageRef.current);
-    return () => observer.disconnect();
-  }, [details, imageUrl, mediaCache.images]);
-
-  const exercisePerformance = performance?.[exercise.ref] || [];
-
-  const personalBest = exercisePerformance.reduce((best, current) => {
-    return (!best || current.weight > best.weight) ? current : best;
-  }, null as ExercisePerformance | null);
-
-  const lastPerformance = exercisePerformance.length > 0
-    ? exercisePerformance[exercisePerformance.length - 1]
-    : null;
+  const handleLogSet = (e: React.MouseEvent) => {
+    if (!isChangingPlan && isMounted.current) {
+      e.stopPropagation();
+      onLogSet?.();
+    }
+  };
+  
+  const ImageWithFallback: React.FC<{ 
+    src: string;
+    alt: string;
+    className?: string;
+    onLoad?: () => void;
+  }> = ({ src, alt, className, onLoad }) => {
+    const { isLoading, error, retry } = useSafeImageLoading(src, onLoad);
+    
+    if (isLoading) {
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-content2/20 backdrop-blur-sm">
+          <div className="w-8 h-8 rounded-full border-2 border-primary animate-spin border-t-transparent" />
+        </div>
+      );
+    }
+  
+    if (error) {
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-content2/20 backdrop-blur-sm">
+          <div className="text-center space-y-2">
+            <AlertTriangle className="w-8 h-8 text-warning mx-auto" />
+            <p className="text-sm text-warning">Failed to load image</p>
+            <Button
+              size="sm"
+              variant="flat"
+              color="warning"
+              onPress={retry}
+              startContent={<RefreshCcw className="w-4 h-4" />}
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      );
+    }
+  
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={cn(
+          "w-full h-full object-cover",
+          "transition-all duration-300",
+          className
+        )}
+        onError={(e) => {
+          // If image fails to load after being initially successful
+          const target = e.target as HTMLImageElement;
+          target.src = 'https://bitsofco.de/img/Qo5mfYDE5v-350.png'; // Fallback image
+        }}
+      />
+    );
+  };
 
   return (
     <motion.div
-      onClick={onViewDetails}
+      onClick={handleClick}
       className="cursor-pointer"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
+      layout
     >
       <Card 
         className={cn(
@@ -118,25 +152,16 @@ export const ExerciseCard = React.memo(({
           isChangingPlan && "opacity-50 pointer-events-none"
         )}
       >
-        {/* Remove the gradient overlay div and modify the image container */}
+        {/* Image Section */}
         <div className="absolute inset-0">
-          {isImageLoading && (
-            <Skeleton className="w-full h-full">
-              <div className="w-full h-full bg-default-300"></div>
-            </Skeleton>
-          )}
-          <Image
-            ref={imageRef}
-            removeWrapper
+          <ImageWithFallback
+            src={imageUrl}
             alt={`Exercise ${exercise.ref}`}
             className={cn(
               "z-0 w-full h-full object-cover",
               "transition-all duration-500 group-hover:scale-110",
-              "brightness-[0.7] contrast-[1.2]", // Add filters here
-              isImageLoading ? "opacity-0" : "opacity-100"
+              "brightness-[0.7] contrast-[1.2]"
             )}
-            onLoad={() => setIsImageLoading(false)}
-            loading="lazy"
           />
         </div>
 
@@ -193,7 +218,7 @@ export const ExerciseCard = React.memo(({
             </motion.div>
           </div>
 
-          {/* Stats Section with improved contrast */}
+          {/* Stats Section */}
           <div className="flex flex-wrap gap-2 mt-2">
             <Chip
               size="sm"
@@ -217,7 +242,7 @@ export const ExerciseCard = React.memo(({
             </Chip>
           </div>
 
-          {/* Performance History with improved contrast */}
+          {/* Performance History */}
           <div className="mt-auto">
             {(personalBest || lastPerformance) && (
               <div className="space-y-2 mb-3">
@@ -243,9 +268,7 @@ export const ExerciseCard = React.memo(({
             {/* Action Buttons */}
             {!isLogged && !isSuperset && selectedPlan === 'active' && (
               <motion.div 
-                onClick={e => {
-                  e.stopPropagation();
-                }}
+                onClick={handleLogSet}
                 className="flex items-center gap-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -254,9 +277,6 @@ export const ExerciseCard = React.memo(({
                   className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium w-full"
                   size="sm"
                   startContent={<Zap size={14} />}
-                  onPress={() => {
-                    onLogSet?.();
-                  }}
                 >
                   Log Set
                 </Button>
@@ -264,9 +284,6 @@ export const ExerciseCard = React.memo(({
                   isIconOnly
                   className="bg-white/10 backdrop-blur-md text-white"
                   size="sm"
-                  onPress={() => {
-                    onViewDetails();
-                  }}
                 >
                   <BarChart size={14} />
                 </Button>
@@ -274,6 +291,18 @@ export const ExerciseCard = React.memo(({
             )}
           </div>
         </div>
+
+        {/* Loading/Error States */}
+        {isImageLoading && (
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+            <div className="loading-spinner" />
+          </div>
+        )}
+        {imageError && (
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+            <p className="text-white text-sm">Failed to load image</p>
+          </div>
+        )}
       </Card>
     </motion.div>
   );

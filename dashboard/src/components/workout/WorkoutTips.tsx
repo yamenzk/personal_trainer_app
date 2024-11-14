@@ -1,7 +1,7 @@
 // src/components/workout/WorkoutTip.tsx
 
 import { Card } from "@nextui-org/react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { 
   Droplets, 
   Bath, 
@@ -23,7 +23,8 @@ import {
   Flame
 } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { WorkoutTip, TipType, TipCardProps } from "@/types";
+import { WorkoutTip, TipType, TipCardProps, Exercise } from "@/types";
+import React, { useMemo } from "react";
 
 
 const tipStyles: Record<TipType, {
@@ -368,14 +369,15 @@ export const workoutTips: WorkoutTip[] = [
   }
 ];
 
-export const TipCard: React.FC<TipCardProps> = ({ tip }) => {
-  const style = tipStyles[tip.type];
+export const TipCard: React.FC<TipCardProps> = React.memo(({ tip }) => {
+  const style = useMemo(() => tipStyles[tip.type], [tip.type]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
+      layout
     >
       <Card
         className={cn(
@@ -396,33 +398,36 @@ export const TipCard: React.FC<TipCardProps> = ({ tip }) => {
         />
 
         {/* Floating emojis background animation */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute text-2xl"
-              initial={{ 
-                opacity: 0,
-                scale: 0.5,
-                x: Math.random() * 100,
-                y: 100 
-              }}
-              animate={{ 
-                opacity: [0, 1, 0],
-                scale: [0.5, 1, 0.5],
-                x: Math.random() * 100,
-                y: -20
-              }}
-              transition={{
-                duration: 2,
-                delay: i * 0.8,
-                repeat: Infinity,
-                repeatDelay: 1
-              }}
-            >
-              {tip.emoji}
-            </motion.div>
-          ))}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <AnimatePresence mode="wait">
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-2xl"
+                initial={{ 
+                  opacity: 0,
+                  scale: 0.5,
+                  x: Math.random() * 100,
+                  y: 100 
+                }}
+                animate={{ 
+                  opacity: [0, 1, 0],
+                  scale: [0.5, 1, 0.5],
+                  x: Math.random() * 100,
+                  y: -20
+                }}
+                transition={{
+                  duration: 2,
+                  delay: i * 0.8,
+                  repeat: Infinity,
+                  repeatDelay: 1,
+                  ease: "easeInOut"
+                }}
+              >
+                {tip.emoji}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
 
         {/* Content */}
@@ -511,76 +516,98 @@ export const TipCard: React.FC<TipCardProps> = ({ tip }) => {
       </Card>
     </motion.div>
   );
-};
-// Add a utility function to shuffle array
-const shuffleArray = <T,>(array: T[]): T[] => {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-  };
-  
-  // Keep track of used tips in the current session
-  let sessionUsedTips = new Set<string>();
-  
-  // Reset used tips if they exceed 75% of total tips
-  const resetTipsIfNeeded = () => {
+});
+
+TipCard.displayName = 'TipCard';
+
+// Custom hook for tip management
+export const useWorkoutTips = () => {
+  const [sessionUsedTips] = React.useState(() => new Set<string>());
+
+  const resetTips = React.useCallback(() => {
+    sessionUsedTips.clear();
+  }, [sessionUsedTips]);
+
+  const insertTips = React.useCallback((exercises: Exercise[]) => {
+    if (exercises.length <= 1) return exercises;
+
+    // Reset tips if needed
     if (sessionUsedTips.size > (workoutTips.length * 0.75)) {
-      sessionUsedTips.clear();
+      resetTips();
     }
+
+    // Get available positions for tips
+    const maxTips = Math.min(3, exercises.length - 1);
+    const numberOfTips = Math.floor(Math.random() * maxTips) + 1;
+    
+    // More efficient position selection
+    const availablePositions = exercises.reduce<number[]>((acc, _, index) => {
+      if (index > 0 && 
+          !acc.includes(index - 1) && 
+          !acc.includes(index + 1)) {
+        acc.push(index);
+      }
+      return acc;
+    }, []);
+
+    const tipPositions = new Set(
+      availablePositions
+        .sort(() => Math.random() - 0.5)
+        .slice(0, numberOfTips)
+    );
+
+    // Get available tips
+    const availableTips = workoutTips.filter(tip => 
+      !sessionUsedTips.has(tip.title)
+    );
+    
+    // Create result array with tips
+    const result: (Exercise | { type: 'tip', content: WorkoutTip })[] = [];
+    let tipIndex = 0;
+
+    exercises.forEach((exercise, index) => {
+      result.push(exercise);
+      
+      if (tipPositions.has(index + 1) && tipIndex < availableTips.length) {
+        const selectedTip = availableTips[tipIndex];
+        sessionUsedTips.add(selectedTip.title);
+        
+        result.push({
+          type: 'tip',
+          content: selectedTip
+        });
+        
+        tipIndex++;
+      }
+    });
+
+    return result;
+  }, [resetTips, sessionUsedTips]);
+
+  return {
+    insertTips,
+    resetTips
   };
-
-export const insertWorkoutTips = (exercises: any[]) => {
-  if (exercises.length <= 1) return exercises;
-
-  // Reset tips if needed
-  resetTipsIfNeeded();
-
-  // Determine how many tips to show
-  const maxTips = Math.min(3, exercises.length - 1);
-  const numberOfTips = Math.floor(Math.random() * maxTips) + 1;
-
-  // Get random positions for tips (never consecutive)
-  const tipPositions = new Set<number>();
-  while (tipPositions.size < numberOfTips) {
-    const position = Math.floor(Math.random() * (exercises.length - 1)) + 1;
-    if (!tipPositions.has(position - 1) && !tipPositions.has(position + 1)) {
-      tipPositions.add(position);
-    }
-  }
-
-  // Get available tips (tips not used in this session)
-  const availableTips = workoutTips.filter(tip => !sessionUsedTips.has(tip.title));
-  
-  // If running low on available tips, shuffle them for better variety
-  const shuffledAvailableTips = shuffleArray(availableTips);
-
-  // Create the new array with tips inserted
-  const result: any[] = [];
-  let tipIndex = 0;
-
-  exercises.forEach((exercise, index) => {
-    result.push(exercise);
-    if (tipPositions.has(index + 1) && tipIndex < shuffledAvailableTips.length) {
-      const selectedTip = shuffledAvailableTips[tipIndex];
-      // Mark this tip as used
-      sessionUsedTips.add(selectedTip.title);
-      
-      result.push({
-        type: 'tip',
-        content: selectedTip
-      });
-      
-      tipIndex++;
-    }
-  });
-
-  return result;
 };
 
-// Optional: Add a function to reset tips if needed
+// Utility functions
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+
+// Export wrapper function for direct usage
+export const insertWorkoutTips = (exercises: Exercise[]) => {
+  const { insertTips } = useWorkoutTips();
+  return insertTips(exercises);
+};
+
+// Optional reset function
 export const resetWorkoutTips = () => {
-  sessionUsedTips.clear();
+  const { resetTips } = useWorkoutTips();
+  resetTips();
 };

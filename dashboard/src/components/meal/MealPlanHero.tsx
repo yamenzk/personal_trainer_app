@@ -71,11 +71,23 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
   const [showGroceryList, setShowGroceryList] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const initRef = useRef(false);
-  const targets = plan.targets;
+  
+  // Add null checks for plan and targets
+  const targets = plan?.targets || {
+    energy: 0,
+    proteins: 0,
+    carbs: 0,
+    fats: 0
+  };
 
-  // Add initialization effect
+  // Add initialization effect with null checks
   useEffect(() => {
-    if (!initRef.current && selectedPlan === 'active' && !selectedDay && plan) {
+    if (
+      !initRef.current && 
+      selectedPlan === 'active' && 
+      !selectedDay && 
+      plan?.start
+    ) {
       const today = new Date();
       const todayString = format(today, 'yyyy-MM-dd');
       const planStart = new Date(plan.start);
@@ -95,11 +107,13 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
 
   // Add scroll effect
   useEffect(() => {
-    if (selectedDay && scrollRef.current) {
-      const scrollContainer = scrollRef.current;
-      const selectedElement = scrollContainer.children[selectedDay - 1] as HTMLElement;
-      
-      if (selectedElement) {
+    if (!selectedDay || !scrollRef.current) return;
+    
+    const scrollContainer = scrollRef.current;
+    const selectedElement = scrollContainer.children[selectedDay - 1] as HTMLElement;
+    
+    if (selectedElement) {
+      requestAnimationFrame(() => {
         const containerWidth = scrollContainer.clientWidth;
         const elementWidth = selectedElement.offsetWidth;
         const scrollLeft = selectedElement.offsetLeft - (containerWidth / 2) + (elementWidth / 2);
@@ -108,7 +122,7 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
           left: Math.max(0, scrollLeft),
           behavior: 'smooth'
         });
-      }
+      });
     }
   }, [selectedDay]);
 
@@ -127,18 +141,17 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
       <Card 
         className={cn(
           "border-none bg-content2 rounded-none shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] rounded-b-4xl overflow-visible",
-          "transition-all duration-300 ease-in-out", // Add transition
-          isChangingPlan && "opacity-50 pointer-events-none" // Fade when loading
+          "transition-all duration-300 ease-in-out",
+          isChangingPlan && "opacity-50 pointer-events-none"
         )}
       >
-        {/* Add loading overlay when changing plan */}
         {isChangingPlan && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm rounded-b-4xl">
             <div className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
           </div>
         )}
         <div className="p-6 space-y-4">
-          {/* Top Row: Week Indicator, Grocery List, and Mode Switch */}
+          {/* Top Row: Week Indicator and Mode Switch */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {selectedPlan === 'history' ? (
@@ -147,7 +160,7 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
                     isIconOnly
                     size="sm"
                     variant="flat"
-                    isDisabled={historicalPlanIndex === completedPlans.length - 1}
+                    isDisabled={historicalPlanIndex === (completedPlans?.length ?? 0) - 1}
                     onPress={() => onHistoricalPlanSelect(historicalPlanIndex + 1)}
                     className="bg-content/5"
                   >
@@ -155,7 +168,7 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
                   </Button>
 
                   <Chip size="sm" className="bg-content/10 border border-content/20">
-                    Week {completedPlans.length - historicalPlanIndex}
+                    Week {(completedPlans?.length ?? 0) - historicalPlanIndex}
                   </Chip>
 
                   <Button
@@ -180,8 +193,6 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
               )}
             </div>
 
-            {/* Updated Grocery List Button */}
-
             <Switch
               classNames={{
                 wrapper: cn(
@@ -195,7 +206,7 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
               endContent={<Zap className="w-3 h-3" />}
               isSelected={selectedPlan === 'history'}
               onValueChange={(isSelected) => onPlanTypeChange(isSelected ? 'history' : 'active')}
-              isDisabled={completedPlansCount === 0}
+              isDisabled={!completedPlansCount}
             >
               <span className="text-sm font-medium">
                 {selectedPlan === 'history' ? 'History' : 'Current'}
@@ -211,20 +222,19 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
                 <h2 className="text-xl font-bold tracking-tight">
                   {format(new Date(plan.start), 'MMM d')} - {format(addDays(new Date(plan.start), 6), 'MMM d')}
                   <Chip
-              size="sm"
-              variant="flat"
-              className={cn(
-                "cursor-pointer hover:bg-content2 transition-colors",
-                "border border-content1/30",
-                "mx-2",
-                "bg-content1/25"
-              )}
-              startContent={<ShoppingBasket className="w-4 h-4 text-secondary-500" />}
-              onClick={() => setShowGroceryList(true)}
-            >
-              <span className="font-medium text-secondary-500">Grocery List</span>
-            </Chip>
-
+                    size="sm"
+                    variant="flat"
+                    className={cn(
+                      "cursor-pointer hover:bg-content2 transition-colors",
+                      "border border-content1/30",
+                      "mx-2",
+                      "bg-content1/25"
+                    )}
+                    startContent={<ShoppingBasket className="w-4 h-4 text-secondary-500" />}
+                    onClick={() => setShowGroceryList(true)}
+                  >
+                    <span className="font-medium text-secondary-500">Grocery List</span>
+                  </Chip>
                 </h2>
               </div>
               {/* Inline Macro Stats */}
@@ -281,14 +291,16 @@ export const MealPlanHero: React.FC<MealPlanHeroProps> = React.memo(({
       </Card>
 
       {/* Grocery List Modal */}
-      <GroceryListModal
-        isOpen={showGroceryList}
-        onClose={() => setShowGroceryList(false)}
-        plan={plan}
-        foodRefs={foodRefs}
-        isPastPlan={selectedPlan === 'history'}
-        weekNumber={selectedPlan === 'history' ? completedPlans.length - historicalPlanIndex : undefined}
-      />
+      {showGroceryList && (
+        <GroceryListModal
+          isOpen={showGroceryList}
+          onClose={() => setShowGroceryList(false)}
+          plan={plan}
+          foodRefs={foodRefs}
+          isPastPlan={selectedPlan === 'history'}
+          weekNumber={selectedPlan === 'history' ? (completedPlans?.length ?? 0) - historicalPlanIndex : undefined}
+        />
+      )}
     </LayoutGroup>
   );
 });

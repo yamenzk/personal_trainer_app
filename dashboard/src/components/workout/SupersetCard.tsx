@@ -1,4 +1,4 @@
-import { Card, Image, Chip } from "@nextui-org/react";
+import { Card, Image, Chip, Button } from "@nextui-org/react";
 import { 
   Zap, 
   Dumbbell, 
@@ -9,12 +9,15 @@ import {
   Wind,
   Timer,
   ActivitySquare,
-  ArrowDownUp
+  ArrowDownUp,
+  AlertTriangle,
+  RefreshCcw
 } from "lucide-react";
 import { ExerciseBase, ExerciseReference } from "@/types";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/utils/cn";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useMemo, useCallback } from "react";
+import { useSafeImageLoading } from '@/hooks/useSafeImageLoading';
 
 interface SupersetCardProps {
   exercises: ExerciseBase[];
@@ -23,7 +26,64 @@ interface SupersetCardProps {
   onViewDetails: (exerciseRef: string) => void;
   selectedPlan: 'active' | 'history';
   exerciseNumber?: number;
+  isChangingPlan?: boolean;
 }
+
+const ExerciseImageWithFallback: React.FC<{
+  src: string;
+  alt: string;
+  onLoad?: () => void;
+  className?: string;
+}> = React.memo(({ src, alt, onLoad, className }) => {
+  const { isLoading, error, retry } = useSafeImageLoading(src, onLoad);
+
+  if (isLoading) {
+    return (
+      <div className="absolute inset-0 bg-content2/20 backdrop-blur-sm flex items-center justify-center">
+        <motion.div 
+          className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="absolute inset-0 bg-content2/20 backdrop-blur-sm flex items-center justify-center">
+        <div className="text-center space-y-2 p-4">
+          <AlertTriangle className="w-8 h-8 text-warning mx-auto" />
+          <p className="text-sm text-warning/90">Failed to load image</p>
+          <Button
+            size="sm"
+            variant="flat"
+            color="warning"
+            onPress={retry}
+            startContent={<RefreshCcw className="w-4 h-4" />}
+          >
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      removeWrapper
+      alt={alt}
+      className={cn(
+        "z-0 w-full h-full object-cover transition-transform duration-500",
+        className
+      )}
+      src={src}
+      loading="lazy"
+    />
+  );
+});
+
+ExerciseImageWithFallback.displayName = 'ExerciseImageWithFallback';
 
 const supersetTips = [
   {
@@ -65,11 +125,6 @@ const getTitleByCount = (count: number): string => {
     "Power Pair Ready 🎯🎯",
     "2x Combo Loaded ⚡️",
     "Tag Team Action 🤝",
-    "Back-to-Back Attack 🔄",
-    "Double Impact Mode 💥",
-    "Partner Exercise Time 🤸‍♂️",
-    "2-Step Crusher 🔥",
-    "Double Dragon Mode 🐉",
   ];
 
   const threeExerciseTitles = [
@@ -78,16 +133,119 @@ const getTitleByCount = (count: number): string => {
     "Trinity Mode Activated 🔱",
     "Triple Impact Ready 💥💥💥",
     "3-Step Destroyer 🔥🔥🔥",
-    "Triple Crown Challenge 👑",
-    "3-Hit Combo 🎮",
-    "Triple Force Active 💪💪💪",
-    "Three Peaks Ahead 🏔️",
-    "Triple Play Time ⚡️",
   ];
 
   const titles = count === 2 ? twoExerciseTitles : threeExerciseTitles;
   return titles[Math.floor(Math.random() * titles.length)];
 };
+
+interface ExerciseItemProps {
+  exercise: ExerciseBase;
+  index: number;
+  reference: ExerciseReference;
+  onViewDetails: (exerciseRef: string) => void;
+  isChangingPlan?: boolean;
+}
+
+const ExerciseItem = React.memo(({ 
+  exercise, 
+  index,
+  reference,
+  onViewDetails,
+  isChangingPlan 
+}: { 
+  exercise: ExerciseBase; 
+  index: number;
+  reference: ExerciseReference;
+  onViewDetails: (exerciseRef: string) => void;
+  isChangingPlan?: boolean;
+}) => {
+  const isMounted = useRef(true);
+  const imageUrl = useMemo(() => 
+    reference.thumbnail || reference.starting,
+    [reference]
+  );
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const handleClick = useCallback(() => {
+    if (!isChangingPlan && isMounted.current) {
+      onViewDetails(exercise.ref);
+    }
+  }, [isChangingPlan, onViewDetails, exercise.ref]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+    >
+      <Card 
+        isPressable
+        onPress={handleClick}
+        className="relative overflow-hidden border-none h-[300px] group"
+      >
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
+          <ExerciseImageWithFallback
+            src={imageUrl}
+            alt={`Exercise ${exercise.ref}`}
+            className="group-hover:scale-110"
+          />
+        </div>
+
+        {/* Content Overlay */}
+        <div className="relative z-20 p-4 h-full flex flex-col justify-between">
+          <div>
+            <motion.p 
+              className="text-tiny text-white/80 uppercase font-bold tracking-wide"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {reference.primary_muscle}
+            </motion.p>
+            <motion.h4 
+              className="text-white text-xl font-semibold"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              {exercise.ref}
+            </motion.h4>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Chip
+              size="sm"
+              className="border-2 border-primary-500 bg-primary-500/30 backdrop-blur-md text-white font-medium"
+              startContent={<Dumbbell size={14} className="text-white" />}
+            >
+              {exercise.reps}
+            </Chip>
+
+            {exercise.logged === 1 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-6 h-6 rounded-full bg-success-500/20 flex items-center justify-center"
+              >
+                <CheckCircle2 size={14} className="text-success-500" />
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </Card>
+    </motion.div>
+  );
+});
+
+ExerciseItem.displayName = 'ExerciseItem';
 
 export const SupersetCard = React.memo(({
   exercises,
@@ -95,96 +253,39 @@ export const SupersetCard = React.memo(({
   onLogPerformance,
   onViewDetails,
   selectedPlan,
-  exerciseNumber
+  exerciseNumber,
+  isChangingPlan
 }: SupersetCardProps) => {
-  const randomTip = supersetTips[Math.floor(Math.random() * supersetTips.length)];
+  const isMounted = useRef(true);
+  
+  const randomTip = useMemo(() => 
+    supersetTips[Math.floor(Math.random() * supersetTips.length)],
+    []
+  );
 
-  const ExerciseItem = React.memo(({ exercise, index }: { exercise: ExerciseBase; index: number }) => {
-    const [isImageLoading, setIsImageLoading] = useState(true);
-    const imageRef = useRef<HTMLImageElement>(null);
-    const exerciseRef = references[exercise.ref];
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      // Clear any cached resources if needed
+    };
+  }, []);
 
-    useEffect(() => {
-      return () => {
-        if (imageRef.current) {
-          imageRef.current.src = '';
-        }
-      };
-    }, []);
-
-    if (!exerciseRef) return null;
-
-    return (
-      <Card 
-        className="relative overflow-hidden border-none h-[300px]"
-        isPressable
-        onPress={() => onViewDetails(exercise.ref)}
-      >
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 z-10" />
-
-        {/* Exercise Image */}
-        <Image
-          ref={imageRef}
-          removeWrapper
-          alt={`Exercise ${exercise.ref}`}
-          className="z-0 w-full h-full object-cover"
-          src={exerciseRef.thumbnail || exerciseRef.starting}
-          onLoad={() => setIsImageLoading(false)}
-          loading="lazy"
-        />
-
-        {/* Content */}
-        <div className="absolute inset-0 z-20 p-4 flex flex-col justify-between">
-          <div>
-            <p className="text-tiny text-white/80 uppercase font-bold tracking-wide">
-              {exerciseRef.primary_muscle}
-            </p>
-            <h4 className="text-white text-xl font-semibold">
-              {exercise.ref}
-            </h4>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
-              <Chip
-                size="sm"
-                className="border-2 border-primary-500 bg-primary-500/30 backdrop-blur-md text-white font-medium"
-                startContent={<Dumbbell size={14} className="text-white" />}
-              >
-                {exercise.reps}
-              </Chip>
-            </div>
-            {exercise.logged === 1 && (
-              <div className="w-6 h-6 rounded-full bg-success-500/20 flex items-center justify-center">
-                <CheckCircle2 size={14} className="text-success-500" />
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-    );
-  });
-
-  const ExercisesGrid = React.memo(() => {
+  const renderExercisesGrid = useCallback(() => {
     if (exercises.length > 3) {
-      // For large supersets, render in batches
       return (
         <div className="space-y-4">
           {chunk(exercises, 2).map((batch, batchIndex) => (
             <div key={batchIndex} className="grid grid-cols-2 gap-4">
-              {batch.map((exercise, index) => (
-                <motion.div
+              {batch.map((exercise) => (
+                <ExerciseItem
                   key={exercise.ref}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: (batchIndex * 2 + index) * 0.1 }}
-                >
-                  <ExerciseItem 
-                    exercise={exercise} 
-                    index={batchIndex * 2 + index} 
-                  />
-                </motion.div>
+                  exercise={exercise}
+                  index={batchIndex}
+                  reference={references[exercise.ref]}
+                  onViewDetails={onViewDetails}
+                  isChangingPlan={isChangingPlan}
+                />
               ))}
             </div>
           ))}
@@ -196,14 +297,14 @@ export const SupersetCard = React.memo(({
       return (
         <div className="grid grid-cols-2 gap-4">
           {exercises.map((exercise, index) => (
-            <motion.div
+            <ExerciseItem
               key={exercise.ref}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <ExerciseItem exercise={exercise} index={index} />
-            </motion.div>
+              exercise={exercise}
+              index={index}
+              reference={references[exercise.ref]}
+              onViewDetails={onViewDetails}
+              isChangingPlan={isChangingPlan}
+            />
           ))}
         </div>
       );
@@ -212,36 +313,32 @@ export const SupersetCard = React.memo(({
     if (exercises.length === 3) {
       return (
         <div className="space-y-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <ExerciseItem exercise={exercises[0]} index={0} />
-          </motion.div>
+          <ExerciseItem
+            exercise={exercises[0]}
+            index={0}
+            reference={references[exercises[0].ref]}
+            onViewDetails={onViewDetails}
+            isChangingPlan={isChangingPlan}
+          />
 
           <div className="grid grid-cols-2 gap-4">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <ExerciseItem exercise={exercises[1]} index={1} />
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <ExerciseItem exercise={exercises[2]} index={2} />
-            </motion.div>
+            {exercises.slice(1).map((exercise, index) => (
+              <ExerciseItem
+                key={exercise.ref}
+                exercise={exercise}
+                index={index + 1}
+                reference={references[exercise.ref]}
+                onViewDetails={onViewDetails}
+                isChangingPlan={isChangingPlan}
+              />
+            ))}
           </div>
 
-          <div className="flex items-center justify-center gap-2 -mt-2">
+          <div className="flex items-center justify-center gap-2">
             <motion.div
               className="h-px w-16 bg-warning-500/50"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.3 }}
             />
             <div className="p-1.5 rounded-full bg-warning-500/20">
               <ArrowDownUp className="w-3 h-3 text-warning-500" />
@@ -250,7 +347,6 @@ export const SupersetCard = React.memo(({
               className="h-px w-16 bg-warning-500/50"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.3 }}
             />
           </div>
         </div>
@@ -258,12 +354,12 @@ export const SupersetCard = React.memo(({
     }
 
     return null;
-  });
+  }, [exercises, references, onViewDetails, isChangingPlan]);
 
   return (
-    <Card className="w-full bg-background/1 border-none" style={{ boxShadow: 'none' }}>
+    <Card className="w-full bg-background/1 border-none shadow-none">
       <div className="space-y-6">
-        {/* Header */}
+        {/* Header Section */}
         <motion.div 
           className="flex items-center gap-3"
           initial={{ opacity: 0, y: 20 }}
@@ -293,14 +389,11 @@ export const SupersetCard = React.memo(({
             </h3>
             <div className="flex items-center gap-2 text-sm text-foreground/60">
               <span>Complete all {exercises.length} exercises back to back</span>
-              {/* <span>•</span>
-              <span className="flex items-center gap-1">
-                <Timer className="w-3.5 h-3.5" />
-                {exercises[0].rest}s rest
-              </span> */}
             </div>
           </div>
         </motion.div>
+
+        {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-2">
           <div className="flex items-center gap-2 p-2 rounded-lg bg-content/5">
             <Timer className="w-4 h-4 text-primary-500" />
@@ -317,12 +410,15 @@ export const SupersetCard = React.memo(({
           <div className="flex items-center gap-2 p-2 rounded-lg bg-content/5">
             <Target className="w-4 h-4 text-success-500" />
             <span className="text-xs">
-              {exercises[0].sets} rounds (sets)
+              {exercises[0].sets} rounds
             </span>
           </div>
         </div>
+
         {/* Exercises Grid */}
-        <ExercisesGrid />
+        <AnimatePresence>
+          {renderExercisesGrid()}
+        </AnimatePresence>
 
         {/* Tip Section */}
         <motion.div 
@@ -352,25 +448,17 @@ export const SupersetCard = React.memo(({
             </p>
           </div>
         </motion.div>
-
-        {/* Quick Stats */}
-        
       </div>
     </Card>
   );
-}, (prevProps, nextProps) => {
-  // Add custom comparison for better memoization
-  return (
-    prevProps.exerciseNumber === nextProps.exerciseNumber &&
-    prevProps.selectedPlan === nextProps.selectedPlan &&
-    prevProps.exercises.length === nextProps.exercises.length &&
-    prevProps.exercises.every((ex, i) => ex.ref === nextProps.exercises[i].ref)
-  );
 });
 
-// Helper function to chunk arrays
+SupersetCard.displayName = 'SupersetCard';
+
+// Helper function
 const chunk = <T,>(array: T[], size: number): T[][] => {
-  return Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
-    array.slice(i * size, i * size + size)
+  return Array.from(
+    { length: Math.ceil(array.length / size) },
+    (_, i) => array.slice(i * size, i * size + size)
   );
 };

@@ -4,22 +4,7 @@ import { Dumbbell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays } from "date-fns";
 
-// Updated imports from centralized types
-import {
-  ExerciseBase,
-  ExerciseReference,
-  Client,
-  Plan
-} from '@/types';
-
-// Utility imports
-import { usePlans } from "../hooks/usePlans";
-import {
-  logPerformance,
-  calculatePlanProgress,
-} from "../utils/api";
-
-// Component imports
+// Components
 import { ExerciseCard } from "../components/workout/ExerciseCard";
 import { SupersetCard } from "../components/workout/SupersetCard";
 import { RestDayCard } from "../components/workout/RestDay";
@@ -27,10 +12,41 @@ import { PlanHero } from "../components/workout/PlanHero";
 import { ExerciseDetailsModal } from "../components/workout/ExerciseDetailsModal";
 import { PerformanceModal } from "../components/workout/PerformanceModal";
 import { PageTransition } from "@/components/shared/PageTransition";
+import { WorkoutErrorBoundary } from "@/components/shared/WorkoutErrorBoundary";
 import { insertWorkoutTips, TipCard } from "@/components/workout/WorkoutTips";
-import { useClientStore } from "@/stores/clientStore";
-import React from "react";
 import { NoActivePlan } from "@/components/shared/NoActivePlan";
+
+// Hooks and Utils
+import { usePlans } from "../hooks/usePlans";
+import { logPerformance } from "../utils/api";
+import { useClientStore } from "@/stores/clientStore";
+
+// Types
+import {
+  ExerciseBase,
+  ExerciseReference,
+  Client,
+  Plan,
+  Exercise
+} from '@/types';
+
+interface ExerciseItem {
+  type: 'regular' | 'superset' | 'tip';
+  exercise?: ExerciseBase;
+  exercises?: ExerciseBase[];
+  content?: any;
+}
+
+const SectionTitle = () => (
+  <div className="flex items-center gap-4 my-6">
+    <div className="h-px flex-1 bg-content-secondary/10" />
+    <h2 className="text-xl font-semibold text-foreground/80 flex items-center gap-2">
+      <Dumbbell className="w-5 h-5" />
+      Exercises
+    </h2>
+    <div className="h-px flex-1 bg-content-secondary/10" />
+  </div>
+);
 
 // Skeleton Component
 const WorkoutPlanSkeleton = () => {
@@ -91,40 +107,25 @@ const WorkoutPlanSkeleton = () => {
   );
 };
 
-const SectionTitle = () => (
-  <div className="flex items-center gap-4 my-6">
-    <div className="h-px flex-1 bg-content-secondary/10" />
-    <h2 className="text-xl font-semibold text-foreground/80 flex items-center gap-2">
-      <Dumbbell className="w-5 h-5" />
-      Exercises
-    </h2>
-    <div className="h-px flex-1 bg-success/10" />
-  </div>
-);
+const getItemKey = (item: ExerciseItem, index: number): string => {
+  if (item.type === "tip") return `tip-${index}`;
+  if (item.type === "regular") return `exercise-${item.exercise?.ref}-${index}`;
+  return `superset-${index}`;
+};
 
-interface ExerciseItem {
-  type: 'regular' | 'superset' | 'tip';
-  exercise?: ExerciseBase;
-  exercises?: ExerciseBase[];
-  content?: any;
-}
-
-// Main Content Component
+// WorkoutPlansContent Component
 const WorkoutPlansContent = ({
   client,
   plans,
   references,
   refreshData,
-  currentDay,
 }: {
   client: Client;
   plans: Plan[];
   references: any;
   refreshData: () => Promise<void>;
-  currentDay: number | null;
 }) => {
-  // 1. All hooks at the top - never conditional
-  const { activePlan, completedPlans } = usePlans(plans);
+  // State
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<"active" | "history">("active");
   const [historicalPlanIndex, setHistoricalPlanIndex] = useState(0);
@@ -136,53 +137,106 @@ const WorkoutPlansContent = ({
     isLogged: boolean;
   } | null>(null);
   const [isChangingPlan, setIsChangingPlan] = useState(false);
+
+  // Refs
+  const isMounted = useRef(true);
   const initRef = useRef(false);
 
-  // 2. Current plan calculation moved outside of render
-  const currentPlan = selectedPlan === "active" ? activePlan : completedPlans[historicalPlanIndex];
-  const dayKey = `day_${selectedDay}`;
-  const exercises = currentPlan?.days[dayKey]?.exercises ?? [];
-  const hasWorkout = exercises.length > 0;
-  const exercisesWithTips = useMemo(() => insertWorkoutTips(exercises), [exercises]);
+  // Hooks
+  const { activePlan, completedPlans } = usePlans(plans);
+  const clearMediaCache = useClientStore(state => state.clearMediaCache);
+  const preloadImages = useClientStore(state => state.preloadImages);
 
-  // 3. All callbacks
+  // Memoized Values
+  const currentPlan = useMemo(() => {
+    return selectedPlan === "active" 
+      ? activePlan 
+      : (completedPlans && completedPlans.length > 0 
+          ? completedPlans[Math.min(historicalPlanIndex, completedPlans.length - 1)] 
+          : null);
+  }, [selectedPlan, activePlan, completedPlans, historicalPlanIndex]);
+
+  const dayKey = useMemo(() => `day_${selectedDay}`, [selectedDay]);
+  
+  const { exercises, hasWorkout } = useMemo(() => {
+    const exs = currentPlan?.days[dayKey]?.exercises ?? [];
+    return {
+      exercises: exs,
+      hasWorkout: exs.length > 0
+    };
+  }, [currentPlan, dayKey]);
+
+  const exercisesWithTips = useMemo(() => 
+    insertWorkoutTips(exercises),
+    [exercises]
+  );
+
+  // Callbacks
   const handlePlanTypeChange = useCallback((key: "active" | "history") => {
-    setIsChangingPlan(true);
-    const content = document.querySelector('.workout-content');
-    if (content) {
-      content.classList.add('opacity-0', 'scale-95');
+    if (key === "history" && (!completedPlans || completedPlans.length === 0)) {
+      return;
     }
 
-    setTimeout(() => {
-      setSelectedExercise(null);
-      setShowDetailsModal(false);
-      setShowPerformanceModal(false);
-      setSelectedPlan(key);
-      
-      setTimeout(() => {
-        if (content) {
-          content.classList.remove('opacity-0', 'scale-95');
+    setIsChangingPlan(true);
+    clearMediaCache();
+
+    requestAnimationFrame(() => {
+      if (isMounted.current) {
+        setSelectedExercise(null);
+        setShowDetailsModal(false);
+        setShowPerformanceModal(false);
+        setSelectedPlan(key);
+        
+        if (key === "history" && historicalPlanIndex >= (completedPlans?.length ?? 0)) {
+          setHistoricalPlanIndex(0);
         }
+        
+        setTimeout(() => {
+          if (isMounted.current) {
+            setIsChangingPlan(false);
+          }
+        }, 300);
+      }
+    });
+  }, [completedPlans, historicalPlanIndex, clearMediaCache]);
+
+  const handleHistoricalPlanSelect = useCallback((index: number) => {
+    if (!completedPlans || index >= completedPlans.length) return;
+    
+    setIsChangingPlan(true);
+    requestAnimationFrame(() => {
+      setHistoricalPlanIndex(index);
+      setTimeout(() => {
         setIsChangingPlan(false);
       }, 300);
-    }, 300);
-  }, []);
+    });
+  }, [completedPlans]);
 
   const handleDaySelect = useCallback((day: number) => {
+    if (day === selectedDay) return;
+
     setIsChangingPlan(true);
-    setSelectedExercise(null);
-    setShowDetailsModal(false);
-    setShowPerformanceModal(false);
-    
-    setTimeout(() => {
-      setSelectedDay(day);
-      setIsChangingPlan(false);
-    }, 300);
-  }, []);
+    clearMediaCache();
+
+    requestAnimationFrame(() => {
+      if (isMounted.current) {
+        setSelectedDay(day);
+        setSelectedExercise(null);
+        setShowDetailsModal(false);
+        setShowPerformanceModal(false);
+        
+        setTimeout(() => {
+          if (isMounted.current) {
+            setIsChangingPlan(false);
+          }
+        }, 300);
+      }
+    });
+  }, [selectedDay, clearMediaCache]);
 
   const handleExerciseDetails = useCallback((exerciseRef: string) => {
     const exerciseDetails = references.exercises[exerciseRef];
-    if (!exerciseDetails) return;
+    if (!exerciseDetails || isChangingPlan) return;
 
     const details = { ...exerciseDetails };
     if (details.video) {
@@ -202,66 +256,42 @@ const WorkoutPlansContent = ({
       isLogged: false,
     });
     setShowDetailsModal(true);
-  }, [references.exercises]);
+  }, [references.exercises, isChangingPlan]);
 
-  const handleExerciseLog = useCallback((item: any) => {
-    if (!item.exercise) return;
+  const handleExerciseLog = useCallback((item: ExerciseItem) => {
+    if (!item.exercise || isChangingPlan) return;
+    
     setSelectedExercise({
       exercise: item.exercise,
       details: references.exercises[item.exercise.ref],
       isLogged: item.exercise.logged === 1,
     });
     setShowPerformanceModal(true);
-  }, [references.exercises]);
+  }, [references.exercises, isChangingPlan]);
 
   const handleLogPerformance = useCallback(async (
     exerciseRef: string,
     weight: number,
     reps: number
   ) => {
-    if (!client) return;
-    await logPerformance(client.name, exerciseRef, weight, reps, dayKey);
-    await refreshData();
+    if (!client || !dayKey) return;
+    
+    try {
+      await logPerformance(client.name, exerciseRef, weight, reps, dayKey);
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to log performance:', error);
+    }
   }, [client, dayKey, refreshData]);
 
-  // 4. All effects
+  // Effects
   useEffect(() => {
+    isMounted.current = true;
     return () => {
-      setSelectedExercise(null);
-      setShowDetailsModal(false);
-      setShowPerformanceModal(false);
-      setIsChangingPlan(false);
+      isMounted.current = false;
+      clearMediaCache();
     };
-  }, [selectedPlan, selectedDay]);
-
-  useEffect(() => {
-    if (isChangingPlan) {
-      setSelectedExercise(null);
-      setShowDetailsModal(false);
-      setShowPerformanceModal(false);
-      
-      document.querySelectorAll('img').forEach(img => {
-        if (img.src.includes(window.location.origin)) {
-          img.src = '';
-          img.removeAttribute('src');
-        }
-      });
-    }
-  }, [isChangingPlan, selectedPlan, selectedDay]);
-
-  useEffect(() => {
-    return () => {
-      setSelectedExercise(null);
-      setShowDetailsModal(false);
-      setShowPerformanceModal(false);
-      setIsChangingPlan(false);
-      
-      useClientStore.setState(state => ({
-        ...state,
-        mediaCache: { images: {}, videos: {} }
-      }));
-    };
-  }, []);
+  }, [clearMediaCache]);
 
   useEffect(() => {
     if (
@@ -287,13 +317,7 @@ const WorkoutPlansContent = ({
     }
   }, [selectedPlan, activePlan, selectedDay]);
 
-  useEffect(() => {
-    if (activePlan?.start) {
-      initRef.current = false;
-    }
-  }, [activePlan?.start]);
-
-  // 5. Image preloading effect
+  // Preload images for current day
   useEffect(() => {
     if (!exercisesWithTips?.length) return;
 
@@ -312,10 +336,12 @@ const WorkoutPlansContent = ({
         return [];
       });
 
-    useClientStore.getState().preloadImages(urls);
-  }, [exercisesWithTips, references.exercises]);
+    if (urls.length > 0) {
+      preloadImages(urls);
+    }
+  }, [exercisesWithTips, references.exercises, preloadImages]);
 
-  // 6. Render methods
+  // Render methods
   const renderExercises = useCallback(() => {
     return (
       <div className="space-y-6">
@@ -333,25 +359,27 @@ const WorkoutPlansContent = ({
             ) : item.type === "regular" ? (
               <div className="px-4">
                 <ExerciseCard
-                  exercise={item.exercise}
+                  exercise={item.exercise!}
                   references={references.exercises}
                   performance={references.performance}
-                  isLogged={item.exercise.logged === 1}
+                  isLogged={item.exercise!.logged === 1}
                   onLogSet={() => handleExerciseLog(item)}
-                  onViewDetails={() => handleExerciseDetails(item.exercise.ref)}
+                  onViewDetails={() => handleExerciseDetails(item.exercise!.ref)}
                   selectedPlan={selectedPlan}
                   exerciseNumber={index + 1}
+                  isChangingPlan={isChangingPlan}
                 />
               </div>
             ) : (
               <div className="px-4">
                 <SupersetCard
-                  exercises={item.exercises}
+                  exercises={item.exercises!}
                   references={references.exercises}
                   onLogPerformance={handleLogPerformance}
                   onViewDetails={handleExerciseDetails}
                   selectedPlan={selectedPlan}
                   exerciseNumber={index + 1}
+                  isChangingPlan={isChangingPlan}
                 />
               </div>
             )}
@@ -359,7 +387,16 @@ const WorkoutPlansContent = ({
         ))}
       </div>
     );
-  }, [exercisesWithTips, handleExerciseLog, handleExerciseDetails, handleLogPerformance, references.exercises, references.performance, selectedPlan]);
+  }, [
+    exercisesWithTips,
+    references.exercises,
+    references.performance,
+    handleExerciseLog,
+    handleExerciseDetails,
+    handleLogPerformance,
+    selectedPlan,
+    isChangingPlan
+  ]);
 
   // No active plan check
   if (!activePlan && selectedPlan === 'active') {
@@ -368,21 +405,21 @@ const WorkoutPlansContent = ({
         <div className="container mx-auto">
           <div className="flex flex-col gap-4">
             <PlanHero
-              plan={completedPlans[0] ?? null}
+              plan={completedPlans?.[0] ?? null}
               selectedDay={selectedDay}
               currentDay={null}
               onDaySelect={handleDaySelect}
               selectedPlan={selectedPlan}
               onPlanTypeChange={handlePlanTypeChange}
-              completedPlansCount={completedPlans.length}
-              completedPlans={completedPlans}
+              completedPlansCount={completedPlans?.length ?? 0}
+              completedPlans={completedPlans ?? []}
               historicalPlanIndex={historicalPlanIndex}
-              onHistoricalPlanSelect={setHistoricalPlanIndex}
+              onHistoricalPlanSelect={handleHistoricalPlanSelect}
               isChangingPlan={isChangingPlan}
             />
             <NoActivePlan 
               type="workout"
-              hasHistory={completedPlans.length > 0}
+              hasHistory={Boolean(completedPlans?.length)}
               onViewHistory={() => handlePlanTypeChange('history')}
             />
           </div>
@@ -397,14 +434,13 @@ const WorkoutPlansContent = ({
       <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
         <NoActivePlan 
           type="workout"
-          hasHistory={completedPlans.length > 0}
+          hasHistory={Boolean(completedPlans?.length)}
           onViewHistory={() => handlePlanTypeChange('history')}
         />
       </div>
     );
   }
 
-  // Main render
   return (
     <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
       <div className="container mx-auto">
@@ -416,10 +452,10 @@ const WorkoutPlansContent = ({
             onDaySelect={handleDaySelect}
             selectedPlan={selectedPlan}
             onPlanTypeChange={handlePlanTypeChange}
-            completedPlansCount={completedPlans.length}
-            completedPlans={completedPlans}
+            completedPlansCount={completedPlans?.length ?? 0}
+            completedPlans={completedPlans ?? []}
             historicalPlanIndex={historicalPlanIndex}
-            onHistoricalPlanSelect={setHistoricalPlanIndex}
+            onHistoricalPlanSelect={handleHistoricalPlanSelect}
             isChangingPlan={isChangingPlan}
           />
         </div>
@@ -442,7 +478,7 @@ const WorkoutPlansContent = ({
               )}
 
               <div className="space-y-4">
-                <AnimatePresence>
+                <AnimatePresence mode="wait">
                   {hasWorkout ? (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -468,79 +504,91 @@ const WorkoutPlansContent = ({
           </div>
         </motion.div>
 
-        {showPerformanceModal && selectedExercise && (
-          <PerformanceModal
-            isOpen={showPerformanceModal}
-            onClose={() => {
-              setShowPerformanceModal(false);
-              setSelectedExercise(null);
-            }}
-            onSubmit={(weight, reps) =>
-              handleLogPerformance(selectedExercise.exercise.ref, weight, reps)
-            }
-            exerciseName={selectedExercise.exercise.ref}
-            targetReps={selectedExercise.exercise.reps}
-            previousPerformance={
-              references.performance[selectedExercise.exercise.ref]
-            }
-          />
-        )}
+        {/* Modals */}
+        <AnimatePresence>
+          {showPerformanceModal && selectedExercise && (
+            <PerformanceModal
+              isOpen={showPerformanceModal}
+              onClose={() => {
+                setShowPerformanceModal(false);
+                setSelectedExercise(null);
+              }}
+              onSubmit={(weight, reps) =>
+                handleLogPerformance(selectedExercise.exercise.ref, weight, reps)
+              }
+              exerciseName={selectedExercise.exercise.ref}
+              targetReps={selectedExercise.exercise.reps}
+              previousPerformance={
+                references.performance[selectedExercise.exercise.ref]
+              }
+            />
+          )}
 
-        {showDetailsModal && selectedExercise && (
-          <ExerciseDetailsModal
-            isOpen={showDetailsModal}
-            onClose={() => {
-              setShowDetailsModal(false);
-              setSelectedExercise(null);
-            }}
-            exercise={selectedExercise.exercise}
-            details={selectedExercise.details}
-            isLogged={selectedExercise.isLogged}
-            performance={references.performance[selectedExercise.exercise.ref]}
-          />
-        )}
+          {showDetailsModal && selectedExercise && (
+            <ExerciseDetailsModal
+              isOpen={showDetailsModal}
+              onClose={() => {
+                setShowDetailsModal(false);
+                setSelectedExercise(null);
+              }}
+              exercise={selectedExercise.exercise}
+              details={selectedExercise.details}
+              isLogged={selectedExercise.isLogged}
+              performance={references.performance[selectedExercise.exercise.ref]}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
 };
 
-const getItemKey = (item: any, index: number) => {
-  if (item.type === "tip") return `tip-${index}`;
-  if (item.type === "regular") return item.exercise.ref;
-  return `superset-${index}`;
-};
-
 // Main Component
 export default function WorkoutPlans() {
-  const { client, plans, references, isLoading: loading, error, fetch: refreshData } = useClientStore();
-  const { currentDay } = usePlans(plans ?? []);
+  const { 
+    client, 
+    plans, 
+    references, 
+    isLoading: loading, 
+    error, 
+    fetch: refreshData,
+    clearMediaCache 
+  } = useClientStore();
 
-  // Add error handling for failed renders
+  // Cleanup on unmount
   useEffect(() => {
-    const handler = (event: ErrorEvent) => {
+    return () => {
+      clearMediaCache();
+    };
+  }, [clearMediaCache]);
+
+  // Error handling
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
       console.error('Workout Plans Error:', event);
-      // Implement error reporting here
+      clearMediaCache();
     };
 
-    window.addEventListener('error', handler);
-    return () => window.removeEventListener('error', handler);
-  }, []);
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, [clearMediaCache]);
 
   return (
-    <PageTransition
-      loading={loading}
-      error={error}
-      skeleton={<WorkoutPlanSkeleton />}
-    >
-      {client && references && (
-        <WorkoutPlansContent
-          client={client}
-          plans={plans ?? []}
-          references={references}
-          refreshData={refreshData}
-          currentDay={currentDay}
-        />
-      )}
-    </PageTransition>
+    <WorkoutErrorBoundary>
+      <PageTransition
+        loading={loading}
+        error={error}
+        skeleton={<WorkoutPlanSkeleton />}
+      >
+        {client && references && (
+          <WorkoutPlansContent
+            client={client}
+            plans={plans ?? []}
+            references={references}
+            refreshData={refreshData}
+          />
+        )}
+      </PageTransition>
+    </WorkoutErrorBoundary>
   );
 }
