@@ -116,7 +116,7 @@ export const WorkoutProgress = ({
     restMessages[Math.floor(Math.random() * restMessages.length)];
 
   return (
-    <Card className="border-none bg-transparent shadow-none">
+    <Card className="max-w-[450px] border-none bg-transparent shadow-none">
       <CardBody className="p-4">
         <div className="relative overflow-hidden rounded-xl">
           {/* Background with conditional styling */}

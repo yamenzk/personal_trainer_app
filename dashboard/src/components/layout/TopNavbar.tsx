@@ -25,7 +25,7 @@ const TopNavbar = () => {
   
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/client-login');
   };
 
   return (

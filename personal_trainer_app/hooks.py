@@ -269,6 +269,6 @@ website_route_rules = [
     {'from_route': '/dashboard/<path:app_path>', 'to_route': 'dashboard'},
     {'from_route': '/workouts', 'to_route': 'dashboard'},
     {'from_route': '/meals', 'to_route': 'dashboard'},
-    {'from_route': '/client/login', 'to_route': 'dashboard'},  # Changed from '/login'
+    {'from_route': '/client-login', 'to_route': 'dashboard'}, # Changed from /login
     {'from_route': '/profile', 'to_route': 'dashboard'},
 ]

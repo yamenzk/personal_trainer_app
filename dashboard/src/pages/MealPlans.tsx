@@ -220,14 +220,14 @@ const MealPlansContent = ({
         {/* Centered Content Container */}
         <motion.div 
           className={cn(
-            "meal-content transition-all duration-300 ease-in-out",
+            "meal-content transition-all duration-300 ease-in-out flex justify-center w-full",
             isChangingPlan && "opacity-0 scale-95"
           )}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
         >
-          <div className="w-full max-w-3xl">
+          <div className="w-full max-w-3xl mx-auto">
             <div className="px-4 mb-6">
               <WaterTargetCard waterTarget={currentPlan.targets.water} />
             </div>

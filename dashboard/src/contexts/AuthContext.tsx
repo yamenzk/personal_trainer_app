@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (error) {
           localStorage.removeItem('membershipId');
           clearClientStore();
-          navigate('/login', { replace: true });
+          navigate('/client-login', { replace: true }); // Changed from /login
         }
       }
       setIsLoading(false);
@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('membershipId');
     setIsAuthenticated(false);
     clearClientStore(); // Clear the store on logout
-    navigate('/login', { replace: true });
+    navigate('/client-login', { replace: true }); // Changed from /login
   };
 
   if (isLoading) {

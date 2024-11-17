@@ -189,7 +189,7 @@ const ExerciseItem = React.memo(({
       <Card 
         isPressable
         onPress={handleClick}
-        className="relative overflow-hidden border-none h-[300px] group"
+        className="relative overflow-hidden border-none w-full min-h-[300px] group"
       >
         {/* Background Image */}
         <div className="absolute inset-0">

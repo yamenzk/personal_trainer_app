@@ -1,41 +1,67 @@
 // App.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { NextUIProvider } from "@nextui-org/react";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { FrappeProvider } from 'frappe-react-sdk';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { FrappeProvider } from "frappe-react-sdk";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Layout from "./components/layout/Layout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import WorkoutPlans from "./pages/WorkoutPlans";
 import MealPlans from "./pages/MealPlans";
 import Profile from "./pages/Profile";
-import { getSiteName } from './utils/frappe';
-import OnboardingWizard from './components/onboarding/OnboardingWizard';
+import { getSiteName } from "./utils/frappe";
+import OnboardingWizard from "./components/onboarding/OnboardingWizard";
 import { AnimatePresence } from "framer-motion";
-import { NavigationProvider } from './contexts/NavigationContext';
-import dayjs from 'dayjs';
-import { useClientStore } from '@/stores/clientStore';
-import { Client } from '@/types';
+import { NavigationProvider } from "./contexts/NavigationContext";
+import dayjs from "dayjs";
+import { useClientStore } from "@/stores/clientStore";
+import { Client } from "@/types";
 
 const getMissingSteps = (client: Client | null): string[] => {
   if (!client) return [];
-  
+
   const stepChecks: Record<string, () => boolean> = {
-    'Name': () => !client.client_name?.trim(),
-    'DateOfBirth': () => !client.date_of_birth || !dayjs(client.date_of_birth).isValid(),
-    'Gender': () => !client.gender || !['Male', 'Female'].includes(client.gender),
-    'Email': () => !client.email?.trim() || !client.email.includes('@'),
-    'Nationality': () => !client.nationality?.trim(),
-    'Height': () => !client.height || client.height <= 0,
-    'Weight': () => !client.weight?.length || client.weight[0].weight <= 0,
-    'TargetWeight': () => !client.target_weight || client.target_weight <= 0,
-    'ActivityLevel': () => !client.activity_level || !['Sedentary', 'Light', 'Moderate', 'Very Active', 'Extra Active'].includes(client.activity_level),
-    'Equipment': () => !client.equipment || !['Gym', 'Home'].includes(client.equipment),
-    'Goal': () => !client.goal || !['Weight Loss', 'Weight Gain', 'Muscle Building', 'Maintenance'].includes(client.goal),
-    'Meals': () => typeof client.meals !== 'number' || client.meals < 3 || client.meals > 6,
-    'Workouts': () => typeof client.workouts !== 'number' || client.workouts < 3 || client.workouts > 6,
+    Name: () => !client.client_name?.trim(),
+    DateOfBirth: () =>
+      !client.date_of_birth || !dayjs(client.date_of_birth).isValid(),
+    Gender: () => !client.gender || !["Male", "Female"].includes(client.gender),
+    Email: () => !client.email?.trim() || !client.email.includes("@"),
+    Nationality: () => !client.nationality?.trim(),
+    Height: () => !client.height || client.height <= 0,
+    Weight: () => !client.weight?.length || client.weight[0].weight <= 0,
+    TargetWeight: () => !client.target_weight || client.target_weight <= 0,
+    ActivityLevel: () =>
+      !client.activity_level ||
+      ![
+        "Sedentary",
+        "Light",
+        "Moderate",
+        "Very Active",
+        "Extra Active",
+      ].includes(client.activity_level),
+    Equipment: () =>
+      !client.equipment || !["Gym", "Home"].includes(client.equipment),
+    Goal: () =>
+      !client.goal ||
+      ![
+        "Weight Loss",
+        "Weight Gain",
+        "Muscle Building",
+        "Maintenance",
+      ].includes(client.goal),
+    Meals: () =>
+      typeof client.meals !== "number" || client.meals < 3 || client.meals > 6,
+    Workouts: () =>
+      typeof client.workouts !== "number" ||
+      client.workouts < 3 ||
+      client.workouts > 6,
   };
 
   const missingSteps = Object.entries(stepChecks)
@@ -52,25 +78,25 @@ const getMissingSteps = (client: Client | null): string[] => {
 
 const needsOnboarding = (client: Client | null) => {
   if (!client) return false;
-  
+
   const requiredFields: (keyof Client)[] = [
-    'client_name',
-    'email',
-    'date_of_birth',
-    'gender',
-    'nationality',
-    'height',
-    'weight',
-    'goal',
-    'target_weight',
-    'activity_level',
-    'equipment',
-    'workouts',
-    'meals',
+    "client_name",
+    "email",
+    "date_of_birth",
+    "gender",
+    "nationality",
+    "height",
+    "weight",
+    "goal",
+    "target_weight",
+    "activity_level",
+    "equipment",
+    "workouts",
+    "meals",
   ];
 
-  return requiredFields.some(field => {
-    if (field === 'weight') {
+  return requiredFields.some((field) => {
+    if (field === "weight") {
       return !client.weight?.length;
     }
     return !client[field];
@@ -83,15 +109,15 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  const client = useClientStore(state => state.client);
-  const isLoading = useClientStore(state => state.isLoading);
-  const fetch = useClientStore(state => state.fetch);
-  
+  const client = useClientStore((state) => state.client);
+  const isLoading = useClientStore((state) => state.isLoading);
+  const fetch = useClientStore((state) => state.fetch);
+
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeSteps, setActiveSteps] = useState<string[]>([]);
 
   // Simplified state management - remove onboardingMode and onboardingJustCompleted
-  
+
   // Single effect to handle onboarding state
   useEffect(() => {
     if (!isLoading && client) {
@@ -113,7 +139,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   };
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/client-login" replace />; // Changed from /login
   }
 
   if (isLoading) {
@@ -154,9 +180,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 };
 
 // Context for preferences update
-const PreferencesContext = React.createContext<((steps: string[]) => void) | undefined>(undefined);
+const PreferencesContext = React.createContext<
+  ((steps: string[]) => void) | undefined
+>(undefined);
 
-const WithPreferencesProvider: React.FC<{ children: React.ReactNode; value: (steps: string[]) => void }> = ({ children, value }) => (
+const WithPreferencesProvider: React.FC<{
+  children: React.ReactNode;
+  value: (steps: string[]) => void;
+}> = ({ children, value }) => (
   <PreferencesContext.Provider value={value}>
     {children}
   </PreferencesContext.Provider>
@@ -165,7 +196,9 @@ const WithPreferencesProvider: React.FC<{ children: React.ReactNode; value: (ste
 export const usePreferencesUpdate = () => {
   const context = React.useContext(PreferencesContext);
   if (context === undefined) {
-    throw new Error('usePreferencesUpdate must be used within a WithPreferencesProvider');
+    throw new Error(
+      "usePreferencesUpdate must be used within a WithPreferencesProvider"
+    );
   }
   return context;
 };
@@ -175,14 +208,26 @@ function App() {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
+    // Handle Frappe backend routes
+    const path = window.location.pathname;
+    if (path.startsWith('/app') || path === '/login') {
+      // Remove any frontend route handling for these paths
+      return;
+    }
+    
     if (isAuthenticated && needsRefresh()) {
       fetch();
     }
   }, [isAuthenticated, fetch, needsRefresh]);
 
+  // Avoid rendering the React app for Frappe backend routes
+  if (window.location.pathname.startsWith('/app') || window.location.pathname === '/login') {
+    return null;
+  }
+
   return (
     <FrappeProvider
-      socketPort={import.meta.env.VITE_SOCKET_PORT ?? '9000'}
+      socketPort={import.meta.env.VITE_SOCKET_PORT ?? "9000"}
       siteName={getSiteName()}
     >
       <NextUIProvider>
@@ -192,18 +237,24 @@ function App() {
               <AuthProvider>
                 <AnimatePresence mode="wait">
                   <Routes>
-                    <Route path="/client/login" element={<Login />} /> {/* Changed from "/login" */}
-                    <Route path="/*" element={
-                      <ProtectedRoute>
-                        <Routes>
-                          <Route index element={<Dashboard />} />
-                          <Route path="workouts" element={<WorkoutPlans />} />
-                          <Route path="meals" element={<MealPlans />} />
-                          <Route path="profile" element={<Profile />} />
-                          <Route path="*" element={<Navigate to="/" replace />} />
-                        </Routes>
-                      </ProtectedRoute>
-                    } />
+                    <Route path="/client-login" element={<Login />} /> {/* Changed from /login */}
+                    <Route
+                      path="/*"
+                      element={
+                        <ProtectedRoute>
+                          <Routes>
+                            <Route index element={<Dashboard />} />
+                            <Route path="workouts" element={<WorkoutPlans />} />
+                            <Route path="meals" element={<MealPlans />} />
+                            <Route path="profile" element={<Profile />} />
+                            <Route
+                              path="*"
+                              element={<Navigate to="/" replace />}
+                            />
+                          </Routes>
+                        </ProtectedRoute>
+                      }
+                    />
                   </Routes>
                 </AnimatePresence>
               </AuthProvider>

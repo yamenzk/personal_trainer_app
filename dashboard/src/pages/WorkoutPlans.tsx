@@ -595,7 +595,6 @@ const WorkoutPlansContent = ({
               }}
               exercise={selectedExercise.exercise}
               details={selectedExercise.details}
-              isLogged={selectedExercise.isLogged}
               performance={references.performance[selectedExercise.exercise.ref]}
             />
           )}

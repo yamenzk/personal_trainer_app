@@ -37,14 +37,18 @@ export const QuickStats = ({ client }: QuickStatsProps) => {
     {
       icon: Target,
       label: 'Goal Progress',
-      value: client.goal === 'Weight Loss' 
-        ? `${Math.abs(client.weight[0].weight - client.current_weight).toFixed(1)} kg lost`
-        : client.goal === 'Weight Gain'
-          ? `${Math.abs(client.weight[0].weight - client.current_weight).toFixed(1)} kg gained`
-          : 'Maintaining',
+      value: client.weight.length > 0 
+        ? client.goal === 'Weight Loss' 
+          ? `${Math.abs(client.weight[0].weight - client.current_weight).toFixed(1)} kg lost`
+          : client.goal === 'Weight Gain'
+            ? `${Math.abs(client.weight[0].weight - client.current_weight).toFixed(1)} kg gained`
+            : 'Maintaining'
+        : 'No data yet',
       color: 'success',
       change: {
-        value: `${Math.round((client.current_weight - client.target_weight) / (client.weight[0].weight - client.target_weight) * 100)}% complete`,
+        value: client.weight.length > 0 
+          ? `${Math.round((client.current_weight - client.target_weight) / (client.weight[0].weight - client.target_weight) * 100)}% complete`
+          : 'Start tracking',
         trend: 'up'
       }
     },

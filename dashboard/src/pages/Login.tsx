@@ -1,9 +1,8 @@
 // src/pages/Login.tsx
 import { useState, useEffect } from 'react';
 import { Input, Button, Card, CardBody, Chip } from "@nextui-org/react";
-import { Key, Mail, Clock, Triangle, Circle, Square, LoaderCircle } from 'lucide-react';
+import { Key, Mail, Clock, LoaderCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { motion } from 'framer-motion';
 
 const MAX_RECENT_IDS = 3;
@@ -39,13 +38,17 @@ const Snow = () => (
   </div>
 );
 
+// Add this interface near the top of the file, after imports
+interface LoginError {
+  message: string;
+}
+
 const Login = () => {
   const [membershipId, setMembershipId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const { login } = useAuth();
-  const { theme } = useTheme();
 
   // Load recent membership IDs on mount
   useEffect(() => {
@@ -70,9 +73,10 @@ const Login = () => {
       const updatedIds = [id, ...recentIds.filter(rid => rid !== id)]
         .slice(0, MAX_RECENT_IDS);
       localStorage.setItem('recentMembershipIds', JSON.stringify(updatedIds));
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as LoginError;
       // Show the error message from the server
-      setError(err.message || 'Invalid membership ID. Please try again.');
+      setError(error.message || 'Invalid membership ID. Please try again.');
     } finally {
       setIsLoading(false); // Move this to finally block
     }
@@ -87,7 +91,7 @@ const Login = () => {
   return (
     <div className="min-h-screen w-full flex md:flex-row flex-col relative">
       {/* Left Panel - Hero Section */}
-      <div className="flex-1 bg-gradient-to-br from-primary-900 via-primary-800 to-secondary-900 relative overflow-hidden flex items-center min-h-[308px] max-h-[308px]">
+      <div className="flex-1 bg-gradient-to-br from-primary-900 via-primary-800 to-secondary-900 relative overflow-hidden flex items-center min-h-[308px] max-h-[308px] md:min-h-screen md:max-h-screen">
         {/* Snow animation */}
         <Snow />
         

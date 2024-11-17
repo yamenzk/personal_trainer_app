@@ -65,7 +65,10 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
   const bmiCategory = getBmiCategory(bmi);
 
   const weightStats = [
-    { label: 'Starting', value: client.weight[0].weight },
+    { 
+      label: 'Starting', 
+      value: client.weight.length > 0 ? client.weight[0].weight : client.current_weight 
+    },
     { label: 'Current', value: client.current_weight },
     { label: 'Target', value: client.target_weight }
   ];
@@ -151,7 +154,9 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
   };
 
   // Add weight range calculations
-  const weights = client.weight.map(w => w.weight);
+  const weights = client.weight.length > 0 
+    ? client.weight.map(w => w.weight) 
+    : [client.current_weight];
   const minWeight = Math.min(...weights, client.target_weight);
   const maxWeight = Math.max(...weights, client.target_weight);
   const weightRange = maxWeight - minWeight;
@@ -182,10 +187,16 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
               <div className="grid grid-cols-3 gap-1">
                 {weightStats.map((stat) => (
                   <div key={stat.label} className="flex flex-col items-center">
-                    <p className="text-2xs text-foreground/60 text-center leading-none mb-1">{stat.label}</p>
+                    <p className="text-2xs text-foreground/60 text-center leading-none mb-1">
+                      {stat.label}
+                    </p>
                     <div className="flex items-baseline gap-0.5 whitespace-nowrap">
-                      <span className="text-sm font-semibold leading-none">{stat.value}</span>
-                      <span className="text-2xs text-foreground/60 leading-none">kg</span>
+                      <span className="text-sm font-semibold leading-none">
+                        {stat.value}
+                      </span>
+                      <span className="text-2xs text-foreground/60 leading-none">
+                        kg
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -208,17 +219,32 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
               <Divider className="my-3 bg-secondary-500/10" />
               <div className="grid grid-cols-3 gap-1">
                 {[
-                  { label: 'Height', value: client.height, unit: 'cm' },
-                  { label: 'Weight', value: client.current_weight, unit: 'kg' },
-                  { label: 'BMI', value: bmi.toFixed(1), unit: '', color: bmiCategory.color }
+                  { label: "Height", value: client.height, unit: "cm" },
+                  { label: "Weight", value: client.current_weight, unit: "kg" },
+                  {
+                    label: "BMI",
+                    value: bmi.toFixed(1),
+                    unit: "",
+                    color: bmiCategory.color,
+                  },
                 ].map((stat) => (
                   <div key={stat.label} className="flex flex-col items-center">
-                    <p className="text-2xs text-foreground/60 text-center leading-none mb-1">{stat.label}</p>
+                    <p className="text-2xs text-foreground/60 text-center leading-none mb-1">
+                      {stat.label}
+                    </p>
                     <div className="flex items-baseline gap-0.5 whitespace-nowrap">
-                      <span className={`text-sm font-semibold leading-none ${stat.color ? `text-${stat.color}` : ''}`}>
+                      <span
+                        className={`text-sm font-semibold leading-none ${
+                          stat.color ? `text-${stat.color}` : ""
+                        }`}
+                      >
                         {stat.value}
                       </span>
-                      {stat.unit && <span className="text-2xs text-foreground/60 leading-none">{stat.unit}</span>}
+                      {stat.unit && (
+                        <span className="text-2xs text-foreground/60 leading-none">
+                          {stat.unit}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -235,7 +261,9 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
                 </div>
                 <div>
                   <p className="text-sm text-foreground/60">Progress Update</p>
-                  <p className="text-base font-medium">{getProgressMessage()}</p>
+                  <p className="text-base font-medium">
+                    {getProgressMessage()}
+                  </p>
                 </div>
               </div>
             </CardBody>
@@ -255,11 +283,17 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
             </div> */}
             <div className="flex items-center gap-4 justify-end w-full">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: chartColors.line }} />
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: chartColors.line }}
+                />
                 <span className="text-sm text-foreground/60">Progress</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full border-2" style={{ borderColor: chartColors.reference }} />
+                <div
+                  className="w-2.5 h-2.5 rounded-full border-2"
+                  style={{ borderColor: chartColors.reference }}
+                />
                 <span className="text-sm text-foreground/60">Target</span>
               </div>
             </div>
@@ -267,12 +301,18 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
 
           <div className="h-[250px] w-full">
             <ResponsiveContainer>
-              <AreaChart 
-                data={weightData} 
+              <AreaChart
+                data={weightData}
                 margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
               >
                 <defs>
-                  <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="weightGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     {getChartColors().gradient.map((stop, index) => (
                       <stop
                         key={index}
@@ -289,15 +329,15 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
                   opacity={0.1}
                   vertical={false}
                 />
-                <XAxis 
-                  dataKey="date" 
+                <XAxis
+                  dataKey="date"
                   stroke="currentColor"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
                 />
-                <YAxis 
+                <YAxis
                   stroke="currentColor"
                   fontSize={12}
                   tickLine={false}
@@ -313,7 +353,9 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
                       return (
                         <Card className="border-small border-foreground/10">
                           <CardBody className="p-2">
-                            <p className="text-sm font-medium">{payload[0].payload.date}</p>
+                            <p className="text-sm font-medium">
+                              {payload[0].payload.date}
+                            </p>
                             <div className="flex items-baseline gap-2">
                               <p className="text-lg font-semibold">
                                 {Number(payload[0].value).toFixed(1)}
@@ -326,18 +368,22 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
                     }
                     return null;
                   }}
-                  cursor={{ stroke: chartColors.line, strokeWidth: 1, strokeDasharray: '4 4' }}
+                  cursor={{
+                    stroke: chartColors.line,
+                    strokeWidth: 1,
+                    strokeDasharray: "4 4",
+                  }}
                 />
-                <ReferenceLine 
-                  y={client.target_weight} 
+                <ReferenceLine
+                  y={client.target_weight}
                   stroke={chartColors.reference}
-                  strokeDasharray="3 3" 
+                  strokeDasharray="3 3"
                   strokeWidth={2}
                   label={{
-                    value: 'Target',
-                    position: 'right',
+                    value: "Target",
+                    position: "right",
                     fill: chartColors.reference,
-                    fontSize: 12
+                    fontSize: 12,
                   }}
                 />
                 <Area
@@ -349,14 +395,14 @@ export const WeightTracker = ({ client, onLogWeight }: WeightTrackerProps) => {
                   dot={{
                     stroke: chartColors.line,
                     strokeWidth: 2,
-                    fill: 'var(--nextui-background)',
-                    r: 3
+                    fill: "var(--nextui-background)",
+                    r: 3,
                   }}
                   activeDot={{
                     stroke: chartColors.line,
                     strokeWidth: 2,
-                    fill: 'var(--nextui-background)',
-                    r: 4
+                    fill: "var(--nextui-background)",
+                    r: 4,
                   }}
                 />
               </AreaChart>
