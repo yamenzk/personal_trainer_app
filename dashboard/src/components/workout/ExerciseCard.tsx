@@ -75,9 +75,10 @@ export const ExerciseCard = React.memo(({
   };
 
   const handleLogSet = (e: React.MouseEvent) => {
-    if (!isChangingPlan && isMounted.current) {
-      e.stopPropagation();
-      onLogSet?.();
+    e.preventDefault(); // Prevent event bubbling
+    e.stopPropagation(); // Ensure the parent card click doesn't trigger
+    if (!isChangingPlan && isMounted.current && onLogSet) {
+      onLogSet();
     }
   };
   
@@ -268,7 +269,6 @@ export const ExerciseCard = React.memo(({
             {/* Action Buttons */}
             {!isLogged && !isSuperset && selectedPlan === 'active' && (
               <motion.div 
-                onClick={handleLogSet}
                 className="flex items-center gap-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -277,6 +277,7 @@ export const ExerciseCard = React.memo(({
                   className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium w-full"
                   size="sm"
                   startContent={<Zap size={14} />}
+                  onClick={handleLogSet}  // Changed from onClick to onPress
                 >
                   Log Set
                 </Button>

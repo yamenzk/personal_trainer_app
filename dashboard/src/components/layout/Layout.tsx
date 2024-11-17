@@ -6,6 +6,7 @@ import { useLocation } from 'react-router-dom';
 import { getAnnouncement } from '@/utils/api';
 import { cn } from '@nextui-org/react';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
+import { useAnnouncement } from '@/hooks/useAnnouncement';
 
 interface AnnouncementData {
   bg_class: string;
@@ -21,36 +22,11 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => {
   const location = useLocation();
-  const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
-  const [isAnnouncementDismissed, setIsAnnouncementDismissed] = useState(false);
+  const { announcement, dismiss } = useAnnouncement();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
-
-  useEffect(() => {
-    const fetchAnnouncement = async () => {
-      try {
-        const result = await getAnnouncement();
-        if (result.data) {
-          const isDismissed = localStorage.getItem(`announcement-${result.data.modified}`) === 'dismissed';
-          setIsAnnouncementDismissed(isDismissed);
-          setAnnouncement(result.data);
-        }
-      } catch (error) {
-        console.error('Error fetching announcement:', error);
-      }
-    };
-
-    fetchAnnouncement();
-  }, []);
-
-  const handleDismissAnnouncement = () => {
-    if (announcement) {
-      localStorage.setItem(`announcement-${announcement.modified}`, 'dismissed');
-      setIsAnnouncementDismissed(true);
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-background overflow-hidden">
@@ -83,7 +59,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
         )}
 
         {/* Announcement Banner */}
-        {announcement && !isAnnouncementDismissed && !hideNavigation && (
+        {announcement && !hideNavigation && (
           <div className={`w-full px-4 py-3 ${announcement.bg_class}`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -91,7 +67,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
                 <p className="text-xs mt-1 opacity-90">{announcement.description}</p>
               </div>
               <button 
-                onClick={handleDismissAnnouncement}
+                onClick={dismiss}
                 className="ml-4 opacity-70 hover:opacity-100 transition-opacity"
               >
                 ✕

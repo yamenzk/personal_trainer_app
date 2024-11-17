@@ -637,3 +637,13 @@ def get_membership_version(membership: str) -> Dict[str, str]:
     except Exception as e:
         frappe.log_error(f"Error getting membership version: {str(e)}")
         return {"error": str(e)}
+
+@frappe.whitelist(allow_guest=True)
+def get_announcement_version():
+    """Get the version (modified timestamp) of the current announcement"""
+    try:
+        announcement = frappe.get_single("Website Announcement")
+        return {"version": announcement.modified}
+    except Exception as e:
+        frappe.log_error(f"Error getting announcement version: {str(e)}")
+        return {"error": str(e)}

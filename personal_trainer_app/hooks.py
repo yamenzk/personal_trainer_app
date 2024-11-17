@@ -196,11 +196,10 @@ scheduler_events = {
 
 # Overriding Methods
 # ------------------------------
-#
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "personal_trainer_app.event.get_events"
-# }
-#
+override_whitelisted_methods = {
+    "personal_trainer_app.api.get_announcement_version": "personal_trainer_app.api.get_announcement_version"
+}
+
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps

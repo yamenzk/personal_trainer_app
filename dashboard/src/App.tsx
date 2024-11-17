@@ -204,8 +204,34 @@ export const usePreferencesUpdate = () => {
 };
 
 function App() {
-  const { fetch, needsRefresh, offlineMode, setOfflineMode, initializeOfflineData } = useClientStore();
+  const { refreshIfNeeded, offlineMode, setOfflineMode, initializeOfflineData } = useClientStore();
   const { isAuthenticated } = useAuth();
+
+  // Add version check on page load/visibility change
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const checkForUpdates = async () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        console.log('Checking for updates...');
+        await refreshIfNeeded();
+      }
+    };
+
+    // Check on mount
+    checkForUpdates();
+
+    // Check when page becomes visible
+    document.addEventListener('visibilitychange', checkForUpdates);
+    
+    // Set up periodic checks (every 5 minutes)
+    const interval = setInterval(checkForUpdates, 5 * 60 * 1000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', checkForUpdates);
+      clearInterval(interval);
+    };
+  }, [isAuthenticated, refreshIfNeeded]);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -234,10 +260,11 @@ function App() {
   }, [offlineMode, initializeOfflineData, setOfflineMode]);
 
   useEffect(() => {
-    if (isAuthenticated && needsRefresh()) {
-      fetch();
+    if (isAuthenticated) {
+      // Only check for updates when authenticated
+      useClientStore.getState().refreshIfNeeded();
     }
-  }, [isAuthenticated, fetch, needsRefresh]);
+  }, [isAuthenticated]);
 
   // Avoid rendering the React app for Frappe backend routes
   if (window.location.pathname.startsWith('/app') || window.location.pathname === '/login') {

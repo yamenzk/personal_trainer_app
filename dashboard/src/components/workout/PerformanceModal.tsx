@@ -3,6 +3,8 @@ import { Modal, ModalContent, Button, Input, Progress, Switch } from "@nextui-or
 import { motion } from "framer-motion";
 import { Target, Trophy, AlertTriangle, CheckCircle, History, ChevronDown, ChevronUp, Dumbbell, Repeat, Scale, Timer} from "lucide-react";
 import { cn } from "@/utils/cn";
+import { refetchClientData } from "@/stores/clientStore";
+
 
 
 const getPerformanceMessage = (
@@ -158,6 +160,7 @@ export const PerformanceModal: React.FC<PerformanceModalProps> = ({
   
       try {
         await onSubmit(weightToSubmit, repsNum);
+        await refetchClientData();
         onClose();
       } catch (err) {
         setError("Failed to log performance");

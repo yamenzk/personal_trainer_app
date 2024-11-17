@@ -66,7 +66,8 @@ export const getMembershipVersion = async (membershipId: string) => {
   }
 
   const data = await response.json();
-  return data.message as { version: string };
+  // The version is inside message.version in Frappe's response format
+  return { version: data.message.version };
 };
 
 /**
@@ -159,11 +160,29 @@ export async function getFoodMicros(fdcId: string): Promise<MicrosResponse> {
  * Announcements & Promotions
  */
 export async function getAnnouncement(): Promise<{ data: any }> {
-  const response = await fetch('/api/v2/method/personal_trainer_app.api.get_announcement');
+  const response = await fetch('/api/v2/method/personal_trainer_app.api.get_announcement', {
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    }
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch announcement');
   }
   return response.json();
+}
+
+export async function getAnnouncementVersion(): Promise<{ version: string }> {
+  const response = await fetch('/api/method/personal_trainer_app.api.get_announcement_version', {
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    }
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch announcement version');
+  }
+  return response.json().then(data => ({ version: data.message.version }));
 }
 
 export async function getAvailablePromoCodes(membershipId: string): Promise<{ data: any[] }> {

@@ -31,6 +31,8 @@ interface ClientState {
   isPrepared: boolean;
   contentState: 'initializing' | 'loading' | 'ready' | 'error';
   setContentState: (state: 'initializing' | 'loading' | 'ready' | 'error') => void;
+  refetchData: () => Promise<void>;
+  refreshIfNeeded: () => Promise<void>;
 }
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -124,11 +126,13 @@ export const useClientStore = create<ClientState>()(
           const { version } = await getMembershipVersion(membershipId);
           const currentVersion = get().version;
           
-          return version !== currentVersion; // Return true if version is different
+          const needsUpdate = version !== currentVersion;
+          console.log('Version check:', { server: version, current: currentVersion, needsUpdate });
+          return needsUpdate;
         } catch (err) {
+          console.error('Version check failed:', err);
           if (get().client) {
             set({ offlineMode: true });
-            return false;
           }
           return false;
         }
@@ -136,6 +140,25 @@ export const useClientStore = create<ClientState>()(
 
       setOfflineMode: (status: boolean) => {
         set({ offlineMode: status });
+      },
+
+      refetchData: async () => {
+        await get().fetch(true);
+      },
+
+      refreshIfNeeded: async () => {
+        try {
+          const needsUpdate = await get().checkVersion();
+          console.log('Refresh check:', { needsUpdate });
+          if (needsUpdate) {
+            await get().fetch(true);
+          }
+        } catch (err) {
+          console.error('Refresh check failed:', err);
+          if (!navigator.onLine && get().client) {
+            set({ offlineMode: true });
+          }
+        }
       },
 
       fetch: async (force = false) => {
@@ -149,41 +172,12 @@ export const useClientStore = create<ClientState>()(
 
         const membershipId = localStorage.getItem('membershipId');
 
-        // If we have data and we're offline, stay offline
-        if (!force && state.client && state.offlineMode) {
-          return;
-        }
-
-        // If we have data and no force, check version first
-        if (!force && state.client) {
-          try {
-            const needsUpdate = await state.checkVersion();
-            if (!needsUpdate) {
-              // Data is current, just mark as initialized
-              set({ isInitialized: true });
-              return;
-            }
-          } catch (err) {
-            // Network error, go offline if we have data
-            if (state.client) {
-              set({ offlineMode: true });
-              return;
-            }
-          }
-        }
-
-        const now = Date.now();
-
         if (!membershipId) {
           set({ error: 'No membership ID found' });
           return;
         }
 
-        if (!force && state.client) {
-          const isLatest = await state.checkVersion();
-          if (isLatest) return;
-        }
-
+        // Remove duplicate version check here since we already did it above
         if (state.isLoading) return;
 
         set({ isLoading: true, error: null, contentState: 'loading' });
@@ -195,6 +189,9 @@ export const useClientStore = create<ClientState>()(
             throw new Error('Invalid response data');
           }
 
+          // Set version before other checks to ensure it's always updated
+          const newVersion = response.data.version;
+          
           if (!response.data?.membership?.active) {
             localStorage.removeItem('membershipId');
             set({ 
@@ -203,7 +200,7 @@ export const useClientStore = create<ClientState>()(
               plans: [],
               references: null,
               lastFetched: null,
-              version: null,
+              version: newVersion, // Set version even on failure
               error: 'Membership is not active',
               isInitialized: true,
               offlineMode: false
@@ -245,8 +242,8 @@ export const useClientStore = create<ClientState>()(
             membership: response.data.membership,
             plans: response.data.plans,
             references: response.data.references,
-            lastFetched: now,
-            version: response.data.version,
+            lastFetched: Date.now(),
+            version: newVersion, // Ensure version is set here
             error: null,
             isInitialized: true,
             offlineMode: false,
@@ -255,6 +252,7 @@ export const useClientStore = create<ClientState>()(
           });
 
         } catch (err) {
+          console.error('Fetch error:', err);
           if (state.client) {
             set({ offlineMode: true, isLoading: false });
             return;
@@ -267,7 +265,7 @@ export const useClientStore = create<ClientState>()(
             plans: [],
             references: null,
             lastFetched: null,
-            version: null,
+            version: null, // Reset version on complete failure
             isInitialized: true,
             offlineMode: false,
             error: err instanceof Error ? err.message : 'An error occurred',
@@ -322,12 +320,15 @@ export const useClientStore = create<ClientState>()(
         membership: state.membership,
         plans: state.plans,
         references: state.references,
-        version: state.version,
+        version: state.version, // Ensure version is included in persistence
         lastFetched: state.lastFetched,
-        offlineMode: state.offlineMode, // Add this
-        isPrepared: false, // Always start unprepared
+        offlineMode: state.offlineMode,
+        isPrepared: false,
         contentState: 'initializing',
       }),
     }
   )
 );
+
+// Export a standalone function for easy access
+export const refetchClientData = () => useClientStore.getState().refetchData();

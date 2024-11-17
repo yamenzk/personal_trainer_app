@@ -1,47 +1,45 @@
-
-import { useState, useEffect } from 'react';
-import { getAnnouncement } from '@/utils/api';
+import { useEffect, useCallback } from 'react';
+import { useAnnouncementStore } from '@/stores/announcementStore';
 
 export function useAnnouncement() {
-  const [announcement, setAnnouncement] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    announcement, 
+    isDismissed,
+    isLoading, 
+    error, 
+    fetch, 
+    dismiss,
+    checkForUpdates 
+  } = useAnnouncementStore();
+
+  const checkForNewAnnouncement = useCallback(async () => {
+    if (document.visibilityState === 'visible') {
+      await checkForUpdates();
+    }
+  }, [checkForUpdates]);
 
   useEffect(() => {
-    let mounted = true;
-    const cachedAnnouncement = sessionStorage.getItem('announcement');
-    
-    if (cachedAnnouncement) {
-      setAnnouncement(JSON.parse(cachedAnnouncement));
-      return;
+    // Initial fetch
+    if (!announcement) {
+      fetch();
     }
 
-    const fetchAnnouncement = async () => {
-      if (loading) return;
-      
-      setLoading(true);
-      try {
-        const response = await getAnnouncement();
-        if (!mounted) return;
-        
-        setAnnouncement(response.data);
-        sessionStorage.setItem('announcement', JSON.stringify(response.data));
-      } catch (err) {
-        if (!mounted) return;
-        setError(err instanceof Error ? err.message : 'Failed to fetch announcement');
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchAnnouncement();
-
+    // Set up periodic checks
+    const checkInterval = setInterval(checkForNewAnnouncement, 5 * 60 * 1000); // Check every 5 minutes
+    
+    // Check when tab becomes visible
+    document.addEventListener('visibilitychange', checkForNewAnnouncement);
+    
     return () => {
-      mounted = false;
+      clearInterval(checkInterval);
+      document.removeEventListener('visibilitychange', checkForNewAnnouncement);
     };
-  }, []);
+  }, [fetch, checkForNewAnnouncement, announcement]);
 
-  return { announcement, loading, error };
+  return { 
+    announcement: isDismissed ? null : announcement, 
+    loading: isLoading, 
+    error,
+    dismiss 
+  };
 }
