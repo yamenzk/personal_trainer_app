@@ -1,6 +1,6 @@
 // MealPlans.tsx
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardBody, Chip, cn, Progress } from "@nextui-org/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChefHat, Droplet, Waves, Lightbulb, ChevronDown } from "lucide-react";
@@ -26,6 +26,7 @@ import { NoActivePlan } from "@/components/shared/NoActivePlan";
 
 // MealPlansContent component remains mostly the same, but uses imported components
 const MealPlansContent = ({
+  client,
   plans,
   references,
   currentDay,
@@ -45,36 +46,40 @@ const MealPlansContent = ({
     meal: string;
   } | null>(null);
   const [isChangingPlan, setIsChangingPlan] = useState(false);
+  const { mediaCache, preloadImages } = useClientStore();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const contentState = useClientStore(state => state.contentState);
+  const setContentState = useClientStore(state => state.setContentState);
+
+  // Move currentPlan calculation to the top, before it's used
+  const currentPlan = useMemo(() => 
+    selectedPlan === 'active' ? activePlan : completedPlans[historicalPlanIndex],
+    [selectedPlan, activePlan, completedPlans, historicalPlanIndex]
+  );
 
   // Enhanced plan switching with better visual feedback
   const handlePlanTypeChange = useCallback((key: "active" | "history") => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
     setIsChangingPlan(true);
     
-    // Fade out current content
-    const content = document.querySelector('.meal-content');
-    if (content) {
-      content.classList.add('opacity-0');
-      content.classList.add('scale-95');
-    }
-
-    // Clear selected food and modals with delay
-    setTimeout(() => {
-      setSelectedFood(null);
-      setSelectedPlan(key);
-      
-      // Start fading in new content
-      setTimeout(() => {
-        if (content) {
-          content.classList.remove('opacity-0');
-          content.classList.remove('scale-95');
-        }
-        setIsChangingPlan(false);
-      }, 300);
-    }, 300);
-  }, []);
+    // Clear selected food before switching to prevent memory leaks
+    setSelectedFood(null);
+    setSelectedPlan(key);
+    
+    // Start fading in new content with smoother transition
+    requestAnimationFrame(() => {
+      setIsChangingPlan(false);
+      setIsTransitioning(false);
+    });
+  }, [isTransitioning]);
 
   // Enhanced debounced loading effects
   const handleDaySelect = useCallback((day: number) => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
     setIsChangingPlan(true);
     setSelectedFood(null);
     
@@ -95,9 +100,10 @@ const MealPlansContent = ({
           content.classList.remove('scale-95');
         }
         setIsChangingPlan(false);
+        setIsTransitioning(false);
       }, 300);
     }, 150); // Shorter initial delay for better responsiveness
-  }, []);
+  }, [isTransitioning]);
 
   // Add cleanup for plan changes
   useEffect(() => {
@@ -127,8 +133,34 @@ const MealPlansContent = ({
     }
   }, [currentDay, selectedDay]);
 
-  const currentPlan = selectedPlan === 'active' ? activePlan : completedPlans[historicalPlanIndex];
-  
+  // Preload images for current day's meals
+  useEffect(() => {
+    if (!currentPlan || !selectedDay) {
+      setContentState('ready');
+      return;
+    }
+
+    const dayKey = `day_${selectedDay}`;
+    const dayPlan = currentPlan.days[dayKey];
+    
+    if (dayPlan?.foods) {
+      const imageUrls = dayPlan.foods
+        .map(food => {
+          const foodRef = references.foods[food.ref];
+          return foodRef?.image;
+        })
+        .filter(Boolean);
+
+      if (imageUrls.length) {
+        preloadImages(imageUrls);
+      } else {
+        setContentState('ready');
+      }
+    } else {
+      setContentState('ready');
+    }
+  }, [currentPlan, selectedDay, references.foods, preloadImages, setContentState]);
+
   // Check for no active plan scenario
   if (!activePlan && selectedPlan === 'active') {
     return (
@@ -186,14 +218,24 @@ const MealPlansContent = ({
   const hasMeals = Object.keys(mealGroups).length > 0;
   const mealsWithTips = insertNutritionTips(Object.entries(mealGroups));
 
+  // Only render content when ready
+  if (contentState !== 'ready') return null;
+
   return (
     <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
       {/* Add loading overlay when changing plans */}
-      {isChangingPlan && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm">
-          <div className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
-        </div>
-      )}
+      <AnimatePresence>
+        {(isChangingPlan || isTransitioning) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-background/5 backdrop-blur-sm"
+          >
+            <div className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <div className="container mx-auto">
         {/* Hero Section - Full Width */}
@@ -220,88 +262,100 @@ const MealPlansContent = ({
         {/* Centered Content Container */}
         <motion.div 
           className={cn(
-            "meal-content transition-all duration-300 ease-in-out flex justify-center w-full",
-            isChangingPlan && "opacity-0 scale-95"
+            "meal-content transition-all duration-300 ease-out flex justify-center w-full",
+            (isChangingPlan || isTransitioning || contentState !== 'ready') && "opacity-0 scale-95"
           )}
           initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
+          animate={{ 
+            opacity: isChangingPlan || isTransitioning || contentState !== 'ready' ? 0 : 1,
+            scale: isChangingPlan || isTransitioning || contentState !== 'ready' ? 0.95 : 1
+          }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="w-full max-w-3xl mx-auto">
-            <div className="px-4 mb-6">
-              <WaterTargetCard waterTarget={currentPlan.targets.water} />
-            </div>
-            {/* Section Title */}
-            {hasMeals && (
-              <div className="px-4">
-                <div className="flex items-center gap-4 my-6">
-                  <div className="h-px flex-1 bg-content-secondary/10" />
-                  <h2 className="text-xl font-semibold text-foreground/80 flex items-center gap-2">
-                    <ChefHat className="w-5 h-5" />
-                    Today's Menu
-                  </h2>
-                  <div className="h-px flex-1 bg-success/10" />
+          <AnimatePresence mode="wait">
+            {contentState === 'ready' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full max-w-3xl mx-auto"
+              >
+                <div className="px-4 mb-6">
+                  <WaterTargetCard waterTarget={currentPlan.targets.water} />
                 </div>
-              </div>
-            )}
-
-            {/* Meals and Tips */}
-            <div className="space-y-4">
-              <AnimatePresence>
-                {hasMeals ? (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <div className="space-y-6">
-                      {mealsWithTips.map((item, index) => (
-                        <motion.div
-                          key={`${item.type}-${index}`}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          {item.type === 'tip' ? (
-                            <div className="px-4">
-                              <TipCard tip={item.content} />
-                            </div>
-                          ) : (
-                            <div className="px-4">
-                              <MealCard
-                                meal={item.content[0]}
-                                foods={item.content[1]}
-                                foodRefs={references.foods}
-                                mealTime={mealTimes[item.content[0]] || ''}
-                                onFoodClick={(food: Food) => {
-                                  setSelectedFood({
-                                    food,
-                                    foodRef: references.foods[food.ref],
-                                    meal: item.content[0]
-                                  });
-                                }}
-                                isChangingPlan={isChangingPlan} // Add this prop
-                              />
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
+                {/* Section Title */}
+                {hasMeals && (
+                  <div className="px-4">
+                    <div className="flex items-center gap-4 my-6">
+                      <div className="h-px flex-1 bg-content-secondary/10" />
+                      <h2 className="text-xl font-semibold text-foreground/80 flex items-center gap-2">
+                        <ChefHat className="w-5 h-5" />
+                        Today's Menu
+                      </h2>
+                      <div className="h-px flex-1 bg-success/10" />
                     </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="no-meals"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="px-4"
-                  >
-                    <NoMealsCard />
-                  </motion.div>
+                  </div>
                 )}
-              </AnimatePresence>
-            </div>
-          </div>
+
+                {/* Meals and Tips */}
+                <div className="space-y-4">
+                  <AnimatePresence>
+                    {hasMeals ? (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <div className="space-y-6">
+                          {mealsWithTips.map((item, index) => (
+                            <motion.div
+                              key={`${item.type}-${index}`}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.1 }}
+                            >
+                              {item.type === 'tip' ? (
+                                <div className="px-4">
+                                  <TipCard tip={item.content} />
+                                </div>
+                              ) : (
+                                <div className="px-4">
+                                  <MealCard
+                                    meal={item.content[0]}
+                                    foods={item.content[1]}
+                                    foodRefs={references.foods}
+                                    mealTime={mealTimes[item.content[0]] || ''}
+                                    onFoodClick={(food: Food) => {
+                                      setSelectedFood({
+                                        food,
+                                        foodRef: references.foods[food.ref],
+                                        meal: item.content[0]
+                                      });
+                                    }}
+                                    isChangingPlan={isChangingPlan} // Add this prop
+                                  />
+                                </div>
+                              )}
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="no-meals"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="px-4"
+                      >
+                        <NoMealsCard />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Food Details Modal */}

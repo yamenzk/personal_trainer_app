@@ -4,16 +4,21 @@ import frappe
 def on_plan_update(doc, method):
     """Handle plan updates"""
     cache = MembershipCache()
+    frappe.cache().delete_value(cache.get_version_hash_key(doc.membership))
     cache.invalidate_membership_cache(doc.membership)
 
 def on_membership_update(doc, method):
     """Handle membership updates"""
     cache = MembershipCache()
+    frappe.cache().delete_value(cache.get_version_hash_key(doc.name))
     cache.invalidate_membership_cache(doc.name)
 
 def on_client_update(doc, method):
     """Handle client updates"""
     cache = MembershipCache()
+    # Invalidate version hash for all client's memberships
+    for membership in frappe.get_all("Membership", filters={"client": doc.name}):
+        frappe.cache().delete_value(cache.get_version_hash_key(membership.name))
     cache.invalidate_client_caches(doc.name)
 
 def on_exercise_update(doc, method):

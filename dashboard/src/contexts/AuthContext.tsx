@@ -1,91 +1,74 @@
 // src/contexts/AuthContext.tsx
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMembership } from '@/utils/api';
-import { AuthContextType } from '@/types';
 import { useClientStore } from '@/stores/clientStore';
 
+interface AuthContextType {
+  isAuthenticated: boolean;
+  login: (membershipId: string) => Promise<void>;
+  logout: () => void;
+  isInitialized: boolean; // Add this
+}
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
+  isInitialized: false,
   login: async () => {},
   logout: () => {},
-  isLoading: true,
 });
 
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
-  const fetch = useClientStore(state => state.fetch);
-  const clearClientStore = useClientStore(state => state.clear); // Move this up
+  const { fetch, clear } = useClientStore();
 
-  // Check for existing session on mount
+  // Check authentication status on mount
   useEffect(() => {
-    const checkAuth = async () => {
+    const init = async () => {
       const membershipId = localStorage.getItem('membershipId');
       if (membershipId) {
         try {
-          await getMembership(membershipId);
-          setIsAuthenticated(true);
-          // Fetch client data immediately after confirming auth
           await fetch();
+          setIsAuthenticated(true);
         } catch (error) {
           localStorage.removeItem('membershipId');
-          clearClientStore();
-          navigate('/client-login', { replace: true }); // Changed from /login
         }
       }
-      setIsLoading(false);
+      setIsInitialized(true);
     };
-
-    checkAuth();
-  }, [navigate, fetch, clearClientStore]);
+    init();
+  }, [fetch]);
 
   const login = async (membershipId: string) => {
     try {
-      const response = await getMembership(membershipId);
-      
-      if (!response.data?.membership?.active) {
-        throw new Error('This membership is not active');
-      }
-
       localStorage.setItem('membershipId', membershipId);
-      await fetch();
+      await fetch(true);
       setIsAuthenticated(true);
-      navigate('/', { replace: true });
+      navigate('/');
     } catch (error) {
-      // Don't navigate on error, just throw it to be handled by Login component
-      throw new Error(error instanceof Error ? error.message : 'Invalid membership ID');
+      localStorage.removeItem('membershipId');
+      throw error;
     }
   };
 
   const logout = () => {
     localStorage.removeItem('membershipId');
     setIsAuthenticated(false);
-    clearClientStore(); // Clear the store on logout
-    navigate('/client-login', { replace: true }); // Changed from /login
+    clear();
+    navigate('/client-login');
   };
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="relative flex flex-col items-center gap-4">
-          <div className="w-16 h-16 relative">
-            <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
-            <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
-          </div>
-          <div className="text-foreground/60 font-medium">Loading...</div>
-        </div>
-      </div>
-    );
+  // Show nothing until auth is initialized
+  if (!isInitialized) {
+    return null;
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, isInitialized, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
+export const useAuth = () => useContext(AuthContext);

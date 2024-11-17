@@ -7,6 +7,7 @@ import { PerformanceEntry } from './index';
 
 export interface ApiResponse<T> {
   data: {
+    version: string | null | undefined;
     membership: {
       name: string;
       package: string;

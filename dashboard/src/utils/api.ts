@@ -53,6 +53,22 @@ export async function getMembership(membershipId: string): Promise<ApiResponse<a
   return data;
 }
 
+export const getMembershipVersion = async (membershipId: string) => {
+  const response = await fetch(`/api/method/personal_trainer_app.api.get_membership_version?membership=${membershipId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch membership version');
+  }
+
+  const data = await response.json();
+  return data.message as { version: string };
+};
+
 /**
  * Client Data Management
  */

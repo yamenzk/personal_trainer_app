@@ -141,7 +141,7 @@ export const ContextualTip: React.FC<ContextualTipProps> = React.memo(({
   const Icon = tipToShow.icon;
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="sync">
       <motion.div
         key={tipToShow.message} // Force re-render on tip change
         initial={{ opacity: 0, y: -10 }}

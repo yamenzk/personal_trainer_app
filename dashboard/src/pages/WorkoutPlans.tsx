@@ -195,6 +195,7 @@ const WorkoutPlansContent = ({
     isLogged: boolean;
   } | null>(null);
   const [isChangingPlan, setIsChangingPlan] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Refs
   const isMounted = useRef(true);
@@ -233,12 +234,74 @@ const WorkoutPlansContent = ({
     [exercises, insertTips]
   );
 
+  // Add content ready state
+  const [isContentReady, setIsContentReady] = useState(false);
+
+  // Optimize content preparation
+  useEffect(() => {
+    if (!exercisesWithTips?.length) return;
+
+    const urls = exercisesWithTips
+      .flatMap((item: ExerciseItem) => {
+        if (item.type === 'regular' && item.exercise) {
+          const exercise = references.exercises[item.exercise.ref];
+          return [exercise.thumbnail, exercise.starting, exercise.ending].filter(Boolean);
+        }
+        if (item.type === 'superset' && item.exercises) {
+          return item.exercises.flatMap((ex: ExerciseBase) => {
+            const exercise = references.exercises[ex.ref];
+            return [exercise.thumbnail, exercise.starting, exercise.ending].filter(Boolean);
+          });
+        }
+        return [];
+      });
+
+    if (urls.length > 0) {
+      setIsContentReady(false);
+      preloadImages(urls)
+        .then(() => setIsContentReady(true))
+        .catch(() => setIsContentReady(true));
+    } else {
+      setIsContentReady(true);
+    }
+  }, [exercisesWithTips, references.exercises, preloadImages]);
+
+  // Update content preparation logic
+  useEffect(() => {
+    if (!exercisesWithTips?.length) return;
+
+    const urls = exercisesWithTips
+      .flatMap((item: ExerciseItem) => {
+        if (item.type === 'regular' && item.exercise) {
+          const exercise = references.exercises[item.exercise.ref];
+          return [exercise.thumbnail, exercise.starting, exercise.ending].filter(Boolean);
+        }
+        if (item.type === 'superset' && item.exercises) {
+          return item.exercises.flatMap((ex: ExerciseBase) => {
+            const exercise = references.exercises[ex.ref];
+            return [exercise.thumbnail, exercise.starting, exercise.ending].filter(Boolean);
+          });
+        }
+        return [];
+      });
+
+    if (urls.length > 0) {
+      setIsContentReady(false);
+      preloadImages(urls).finally(() => {
+        setIsContentReady(true);
+      });
+    } else {
+      setIsContentReady(true);
+    }
+  }, [exercisesWithTips, references.exercises]);
+
   // Callbacks
   const handlePlanTypeChange = useCallback((key: "active" | "history") => {
-    if (key === "history" && (!completedPlans || completedPlans.length === 0)) {
+    if (key === "history" && (!completedPlans || completedPlans.length === 0) || isTransitioning) {
       return;
     }
 
+    setIsTransitioning(true);
     setIsChangingPlan(true);
     clearMediaCache();
 
@@ -253,14 +316,16 @@ const WorkoutPlansContent = ({
           setHistoricalPlanIndex(0);
         }
         
+        // Add proper transition timing
         setTimeout(() => {
           if (isMounted.current) {
             setIsChangingPlan(false);
+            setIsTransitioning(false);
           }
         }, 300);
       }
     });
-  }, [completedPlans, historicalPlanIndex, clearMediaCache]);
+  }, [completedPlans, historicalPlanIndex, clearMediaCache, isTransitioning]);
 
   const handleHistoricalPlanSelect = useCallback((index: number) => {
     if (!completedPlans || index >= completedPlans.length) return;
@@ -405,51 +470,61 @@ const WorkoutPlansContent = ({
 
   // Render methods
   const renderExercises = useCallback(() => {
+    if (!isContentReady) return null;
+
     return (
-      <div className="space-y-6">
-        {exercisesWithTips.map((item, index) => (
-          <motion.div
-            key={getItemKey(item, index)}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: Math.min(index * 0.1, 1) }}
-          >
-            {item.type === "tip" ? (
-              <div className="px-4">
-                <TipCard tip={item.content} />
-              </div>
-            ) : item.type === "regular" ? (
-              <div className="px-4">
-                <ExerciseCard
-                  exercise={item.exercise!}
-                  references={references.exercises}
-                  performance={references.performance}
-                  isLogged={item.exercise!.logged === 1}
-                  onLogSet={() => handleExerciseLog(item)}
-                  onViewDetails={() => handleExerciseDetails(item.exercise!.ref)}
-                  selectedPlan={selectedPlan}
-                  exerciseNumber={index + 1}
-                  isChangingPlan={isChangingPlan}
-                />
-              </div>
-            ) : (
-              <div className="px-4">
-                <SupersetCard
-                  exercises={item.exercises!}
-                  references={references.exercises}
-                  onLogPerformance={handleLogPerformance}
-                  onViewDetails={handleExerciseDetails}
-                  selectedPlan={selectedPlan}
-                  exerciseNumber={index + 1}
-                  isChangingPlan={isChangingPlan}
-                />
-              </div>
-            )}
-          </motion.div>
-        ))}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          className="space-y-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {exercisesWithTips.map((item, index) => (
+            <motion.div
+              key={getItemKey(item, index)}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: Math.min(index * 0.1, 1) }}
+            >
+              {item.type === "tip" ? (
+                <div className="px-4">
+                  <TipCard tip={item.content} />
+                </div>
+              ) : item.type === "regular" ? (
+                <div className="px-4">
+                  <ExerciseCard
+                    exercise={item.exercise!}
+                    references={references.exercises}
+                    performance={references.performance}
+                    isLogged={item.exercise!.logged === 1}
+                    onLogSet={() => handleExerciseLog(item)}
+                    onViewDetails={() => handleExerciseDetails(item.exercise!.ref)}
+                    selectedPlan={selectedPlan}
+                    exerciseNumber={index + 1}
+                    isChangingPlan={isChangingPlan}
+                  />
+                </div>
+              ) : (
+                <div className="px-4">
+                  <SupersetCard
+                    exercises={item.exercises!}
+                    references={references.exercises}
+                    onLogPerformance={handleLogPerformance}
+                    onViewDetails={handleExerciseDetails}
+                    selectedPlan={selectedPlan}
+                    exerciseNumber={index + 1}
+                    isChangingPlan={isChangingPlan}
+                  />
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
     );
   }, [
+    isContentReady,
     exercisesWithTips,
     references.exercises,
     references.performance,
@@ -505,6 +580,22 @@ const WorkoutPlansContent = ({
 
   return (
     <div className="min-h-screen w-full bg-transparent relative overflow-hidden">
+      {/* Add transition overlay */}
+      <AnimatePresence>
+        {(isChangingPlan || isTransitioning) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-background/5 backdrop-blur-sm"
+          >
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="container mx-auto">
         <div className="flex flex-col gap-4">
           <PlanHero
@@ -524,12 +615,15 @@ const WorkoutPlansContent = ({
 
         <motion.div 
           className={cn(
-            "workout-content transition-all duration-300 ease-in-out",
-            isChangingPlan && "opacity-0 scale-95"
+            "workout-content transition-all duration-300 ease-out",
+            (isChangingPlan || isTransitioning || !isContentReady) && "opacity-0 scale-95"
           )}
           initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
+          animate={{ 
+            opacity: isChangingPlan || isTransitioning ? 0 : 1,
+            scale: isChangingPlan || isTransitioning ? 0.95 : 1 
+          }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
         >
           <div className="flex justify-center">
             <div className="w-full max-w-3xl">
@@ -613,10 +707,11 @@ export default function WorkoutPlans() {
     isLoading: loading, 
     error, 
     fetch: refreshData,
-    clearMediaCache 
+    clearMediaCache,
+    isInitialized 
   } = useClientStore();
 
-  // Cleanup on unmount
+  // Cleanup on unmount only
   useEffect(() => {
     return () => {
       clearMediaCache();
@@ -627,17 +722,19 @@ export default function WorkoutPlans() {
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       console.error('Workout Plans Error:', event);
-      clearMediaCache();
     };
 
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
-  }, [clearMediaCache]);
+  }, []);
+
+  // Only show skeleton if not initialized
+  const showSkeleton = !isInitialized || loading;
 
   return (
     <WorkoutErrorBoundary>
       <PageTransition
-        loading={loading}
+        loading={showSkeleton}
         error={error}
         skeleton={<WorkoutPlanSkeleton />}
       >

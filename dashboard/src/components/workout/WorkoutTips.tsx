@@ -399,7 +399,7 @@ export const TipCard: React.FC<TipCardProps> = React.memo(({ tip }) => {
 
         {/* Floating emojis background animation */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync">
             {[...Array(3)].map((_, i) => (
               <motion.div
                 key={i}

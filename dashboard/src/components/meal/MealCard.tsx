@@ -119,23 +119,42 @@ export const MealCard: React.FC<MealCardProps> = React.memo(({
   isChangingPlan
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const style = mealStyles[meal] || mealStyles['Snack 1']; // Default fallback
+  const { mediaCache } = useClientStore();
+  const style = mealStyles[meal] || mealStyles['Snack 1'];
+  
+  // Memoize food image URLs
+  const foodImages = useMemo(() => 
+    foods.map(food => {
+      const ref = foodRefs[food.ref];
+      return mediaCache.images[ref.image] || ref.image;
+    }),
+    [foods, foodRefs, mediaCache.images]
+  );
+
+  // Memoize meal totals calculation
+  const mealTotals = useMemo(() => 
+    foods.reduce((acc, food) => ({
+      calories: acc.calories + food.nutrition.energy.value,
+      protein: acc.protein + food.nutrition.protein.value,
+      carbs: acc.carbs + food.nutrition.carbs.value,
+      fat: acc.fat + food.nutrition.fat.value
+    }), { calories: 0, protein: 0, carbs: 0, fat: 0 }),
+    [foods]
+  );
+
+  // Reset expanded state when changing meals
+  useEffect(() => {
+    setIsExpanded(false);
+  }, [meal]);
+
   const [isImageLoading, setIsImageLoading] = useState(true);
   const imageRefs = useRef<Record<string, HTMLImageElement>>({});
-  const { mediaCache } = useClientStore();
   
   // Generate emoji pattern once using useMemo
   const emojiElements = useMemo(() => 
     generateEmojiPattern(style.emojis),
     [meal]
   );
-
-  const mealTotals = foods.reduce((acc, food) => ({
-    calories: acc.calories + food.nutrition.energy.value,
-    protein: acc.protein + food.nutrition.protein.value,
-    carbs: acc.carbs + food.nutrition.carbs.value,
-    fat: acc.fat + food.nutrition.fat.value
-  }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
 
   // Use cached images if available
   const imageUrls = useMemo(() => {

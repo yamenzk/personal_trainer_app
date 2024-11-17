@@ -849,7 +849,7 @@ export const ExerciseDetailsModal = memo(
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto">
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="sync">
                 {selectedTab === "overview" && renderOverviewTab()}
                 {selectedTab === "performance" && renderPerformanceTab()}
               </AnimatePresence>

@@ -43,10 +43,20 @@ class MembershipCache:
         """Get cache key for library items (foods/exercises)"""
         return f"library:{item_type}:{item_id}"
 
+    def get_version_hash_key(self, membership_id: str) -> str:
+        """Get cache key for version hash"""
+        return f"version_hash:{membership_id}"
+
+    # In the same class MembershipCache
     def get_membership_version(self, membership_id: str) -> str:
         """Get version hash based on membership, client, and plans data"""
         try:
-            CODE_VERSION = "1.4"
+            # Try to get cached version first
+            cached_version = frappe.cache().get_value(self.get_version_hash_key(membership_id))
+            if cached_version:
+                return cached_version
+
+            CODE_VERSION = "1.7"
             membership_doc = frappe.get_doc("Membership", membership_id)
             client_doc = frappe.get_doc("Client", membership_doc.client)
             
@@ -64,11 +74,19 @@ class MembershipCache:
                 f"l:{max(p.modified for p in plans) if plans else 'none'}"
             ]
             
-            return hashlib.md5(":".join(version_parts).encode()).hexdigest()
+            version = hashlib.md5(":".join(version_parts).encode()).hexdigest()
+            
+            # Cache the version
+            frappe.cache().set_value(
+                self.get_version_hash_key(membership_id),
+                version,
+                expires_in_sec=self.MEMBERSHIP_CACHE_TIMEOUT
+            )
+            
+            return version
         except Exception as e:
             frappe.log_error(f"Error generating membership version: {str(e)}")
             return None
-
     def get_cached_membership_data(self, membership_id: str) -> Optional[Dict[str, Any]]:
         """Get cached membership data if valid"""
         cache_key = self.get_membership_cache_key(membership_id)
@@ -416,7 +434,7 @@ def get_membership(membership: str) -> Dict[str, Any]:
         
         # Try to get cached membership data
         cached_data = cache.get_cached_membership_data(membership)
-        if cached_data:
+        if (cached_data):
             return cached_data
 
         # Fetch and validate core documents
@@ -608,3 +626,14 @@ def update_client(client_id, is_performance=0, exercise_ref=None, exercise_day=N
     frappe.db.commit()
 
     return {"status": "success", "message": "Client updated successfully"}
+
+@frappe.whitelist(allow_guest=True)
+def get_membership_version(membership: str) -> Dict[str, str]:
+    """Get version hash of membership data"""
+    try:
+        cache = MembershipCache()
+        version = cache.get_membership_version(membership)
+        return {"version": version}
+    except Exception as e:
+        frappe.log_error(f"Error getting membership version: {str(e)}")
+        return {"error": str(e)}

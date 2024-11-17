@@ -103,13 +103,14 @@ export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = React.memo(({
   const [expandedNames, setExpandedNames] = useState<Record<string, boolean>>(
     {}
   );
-  const { mediaCache } = useClientStore();
+  const { mediaCache, preloadImages } = useClientStore();
   const imageRef = useRef<HTMLImageElement>(null);
 
-  // Use cached image if available
-  const imageUrl = useMemo(() => {
-    return mediaCache.images[foodRef.image] || foodRef.image;
-  }, [foodRef.image, mediaCache.images]);
+  // Memoize image URL
+  const imageUrl = useMemo(() => 
+    mediaCache.images[foodRef.image] || foodRef.image,
+    [foodRef.image, mediaCache.images]
+  );
 
   // Cleanup when modal closes
   useEffect(() => {
@@ -127,23 +128,10 @@ export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = React.memo(({
 
   // Preload image when modal opens
   useEffect(() => {
-    if (isOpen && imageUrl && !mediaCache.images[imageUrl]) {
-      const img = new Image();
-      img.src = imageUrl;
-      img.onload = () => {
-        useClientStore.setState(state => ({
-          ...state,
-          mediaCache: {
-            ...state.mediaCache,
-            images: {
-              ...state.mediaCache.images,
-              [imageUrl]: imageUrl
-            }
-          }
-        }));
-      };
+    if (isOpen && foodRef.image && !mediaCache.images[foodRef.image]) {
+      preloadImages([foodRef.image]);
     }
-  }, [isOpen, imageUrl, mediaCache.images]);
+  }, [isOpen, foodRef.image, mediaCache.images, preloadImages]);
 
   // Fetch micronutrients data when tab is selected
   useEffect(() => {
@@ -165,6 +153,22 @@ export const FoodDetailsModal: React.FC<FoodDetailsModalProps> = React.memo(({
       fetchMicros();
     }
   }, [selectedTab, food.ref, micros]);
+
+  // Memoize nutrition calculations for performance
+  const nutritionValues = useMemo(() => ({
+    serving: {
+      calories: food.nutrition.energy.value,
+      protein: food.nutrition.protein.value,
+      carbs: food.nutrition.carbs.value,
+      fat: food.nutrition.fat.value,
+    },
+    per100g: {
+      calories: foodRef.nutrition_per_100g.energy.value,
+      protein: foodRef.nutrition_per_100g.protein.value,
+      carbs: foodRef.nutrition_per_100g.carbs.value,
+      fat: foodRef.nutrition_per_100g.fat.value,
+    }
+  }), [food, foodRef]);
 
   // Add function to calculate actual serving values
   const calculateServingValue = (value: number) => {

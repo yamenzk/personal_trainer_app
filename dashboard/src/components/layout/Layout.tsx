@@ -5,6 +5,7 @@ import BottomNavbar from './BottomNavbar';
 import { useLocation } from 'react-router-dom';
 import { getAnnouncement } from '@/utils/api';
 import { cn } from '@nextui-org/react';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
 
 interface AnnouncementData {
   bg_class: string;
@@ -112,6 +113,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
         >
           {children}
         </main>
+        
+        {/* Offline Indicator */}
+        <OfflineIndicator />
         
         {/* Bottom Navigation */}
         {!hideNavigation && (

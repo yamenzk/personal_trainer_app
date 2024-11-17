@@ -1,8 +1,8 @@
-
 import { motion } from "framer-motion";
 import { Coffee, Sun, Moon, Apple, Utensils, Clock, Carrot, Beef } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { MealContextualTipProps } from "@/types";
+import { useMemo } from 'react';
 
 const getTimeBasedTip = () => {
   const hour = new Date().getHours();
@@ -60,13 +60,17 @@ const getNutritionTip = () => {
   return tips[Math.floor(Math.random() * tips.length)];
 };
 
-export const MealContextualTip: React.FC<MealContextualTipProps> = ({
-  }) => {
-  const tipToShow = Math.random() > 0.5 ? getTimeBasedTip() : getNutritionTip();
+export const MealContextualTip: React.FC<MealContextualTipProps> = (props) => {
+  const tipToShow = useMemo(() => ({
+    ...Math.random() > 0.5 ? getTimeBasedTip() : getNutritionTip(),
+    id: Math.random().toString(36).substr(2, 9)
+  }), []); 
+  
   const Icon = tipToShow.icon;
 
   return (
     <motion.div
+      key={tipToShow.id}  // Add stable key
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}

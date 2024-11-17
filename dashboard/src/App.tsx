@@ -204,17 +204,36 @@ export const usePreferencesUpdate = () => {
 };
 
 function App() {
-  const { fetch, needsRefresh } = useClientStore();
+  const { fetch, needsRefresh, offlineMode, setOfflineMode, initializeOfflineData } = useClientStore();
   const { isAuthenticated } = useAuth();
 
+  // Monitor online/offline status
   useEffect(() => {
-    // Handle Frappe backend routes
-    const path = window.location.pathname;
-    if (path.startsWith('/app') || path === '/login') {
-      // Remove any frontend route handling for these paths
-      return;
-    }
-    
+    const handleOnline = () => {
+      setOfflineMode(false);
+      if (offlineMode) {
+        initializeOfflineData();
+      }
+    };
+
+    const handleOffline = () => {
+      setOfflineMode(true);
+    };
+
+    // Set initial state
+    setOfflineMode(!navigator.onLine);
+
+    // Add event listeners
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [offlineMode, initializeOfflineData, setOfflineMode]);
+
+  useEffect(() => {
     if (isAuthenticated && needsRefresh()) {
       fetch();
     }
@@ -265,4 +284,5 @@ function App() {
     </FrappeProvider>
   );
 }
+
 export default App;
