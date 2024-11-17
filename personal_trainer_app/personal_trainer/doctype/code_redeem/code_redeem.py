@@ -34,4 +34,5 @@ class CodeRedeem(Document):
         if promo_code.duration:
             # Add duration to the end date of membership
             membership.end = add_to_date(membership.end, seconds=promo_code.additional_duration)
-            membership.save()
+            membership.save(ignore_permissions=True)
+            frappe.db.commit()

@@ -7,16 +7,6 @@ import { useEffect } from 'react';
 export const MembershipSection = () => {
   const { membership, fetch } = useClientStore();
   
-  // Add an effect to keep membership data fresh
-  useEffect(() => {
-    if (membership) {
-      const refreshInterval = setInterval(() => {
-        fetch();
-      }, 60000); // Refresh every minute
-      
-      return () => clearInterval(refreshInterval);
-    }
-  }, [membership, fetch]);
 
   if (!membership) return null;
 

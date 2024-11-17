@@ -7,7 +7,7 @@ import {
 } from "@nextui-org/react";
 import { Ticket, Gift, Sparkles, CheckCircle } from 'lucide-react';
 import { PromoCode, PromoCodeModalProps } from '@/types';
-import { useClientStore } from '@/stores/clientStore';
+import { refetchClientData, useClientStore } from '@/stores/clientStore';
 
 const getFriendlyErrorMessage = (error: string) => {
   const errorMap: Record<string, string> = {
@@ -70,7 +70,7 @@ export const PromoCodeModal = ({ isOpen, onClose }: PromoCodeModalProps) => {
           message: 'Great! Your discount has been applied to your account.' 
         });
         // Immediately fetch fresh data
-        await fetch();
+        await refetchClientData();
         // Close modal after a brief delay to show success message
         setTimeout(() => {
           onClose();

@@ -21,7 +21,7 @@ import OnboardingWizard from "./components/onboarding/OnboardingWizard";
 import { AnimatePresence } from "framer-motion";
 import { NavigationProvider } from "./contexts/NavigationContext";
 import dayjs from "dayjs";
-import { useClientStore } from "@/stores/clientStore";
+import { refetchClientData, useClientStore } from "@/stores/clientStore";
 import { Client } from "@/types";
 
 const getMissingSteps = (client: Client | null): string[] => {
@@ -130,7 +130,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   // Modified onboarding completion handler
   const handleOnboardingComplete = async () => {
     setShowOnboarding(false); // Hide onboarding immediately
-    await fetch(); // Refresh client data
+    await refetchClientData();// Refresh client data
   };
 
   const handlePreferencesUpdate = (steps: string[]) => {
