@@ -192,7 +192,7 @@ function App() {
               <AuthProvider>
                 <AnimatePresence mode="wait">
                   <Routes>
-                    <Route path="/login" element={<Login />} />
+                    <Route path="/client/login" element={<Login />} /> {/* Changed from "/login" */}
                     <Route path="/*" element={
                       <ProtectedRoute>
                         <Routes>
