@@ -32,3 +32,16 @@ def on_food_update(doc, method):
     cache = MembershipCache()
     if cache.get_cached_library_item("Food", doc.name):
         frappe.cache().delete_value(cache.get_library_cache_key("Food", doc.name))
+
+def on_chat_update(doc, method):
+    """Handle chat updates"""
+    frappe.publish_realtime(
+        "chat_update", 
+        {
+            "doctype": "Chat",
+            "membership": doc.membership,
+            "creation": doc.creation
+        },
+        room="website",
+        after_commit=True
+    )

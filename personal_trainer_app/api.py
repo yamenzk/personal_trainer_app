@@ -647,3 +647,69 @@ def get_announcement_version():
     except Exception as e:
         frappe.log_error(f"Error getting announcement version: {str(e)}")
         return {"error": str(e)}
+
+@frappe.whitelist(allow_guest=True)
+def get_chat(membership):
+    try:
+        chats = frappe.get_all("Chat", filters={"membership": membership}, fields=["*"])
+        return chats
+    except Exception as e:
+        frappe.log_error(f"Error in get_chat: {str(e)}")
+        return {"status": "error", "message": f"An error occurred: {str(e)}"}
+    
+@frappe.whitelist(allow_guest=True)
+def send_chat(membership, message, response=0):
+    frappe.get_doc({
+        "doctype": "Chat",
+        "membership": membership,
+        "message": message,
+        "response": response
+    }).save(ignore_permissions=True)
+    frappe.db.commit()
+    return {"status": "success", "message": "Chat sent successfully."}
+
+
+@frappe.whitelist(allow_guest=True)
+def mark_chats_read(membership, coach=0):
+    if int(coach) == 0:
+        frappe.db.sql("""
+            UPDATE `tabChat`
+            SET `read` = 1
+            WHERE membership = %s AND `read` = 0 AND response = 1
+        """, membership)
+    else:
+        frappe.db.sql("""
+            UPDATE `tabChat`
+            SET `read` = 1
+            WHERE membership = %s AND `read` = 0 AND response = 0
+        """, membership)
+
+    frappe.db.commit()
+    return {"status": "success", "message": "Chats marked as read."}
+
+@frappe.whitelist()
+def fetch_all_chats():
+    # Get all chats with their linked membership details
+    chats = frappe.get_all("Chat", 
+                          fields=["*"],
+                          order_by="creation")
+    
+    # Group chats by membership and fetch client names
+    grouped_chats = {}
+    for chat in chats:
+        if chat.membership not in grouped_chats:
+            # Get client name through the membership -> client link
+            client_name = frappe.db.get_value(
+                "Client", 
+                frappe.db.get_value("Membership", chat.membership, "client"),
+                "client_name"
+            )
+            grouped_chats[chat.membership] = {
+                "chats": [],
+                "client_name": client_name
+            }
+        grouped_chats[chat.membership]["chats"].append(chat)
+    
+    return grouped_chats
+
+

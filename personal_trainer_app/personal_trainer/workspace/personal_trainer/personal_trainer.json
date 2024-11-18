@@ -1,8 +1,13 @@
 {
  "charts": [],
- "content": "[{\"id\":\"T3FZXdNLaI\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h2\\\">Hello Coach,</span>\",\"col\":12}},{\"id\":\"CIOnW0kd3V\",\"type\":\"card\",\"data\":{\"card_name\":\"Library\",\"col\":4}},{\"id\":\"jsIAfzuZUm\",\"type\":\"card\",\"data\":{\"card_name\":\"Memberships\",\"col\":4}},{\"id\":\"zHKtNPaVlk\",\"type\":\"card\",\"data\":{\"card_name\":\"Website\",\"col\":4}}]",
+ "content": "[{\"id\":\"T3FZXdNLaI\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h2\\\">Hello Coach,</span>\",\"col\":12}},{\"id\":\"CIOnW0kd3V\",\"type\":\"card\",\"data\":{\"card_name\":\"Library\",\"col\":4}},{\"id\":\"jsIAfzuZUm\",\"type\":\"card\",\"data\":{\"card_name\":\"Memberships\",\"col\":4}},{\"id\":\"zHKtNPaVlk\",\"type\":\"card\",\"data\":{\"card_name\":\"Website\",\"col\":4}},{\"id\":\"T47RYYdk8Z\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Chat\",\"col\":12}}]",
  "creation": "2024-10-25 20:55:53.640861",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "Chat",
+   "label": "Chat"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -141,7 +146,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-11-13 19:48:15.740453",
+ "modified": "2024-11-18 14:58:52.443091",
  "modified_by": "Administrator",
  "module": "Personal Trainer",
  "name": "Personal Trainer",

@@ -5,6 +5,11 @@ app_description = "Frappe App to assist personal trainers in managing their clie
 app_email = "yz.kh@icloud.com"
 app_license = "mit"
 
+fixtures = [
+    "Web Page",
+    "Custom HTML Block"
+]
+
 # Apps
 # ------------------
 
@@ -162,6 +167,10 @@ doc_events = {
     },
     "Food": {
         "on_update": "personal_trainer_app.handlers.on_food_update"
+    },
+    "Chat": {
+        "on_update": "personal_trainer_app.handlers.on_chat_update",
+        "after_insert": "personal_trainer_app.handlers.on_chat_update"
     }
 }
 
@@ -270,4 +279,6 @@ website_route_rules = [
     {'from_route': '/meals', 'to_route': 'dashboard'},
     {'from_route': '/client-login', 'to_route': 'dashboard'}, # Changed from /login
     {'from_route': '/profile', 'to_route': 'dashboard'},
+    {'from_route': '/chat', 'to_route': 'dashboard'},
+
 ]

@@ -8,11 +8,13 @@ import {
   MessageSquare,
   FileText,
 } from 'lucide-react';
-import { Tooltip } from '@nextui-org/react';
+import { Tooltip, Badge } from '@nextui-org/react';
+import { useChat } from '@/hooks/useChat';
 
 const BottomNavbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { unreadCount } = useChat();
 
   const navItems = [
     { 
@@ -40,8 +42,9 @@ const BottomNavbar = () => {
       icon: MessageSquare, 
       label: 'Chat', 
       path: '/chat', 
-      disabled: true,
-      color: 'warning'
+      disabled: false,
+      color: 'warning',
+      badge: unreadCount > 0 ? unreadCount : undefined
     },
     { 
       icon: FileText, 
@@ -65,7 +68,7 @@ const BottomNavbar = () => {
 
       <div className="container mx-auto h-full px-4">
         <div className="h-full flex items-center justify-around relative z-10">
-          {navItems.map(({ icon: Icon, label, path, disabled, color }) => {
+          {navItems.map(({ icon: Icon, label, path, disabled, color, badge }) => {
             const active = isActive(path);
             
             const NavButton = (
@@ -81,13 +84,24 @@ const BottomNavbar = () => {
                 disabled={disabled}
                 aria-label={label}
               >
-                <Icon 
-                  size={20} 
-                  className={cn(
-                    "transition-transform duration-300",
-                    active && "scale-110"
+                <div className="relative inline-flex items-center justify-center">
+                  <Icon 
+                    size={20} 
+                    className={cn(
+                      "transition-transform duration-300",
+                      active && "scale-110"
+                    )}
+                  />
+                  {badge !== undefined && (
+                    <Badge
+                      color="danger"
+                      size="sm"
+                      className="absolute -top-2 -right-2 min-w-[18px] h-[18px]"
+                    >
+                      {badge}
+                    </Badge>
                   )}
-                />
+                </div>
                 <span className={cn(
                   "text-xs font-medium transition-colors duration-300",
                   active ? `text-${color}-500` : "text-foreground/60"

@@ -23,6 +23,7 @@ import { NavigationProvider } from "./contexts/NavigationContext";
 import dayjs from "dayjs";
 import { refetchClientData, useClientStore } from "@/stores/clientStore";
 import { Client } from "@/types";
+import Chat from '@/pages/Chat';
 
 const getMissingSteps = (client: Client | null): string[] => {
   if (!client) return [];
@@ -293,6 +294,7 @@ function App() {
                             <Route path="workouts" element={<WorkoutPlans />} />
                             <Route path="meals" element={<MealPlans />} />
                             <Route path="profile" element={<Profile />} />
+                            <Route path="chat" element={<Chat />} />
                             <Route
                               path="*"
                               element={<Navigate to="/" replace />}

@@ -81,3 +81,18 @@ export interface UseClientDataReturn {
   references: ApiResponse<any>['data']['references'] | null;
   refreshData: () => Promise<void>;
 }
+
+export interface ChatMessage {
+  name: string;
+  creation: string;
+  message: string;
+  response: 0 | 1;
+  read: 0 | 1;
+  membership: string;
+}
+
+export interface ChatResponse {
+  data: ChatMessage[];
+  status?: string;
+  message?: string;
+}

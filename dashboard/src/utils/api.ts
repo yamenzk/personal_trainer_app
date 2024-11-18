@@ -1,6 +1,6 @@
 // src/utils/api.ts
 
-import { ApiResponse, Client, Plan, DayPlan, RegularExercise, MicrosResponse } from '@/types';
+import { ApiResponse, Client, Plan, DayPlan, RegularExercise, MicrosResponse, ChatResponse, ChatMessage } from '@/types';
 
 const API_BASE_URL = '/api/v2/method/personal_trainer_app.api';
 
@@ -218,6 +218,38 @@ export async function updateReferral(clientId: string, referredBy: string): Prom
   const response = await fetch(`${API_BASE_URL}.update_client?${params.toString()}`);
   if (!response.ok) {
     throw new Error('Failed to update referral');
+  }
+}
+
+/**
+ * Chat Functions
+ */
+export async function getChat(membershipId: string): Promise<{ data: ChatMessage[] }> {
+  const response = await fetch(`${API_BASE_URL}.get_chat?membership=${membershipId}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch chat messages');
+  }
+  return response.json();
+}
+
+export async function sendChat(membershipId: string, message: string): Promise<void> {
+  const params = new URLSearchParams({
+    membership: membershipId,
+    message,
+    response: '0'
+  });
+  
+  const response = await fetch(`${API_BASE_URL}.send_chat?${params.toString()}`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to send message');
+  }
+}
+
+export async function markChatsRead(membershipId: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}.mark_chats_read?membership=${membershipId}`);
+  if (!response.ok) {
+    throw new Error('Failed to mark messages as read');
   }
 }
 
