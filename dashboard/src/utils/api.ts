@@ -107,12 +107,9 @@ export async function updateWeight(
 ): Promise<void> {
   const params = new URLSearchParams({
     client_id: clientId,
-    weight: weight.toString()
+    weight: weight.toString(),
+    request_weight: requestWeight ? '1' : '0'  // This will reset the request flag
   });
-  
-  if (requestWeight) {
-    params.append('request_weight', '0');
-  }
   
   const response = await fetch(`${API_BASE_URL}.update_client?${params.toString()}`);
   if (!response.ok) {

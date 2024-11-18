@@ -53,21 +53,21 @@ class Plan(Document):
         # Generate the title field
         client = frappe.get_doc('Client', self.client)
 
-        # Initialize the first and last initials
+        # Initialize the first and last name parts
         first_name = ""
-        last_initial = ""
+        last_name_part = ""
 
         # Check if the client has a name
         if client.client_name:
             client_name = client.client_name.split()
             
-            # Set first name initial
+            # Set full first name
             if len(client_name) > 0:
-                first_name = client_name[0][0].upper()  # First name initial
+                first_name = client_name[0]  # Full first name
             
-            # Set last name initial if available
+            # Set first two letters of last name if available
             if len(client_name) > 1:
-                last_initial = client_name[-1][0].upper()  # Last name initial
+                last_name_part = client_name[-1][:2].upper()  # First two letters of last name
 
         # Format date components
         start_dd_mm = format_date(self.start, "dd/MM")
@@ -75,7 +75,7 @@ class Plan(Document):
         year = format_date(self.start, "YY")
 
         # Construct the title in the desired format
-        self.title = f"{first_name}{last_initial}@{start_dd_mm}-{end_dd_mm}#{year}"
+        self.title = f"{first_name}{last_name_part}@{start_dd_mm}-{end_dd_mm}#{year}"
 
         # Set rest days based on weekly_workouts count
         if 6 >= self.weekly_workouts >= 3:

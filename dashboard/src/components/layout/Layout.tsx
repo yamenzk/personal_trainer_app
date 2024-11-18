@@ -4,9 +4,12 @@ import TopNavbar from './TopNavbar';
 import BottomNavbar from './BottomNavbar';
 import { useLocation } from 'react-router-dom';
 import { getAnnouncement } from '@/utils/api';
-import { cn } from '@nextui-org/react';
+import { Button, cn } from '@nextui-org/react';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { useAnnouncement } from '@/hooks/useAnnouncement';
+import { useClientStore } from '@/stores/clientStore';
+import { WeightModal } from '@/components/shared/WeightModal';
+import { Scale } from 'lucide-react';
 
 interface AnnouncementData {
   bg_class: string;
@@ -19,6 +22,60 @@ interface LayoutProps {
   children: React.ReactNode;
   hideNavigation?: boolean;
 }
+
+const WeightRequestAlert = () => {
+  const client = useClientStore(state => state.client);
+  const [showWeightModal, setShowWeightModal] = useState(false);
+
+  if (!client?.request_weight) return null;
+
+  return (
+    <>
+      <div className="w-full px-4 py-3.5 bg-gradient-to-r from-warning-600 to-warning-400 shadow-lg animate-fadeIn">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div 
+                className="relative p-2.5 bg-white/10 backdrop-blur-md rounded-xl 
+                  transition-all duration-300 ease-out hover:scale-110 hover:bg-white/20
+                  before:absolute before:inset-0 before:rounded-xl before:bg-white/5 
+                  before:animate-pulse group overflow-hidden
+                  border border-white/10 shadow-xl"
+              >
+                <Scale className="w-5 h-5 text-white relative z-10 transition-transform 
+                  [animation:weightIcon_4s_ease-in-out_infinite] group-hover:animate-none" 
+                />
+              </div>
+              <div>
+                <h4 className="font-semibold text-white text-base mb-0.5">Update your weight!</h4>
+                <p className="text-sm font-medium text-white/90">
+                  Your coach has requested a weight update
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              className="bg-white/95 text-warning-600 font-medium shadow-lg
+                hover:bg-white hover:scale-105 transition-all duration-300"
+              variant="solid"
+              onPress={() => setShowWeightModal(true)}
+            >
+              Update Weight
+            </Button>
+          </div>
+        </div>
+      </div>
+      <WeightModal
+        isOpen={showWeightModal}
+        onClose={() => setShowWeightModal(false)}
+        onWeightLogged={() => useClientStore.getState().refetchData()}
+        clientId={client.name}
+        currentWeight={client.current_weight}
+        weightGoal={client.goal}
+      />
+    </>
+  );
+};
 
 const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => {
   const location = useLocation();
@@ -75,6 +132,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNavigation = false }) => 
             </div>
           </div>
         )}
+        
+        {/* Weight Request Alert */}
+        {!hideNavigation && <WeightRequestAlert />}
         
         {/* Main Content */}
         <main 

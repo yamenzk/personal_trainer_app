@@ -1,8 +1,10 @@
 frappe.ui.form.on('Plan', {
     refresh: function(frm) {
-        frm.add_custom_button(__('Fetch Previous'), function() {
-            fetch_previous_plan(frm);
-        });
+        if (frm.doc.client && !frm.is_new()) {
+            frm.add_custom_button(__('Fetch Previous'), () => {
+                fetch_previous_plan(frm);
+            });
+        }
         if (has_required_fields(frm)) {
             const message = generate_summary_html(frm);
             frm.set_intro(message, 'orange');
@@ -210,62 +212,52 @@ function generate_summary_html(frm) {
 }
 
 function handle_membership_selection(frm, memberships) {
+    if (!Array.isArray(memberships)) {
+        frappe.throw(__('Invalid membership data received'));
+        return;
+    }
+
     if (memberships.length === 1) {
         frm.set_value('membership', memberships[0].name);
         frm.save();
     } else if (memberships.length > 1) {
         const options = memberships.map(m => ({
-            label: m.package,
+            label: `${m.package} (${m.name})`,
             value: m.name
         }));
 
         const d = new frappe.ui.Dialog({
-            title: 'Select Membership',
+            title: __('Select Membership'),
             fields: [{
                 fieldname: 'selected_membership',
-                label: 'Membership',
+                label: __('Membership'),
                 fieldtype: 'Select',
-                options: options
+                options: options,
+                reqd: 1
             }],
+            primary_action_label: __('Select'),
             primary_action: function(data) {
-                frm.set_value('membership', data.selected_membership);
-                frm.save();
-                d.hide();
-            }
-        });
-        d.show();
-    }
-}
-
-function populate_exercises(frm, template_field, exercise_table) {
-    if (frm.doc[template_field]) {
-        frm.doc[exercise_table] = [];
-        
-        frappe.call({
-            method: 'frappe.client.get',
-            args: {
-                doctype: 'Exercise Template',
-                name: frm.doc[template_field]
-            },
-            callback: function(response) {
-                if (response.message?.exercises) {
-                    response.message.exercises.forEach(exercise => {
-                        frm.add_child(exercise_table, {
-                            exercise: exercise.exercise,
-                            sets: exercise.sets,
-                            reps: exercise.reps,
-                            rest: exercise.rest,
-                            super: exercise.super
-                        });
-                    });
-                    frm.refresh_field(exercise_table);
+                if (data.selected_membership) {
+                    frm.set_value('membership', data.selected_membership);
+                    frm.save();
+                    d.hide();
                 }
             }
         });
+        d.show();
+    } else {
+        frappe.msgprint(__('No active memberships found for this client.'));
     }
 }
 
 function fetch_previous_plan(frm) {
+    // Disable the button while fetching to prevent double-clicks
+    frm.disable_save();
+    const fetch_btn = frm.page.inner_toolbar.find('button:contains("Fetch Previous")');
+    fetch_btn.prop('disabled', true);
+
+
+    // Step 1: Find the most recent previous plan
     frappe.call({
         method: 'frappe.client.get_list',
         args: {
@@ -273,65 +265,222 @@ function fetch_previous_plan(frm) {
             filters: {
                 client: frm.doc.client,
                 membership: frm.doc.membership,
-                name: ['!=', frm.doc.name]
+                name: ['!=', frm.doc.name],
+                docstatus: ['!=', 2] // Exclude cancelled documents
             },
             fields: ['name'],
             order_by: 'creation desc',
             limit: 1
-        },
-        callback: function(response) {
-            if (response.message && response.message.length > 0) {
-                const previous_plan_name = response.message[0].name;
-                
-                // Fetch only the specified fields of the previous plan document
-                frappe.call({
-                    method: 'frappe.client.get',
-                    args: {
-                        doctype: 'Plan',
-                        name: previous_plan_name,
-                        fields: [
-                            'd1_cheat', 'd1_rest', 'd2_cheat', 'd2_rest', 'd3_cheat', 'd3_rest',
-                            'd4_cheat', 'd4_rest', 'd5_cheat', 'd5_rest', 'd6_cheat', 'd6_rest',
-                            'd7_cheat', 'd7_rest'
-                        ].concat(
-                            ['d1_e', 'd2_e', 'd3_e', 'd4_e', 'd5_e', 'd6_e', 'd7_e', 
-                             'd1_f', 'd2_f', 'd3_f', 'd4_f', 'd5_f', 'd6_f', 'd7_f']
-                        )
-                    },
-                    callback: function(res) {
-                        if (res.message) {
-                            const previous_data = res.message;
-                            populate_form_with_previous_data(frm, previous_data);
-                        }
-                    }
-                });
-            } else {
-                frappe.msgprint(__('No previous plan found for this client and membership.'));
-            }
         }
+    }).then(response => {
+        if (!response.message || !response.message.length) {
+            throw new Error('No previous plan found for this client and membership.');
+        }
+        
+        const previous_plan_name = response.message[0].name;
+        
+        // Step 2: Fetch the complete previous plan document
+        return frappe.call({
+            method: 'frappe.client.get',
+            args: {
+                doctype: 'Plan',
+                name: previous_plan_name
+            }
+        });
+    }).then(response => {
+        if (!response.message) {
+            throw new Error('Failed to fetch previous plan data.');
+        }
+
+        return populate_form_with_previous_data(frm, response.message);
+    }).then(() => {
+        frappe.show_alert({
+            message: __('Previous plan data has been successfully fetched.'),
+            indicator: 'green'
+        });
+    }).catch(error => {
+        frappe.throw({
+            title: __('Error Fetching Previous Plan'),
+            message: __(error.message || 'An unknown error occurred')
+        });
+    }).finally(() => {
+        // Clean up
+        frm.enable_save();
+        fetch_btn.prop('disabled', false);
     });
 }
 
 function populate_form_with_previous_data(frm, previous_data) {
-    // Populate check fields
-    for (let i = 1; i <= 7; i++) {
-        frm.set_value(`d${i}_cheat`, previous_data[`d${i}_cheat`]);
-        frm.set_value(`d${i}_rest`, previous_data[`d${i}_rest`]);
-    }
+    return new Promise((resolve, reject) => {
+        try {
+            // Validate previous data
+            if (!previous_data || typeof previous_data !== 'object') {
+                throw new Error('Invalid previous plan data format');
+            }
 
-    // Populate child tables
-    const child_table_fields = ['d1_e', 'd2_e', 'd3_e', 'd4_e', 'd5_e', 'd6_e', 'd7_e', 'd1_f', 'd2_f', 'd3_f', 'd4_f', 'd5_f', 'd6_f', 'd7_f'];
-    
-    child_table_fields.forEach(table => {
-        if (previous_data[table] && Array.isArray(previous_data[table])) {
-            frm.clear_table(table);
-            previous_data[table].forEach(row_data => {
-                const child = frm.add_child(table);
-                Object.assign(child, row_data);
-            });
-            frm.refresh_field(table);
+            // Start a transaction-like operation
+            frappe.run_serially([
+                // Clear existing data first
+                () => clear_existing_data(frm),
+                
+                // Populate boolean fields
+                () => populate_boolean_fields(frm, previous_data),
+                
+                // Populate exercise tables
+                () => populate_exercise_tables(frm, previous_data),
+                
+                // Populate food tables
+                () => populate_food_tables(frm, previous_data),
+                
+                // Trigger form refresh and resolve
+                () => {
+                    frm.refresh();
+                    resolve();
+                }
+            ]);
+        } catch (error) {
+            reject(error);
         }
     });
+}
+
+function clear_existing_data(frm) {
+    const table_fields = [
+        'd1_e', 'd2_e', 'd3_e', 'd4_e', 'd5_e', 'd6_e', 'd7_e',
+        'd1_f', 'd2_f', 'd3_f', 'd4_f', 'd5_f', 'd6_f', 'd7_f'
+    ];
     
-    frappe.msgprint(__('Previous plan data has been fetched and populated.'));
+    table_fields.forEach(field => {
+        frm.clear_table(field);
+        frm.refresh_field(field);
+    });
+}
+
+function populate_boolean_fields(frm, previous_data) {
+	["cheat", "rest"].forEach((field_type) => {
+		for (let i = 1; i <= 7; i++) {
+			const field_name = `d${i}_${field_type}`;
+			if (typeof previous_data[field_name] === "boolean") {
+				frm.set_value(field_name, previous_data[field_name]);
+			}
+		}
+	});
+}
+
+function populate_exercise_tables(frm, previous_data) {
+    for (let i = 1; i <= 7; i++) {
+        const table_name = `d${i}_e`;
+        const exercises = previous_data[table_name];
+
+        // Clear the table first
+        frm.clear_table(table_name);
+
+        if (Array.isArray(exercises)) {
+            exercises.forEach((exercise) => {
+                if (validate_exercise_row(exercise)) {
+                    // Create a new row
+                    const row = frm.add_child(table_name);
+                    // Only copy specific exercise fields
+                    row.exercise = exercise.exercise;
+                    row.sets = exercise.sets;
+                    row.reps = exercise.reps;
+                    row.rest = exercise.rest;
+                    row.super = exercise.super;
+                }
+            });
+            frm.refresh_field(table_name);
+        }
+    }
+}
+
+function populate_food_tables(frm, previous_data) {
+    for (let i = 1; i <= 7; i++) {
+        const table_name = `d${i}_f`;
+        const foods = previous_data[table_name];
+
+        // Clear the table first
+        frm.clear_table(table_name);
+
+        if (Array.isArray(foods)) {
+            foods.forEach((food) => {
+                if (validate_food_row(food)) {
+                    // Create a new row
+                    const row = frm.add_child(table_name);
+                    // Only copy specific fields we want
+                    row.meal = food.meal;
+                    row.food = food.food;
+                    row.amount = food.amount;
+                }
+            });
+            frm.refresh_field(table_name);
+        }
+    }
+}
+
+function validate_exercise_row(exercise) {
+	return (
+		exercise &&
+		typeof exercise === "object" &&
+		exercise.exercise &&
+		typeof exercise.exercise === "string"
+	);
+}
+
+function validate_food_row(food) {
+	return food && typeof food === "object" && food.food && typeof food.food === "string";
+}
+
+function validate_field_value(value) {
+	return (
+		value !== undefined &&
+		value !== null &&
+		typeof value !== "function" &&
+		typeof value !== "symbol"
+	);
+}
+
+function populate_exercises(frm, template_field, exercise_table) {
+	if (!frm.doc[template_field]) {
+		return;
+	}
+
+	frm.clear_table(exercise_table);
+	frm.refresh_field(exercise_table);
+
+	return new Promise((resolve, reject) => {
+		frappe
+			.call({
+				method: "frappe.client.get",
+				args: {
+					doctype: "Exercise Template",
+					name: frm.doc[template_field],
+				},
+			})
+			.then((response) => {
+				if (response.message?.exercises && Array.isArray(response.message.exercises)) {
+					response.message.exercises.forEach((exercise) => {
+						if (validate_exercise_row(exercise)) {
+							const row = frm.add_child(exercise_table, {
+								exercise: exercise.exercise,
+								sets: exercise.sets,
+								reps: exercise.reps,
+								rest: exercise.rest,
+								super: exercise.super,
+							});
+						}
+					});
+					frm.refresh_field(exercise_table);
+					resolve();
+				} else {
+					reject(new Error("Invalid exercise template data"));
+				}
+			})
+			.catch((error) => {
+				frappe.throw({
+					title: __("Error Populating Exercises"),
+					message: __(error.message || "Failed to populate exercises"),
+				});
+				reject(error);
+			});
+	});
 }
