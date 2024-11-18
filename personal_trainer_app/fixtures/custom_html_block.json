@@ -2,8 +2,8 @@
  {
   "docstatus": 0,
   "doctype": "Custom HTML Block",
-  "html": "<div style=\"width: 50%; height: 800px; border-radius: 8px; overflow: hidden;\">\n    <iframe \n        src=\"/admin-chat\" \n        width=\"50%\" \n        height=\"100%\" \n        frameborder=\"0\"\n        style=\"border: none; width: 100%; height: 100%;\">\n    </iframe>\n</div>",
-  "modified": "2024-11-18 14:58:26.027835",
+  "html": "<div style=\"width: 100%; height: 800px; border-radius: 8px; overflow: hidden;\">\n    <iframe \n        src=\"/admin-chat\" \n        width=\"50%\" \n        height=\"100%\" \n        frameborder=\"0\"\n        style=\"border: none; width: 100%; height: 100%;\">\n    </iframe>\n</div>",
+  "modified": "2024-11-18 15:09:18.693603",
   "name": "Chat",
   "private": 0,
   "roles": [],
